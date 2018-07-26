@@ -1,4 +1,4 @@
-local k = import 'k.libsonnet';
+local k = import 'kubernetes/k.libsonnet';
 local kubecfg = import 'kubecfg.libsonnet';
 
 k + kubecfg {
