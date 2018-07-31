@@ -18,5 +18,6 @@ local k = import 'kubernetes/k.libsonnet';
 ### Render your manifest
 
 ```Bash
-jsonnet -J https://raw.githubusercontent.com/getoutreach/jsonnet-libs/master manifest.jsonnet
+git clone git@github.com:getoutreach/jsonnet-libs.git /tmp/jsonnet-libs
+jsonnet -J /tmp/jsonnet-libs manifest.jsonnet
 ```
