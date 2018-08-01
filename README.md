@@ -12,7 +12,7 @@ brew install jsonnet
 ### Create a jsonnet manifest
 
 ```jsonnet
-local k = import 'kubernetes/k.libsonnet';
+local k = import 'kubernetes/outreach.libsonnet';
 ```
 
 ### Render your manifest

@@ -16,12 +16,22 @@
     },
 
   // Get semver resource
-  getSemver(trigger = false, passed = null, params = null):: 
+  getSemver(trigger = false, passed = null, params = null)::
     { 
       get: 'version',
       [if trigger then 'trigger']: trigger,
       [if passed != null then 'passed']: passed,
       [if params != null then 'params']: params
+    },
+
+  // Get source from github
+  getGitRepo(trigger = null, passed = null, pr = false)::
+    local source = if pr then 'source_pr' else 'source';
+    {
+      get: source,
+      [if trigger != null then 'trigger']: trigger,
+      [if passed != null then 'passed']: passed,
+      [if pr then 'version']: 'every',
     },
 
   // Template for running tasks from repo
@@ -40,12 +50,7 @@
       [if pr then 'PR']: true,
     } + if params != null then params else {};
     std.prune([
-      {
-        get: source,
-        trigger: trigger,
-        [if passed != null then 'passed']: passed,
-        [if pr then 'version']: 'every',
-      },
+      $.getGitRepo(trigger, passed, pr),
       if image != null then { get: image },
       if semver != null then $.getSemver(params = semver),
       if pr then {
@@ -131,6 +136,7 @@
     additional_tags_file = null,
     latest = true,
     semver = { bump: 'patch' },
+    build_args = null,
     pr = false,
   )::
   std.prune([
@@ -142,6 +148,7 @@
         tag: tag_file,
         [if additional_tags_file != null then 'additional_tags']: additional_tags_file,
         tag_as_latest: if pr then false else latest,
+        [if build_args != null then 'build_args']: build_args,
       },
       [if semver != null && pr != true then 'on_success']: {
         put: 'version',
