@@ -19,8 +19,8 @@
         tag: 'master',
       },
     },
-    pull_request: {
-      name: 'pull_request',
+    source_pr: {
+      name: 'source_pr',
       type: 'docker-image',
       source: {
         repository: 'jtarchie/pr',
@@ -76,6 +76,17 @@
         private_key: $.github_key,
       },
     },
+    source_pr: {
+      name: 'source_pr',
+      type: 'source_pr',
+      source: {
+        repo: $.source_repo,
+        uri: 'git@github.com:' + $.source_repo + '.git',
+        base: 'master',
+        access_token: $.github_access_token,
+        private_key: $.github_key,
+      },
+    },
     slack_message: {
       name: 'slack_message',
       type: 'slack_message',
@@ -103,6 +114,36 @@
         tag: '1.2',
         username: $.outreach_registry_username,
         password: $.outreach_registry_password,
+      },
+    },
+    kubeconfig: {
+      name: 'kubeconfig',
+      type: 's3',
+      source: {
+        region_name: 'us-west-2',
+        bucket: 'kubeconfig-files',
+        versioned_file: 'config',
+        access_key_id: $.aws_access_key_id,
+        secret_access_key: $.aws_secret_access_key,
+      },
+    },
+    vault: {
+      name: 'vault',
+      type: 'vault',
+      source: {
+        url: 'https://outreach.vault.svc:8200',
+        tls_skip_verify: true,
+        auth_method: 'AppRole',
+        role_id: '((vault-role-id))',
+        expose_token: true,
+      },
+    },
+    k8s_deploy: {
+      name: 'k8s_deploy',
+      type: 'k8s_deploy',
+      source: {
+        vault_url: 'https://outreach.vault.svc:8200',
+        vault_skip_verify: true,
       },
     },
   },

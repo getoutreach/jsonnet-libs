@@ -33,6 +33,23 @@ local newPipeline(name, source_repo) = {
   // Returns array of values from given object.  Does not include hidden fields.
   objectValues(o):: [o[field] for field in std.objectFields(o)],
 
+  // Return a list of unique steps
+  uniqueSteps(steps)::
+    local resource(step) = if std.objectHas(step, 'get') then 'get:' + step.get
+                           else if std.objectHas(step, 'put') then 'put:' + step.put
+                           else if std.objectHas(step, 'task') then step.task
+                           else step;
+    // [resource(i) for i in steps],
+    std.foldl(
+      function(a, b) (
+        if std.setMember(std.md5(std.manifestJson(resource(b))), std.set([std.md5(std.manifestJson(resource(i))) for i in a]))
+        then a
+        else a + [b]
+      ),
+      steps,
+      []
+    ),
+
   // Return a list of unique array elements
   uniq(arr)::
     std.foldl(
@@ -45,18 +62,18 @@ local newPipeline(name, source_repo) = {
       []
     ),
 
+  stepsArray(steps)::
+    [if std.isObject(step) then [step] else step, for step in steps],
+
   // Convert do step to concourse compatible output
-  do(steps):: { do: std.flattenArrays(steps) },
+  do(steps)::{ do: std.flattenArrays($.stepsArray(steps)) },
 
   // Convert steps to concourse compatible output
   steps(steps):: 
     local default_steps = [
       { get: 'metadata' },
     ];
-    local steps_array(steps) = [
-      if std.isObject(step) then [step] else step, for step in steps
-    ];
-    $.uniq(default_steps + std.flattenArrays(steps_array(steps))),
+    $.uniqueSteps(default_steps + std.flattenArrays($.stepsArray(steps))),
 
   // Read resources from job steps
   resourceList(steps)::
