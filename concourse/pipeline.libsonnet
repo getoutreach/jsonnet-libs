@@ -39,7 +39,6 @@ local newPipeline(name, source_repo) = {
                            else if std.objectHas(step, 'put') then 'put:' + step.put
                            else if std.objectHas(step, 'task') then step.task
                            else step;
-    // [resource(i) for i in steps],
     std.foldl(
       function(a, b) (
         if std.setMember(std.md5(std.manifestJson(resource(b))), std.set([std.md5(std.manifestJson(resource(i))) for i in a]))
@@ -50,30 +49,18 @@ local newPipeline(name, source_repo) = {
       []
     ),
 
-  // Return a list of unique array elements
-  uniq(arr)::
-    std.foldl(
-      function(a, b) (
-        if std.setMember(std.md5(std.manifestJson(b)), [std.md5(std.manifestJson(i)) for i in a])
-        then a
-        else a + [b]
-      ),
-      arr,
-      []
-    ),
-
-  stepsArray(steps)::
+  convertToArrays(steps)::
     [if std.isObject(step) then [step] else step, for step in steps],
 
   // Convert do step to concourse compatible output
-  do(steps)::{ do: std.flattenArrays($.stepsArray(steps)) },
+  do(steps)::{ do: std.flattenArrays($.convertToArrays(steps)) },
 
   // Convert steps to concourse compatible output
   steps(steps):: 
     local default_steps = [
       { get: 'metadata' },
     ];
-    $.uniqueSteps(default_steps + std.flattenArrays($.stepsArray(steps))),
+    $.uniqueSteps(default_steps + std.flattenArrays($.convertToArrays(steps))),
 
   // Read resources from job steps
   resourceList(steps)::
