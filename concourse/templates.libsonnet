@@ -2,7 +2,7 @@
 
 {
   // Create Job
-  newJob(name, group)::
+  newJob(name, group = null)::
     {
       name: name,
       group:: group,
