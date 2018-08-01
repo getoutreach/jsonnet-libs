@@ -339,10 +339,16 @@
     },
 
   Deployment(name, namespace, app=name):
-    $._Object('extensions/v1beta1', 'Deployment', name, app=app, namespace=namespace) {
+    $._Object('apps/v1', 'Deployment', name, app=app, namespace=namespace) {
       local deployment = self,
 
       spec: {
+        selector: {
+          matchLabels: {
+            [if app != null then 'app']: app,
+            [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
+          },
+        },
         template: {
           spec: $.PodSpec,
           metadata: {
@@ -400,7 +406,7 @@
     },
   },
 
-  StatefulSet(name): $._Object('apps/v1beta1', 'StatefulSet', name) {
+  StatefulSet(name): $._Object('apps/v1', 'StatefulSet', name) {
     local sset = self,
 
     spec: {
@@ -442,9 +448,15 @@
   },
 
   DaemonSet(name, namespace, app=name):
-    $._Object('extensions/v1beta1', 'DaemonSet', name, app=app, namespace=namespace) {
+    $._Object('apps/v1', 'DaemonSet', name, app=app, namespace=namespace) {
       local ds = self,
       spec: {
+        selector: {
+          matchLabels: {
+            [if app != null then 'app']: app,
+            [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
+          },
+        },
         template: {
           metadata: {
             labels: ds.metadata.labels,
@@ -460,7 +472,7 @@
       spec: {},
     },
 
-  ThirdPartyResource(name): $._Object('extensions/v1beta1', 'ThirdPartyResource', name) {
+  ThirdPartyResource(name): $._Object('apps/v1', 'ThirdPartyResource', name) {
     versions_:: [],
     versions: [{ name: n } for n in self.versions_],
   },
