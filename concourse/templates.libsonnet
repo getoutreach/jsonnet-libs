@@ -2,10 +2,11 @@
 
 {
   // Create Job
-  newJob(name, group = null)::
+  newJob(name, group = null, serial_groups = null)::
     {
       name: name,
       group:: group,
+      [if serial_groups != null then 'serial_groups']: serial_groups,
       build_logs_to_retain: 100,
       plan_:: [],
       plan: self.plan_,
@@ -44,6 +45,8 @@
     image = null,
     semver = null,
     params = null,
+    attempts = null,
+    update = true,
   )::
     local source = if pr then 'source_pr' else 'source';
     local custom_params = {
@@ -53,14 +56,14 @@
       $.getGitRepo(trigger, passed, pr),
       if image != null then { get: image },
       if semver != null then $.getSemver(params = semver),
-      if pr then {
+      if pr && update then {
         put: source,
         params: {
           path: source,
           status: 'pending',
         },
       }
-      else {
+      else if update then {
         put: 'github_status',
         params: {
           state: 'pending',
@@ -73,7 +76,8 @@
         [if image != null then 'image']: image,
         [if pr then 'input_mapping']: { source: source },
         params: custom_params,
-        file: source + '/' + path
+        file: source + '/' + path,
+        [if attempts != null then 'attempts']: attempts,
       },
     ]),
 
