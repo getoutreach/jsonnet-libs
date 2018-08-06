@@ -287,8 +287,8 @@
           namespace: namespace,
           kubeconfig_file: 'kubeconfig/config',
           [if vault then 'vault_token_file']: 'vault/token',
-          [if vault && vault_secrets != null then 'vault_secrets_path']: vault_secrets,
-          [if vault && vault_configs != null then 'vault_configs_path']: vault_configs,
+          [if vault && vault_secrets != null then 'vault_secrets']: std.flattenArrays([vault_secrets]),
+          [if vault && vault_configs != null then 'vault_configs']: std.flattenArrays([vault_configs]),
           [if source != null && manifests != null then 'manifest_path']: source + '/' + manifests,
           kubecfg_variables: {
             namespace: namespace,
