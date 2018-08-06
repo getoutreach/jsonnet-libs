@@ -272,6 +272,8 @@
     semver = null,
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
+    local secret_array = if std.isArray(vault_secrets) then vault_secrets else [vault_secrets];
+    local config_array = if std.isArray(vault_configs) then vault_configs else [vault_configs];
     std.prune([
       if cluster_name == null then error '`cluster_name` parameter is required!',
       if namespace == null then error '`namespace` parameter is required!',
@@ -287,8 +289,8 @@
           namespace: namespace,
           kubeconfig_file: 'kubeconfig/config',
           [if vault then 'vault_token_file']: 'vault/token',
-          [if vault && vault_secrets != null then 'vault_secrets']: std.flattenArrays([vault_secrets]),
-          [if vault && vault_configs != null then 'vault_configs']: std.flattenArrays([vault_configs]),
+          [if vault && vault_secrets != null then 'vault_secrets']: secret_array,
+          [if vault && vault_configs != null then 'vault_configs']: config_array,
           [if source != null && manifests != null then 'manifest_path']: source + '/' + manifests,
           kubecfg_variables: {
             namespace: namespace,
