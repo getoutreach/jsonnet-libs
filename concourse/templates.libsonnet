@@ -154,7 +154,7 @@
         tag_as_latest: if pr then false else latest,
         [if build_args != null then 'build_args']: build_args,
       },
-      [if semver != null && pr != true then 'on_success']: {
+      [if semver != null then 'on_success']: {
         put: 'version',
         params: {
           file: 'version/version',
