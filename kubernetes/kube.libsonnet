@@ -217,17 +217,29 @@
 
   PodSpec: {
     // The 'first' container is used in various defaults in k8s.
-    default_container:: std.objectFields(self.containers)[0],
-    //containers_:: {},
+    local container_names = std.objectFields(self.containers_),
+    default_container:: if std.length(container_names) > 1 then 'default' else container_names[0],
+    containers_:: {},
 
-    //containers: [{ name: $.hyphenate(name) } + self.containers_[name] for name in [self.default_container] + [n for n in std.objectFields(self.containers_) if n != self.default_container]],
+    local container_names_ordered = [self.default_container] + [
+      n
+      for n in container_names
+      if n != self.default_container
+    ],
+    containers: [
+      { name: $.hyphenate(name) } + self.containers_[name]
+      for name in container_names_ordered
+      if self.containers_[name] != null
+    ],
 
-    //initContainers_:: {},
-    //initContainers:
-    //  [
-    //    { name: $.hyphenate(name) } + self.initContainers_[name]
-    //    for name in std.objectFields(self.initContainers_)
-    //  ],
+
+    // Note initContainers are inherently ordered, and using this
+    // named object will lose that ordering.  If order matters, then
+    // manipulate `initContainers` directly (perhaps
+    // appending/prepending to `super.initContainers` to mix+match
+    // both approaches)
+    initContainers_:: {},
+    initContainers: [{ name: $.hyphenate(name) } + self.initContainers_[name] for name in std.objectFields(self.initContainers_) if self.initContainers_[name] != null],
 
     volumes_:: {},
     volumes: $.mapToNamedList(self.volumes_),
