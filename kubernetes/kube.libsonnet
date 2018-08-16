@@ -232,7 +232,7 @@
     containers: [
       { name: $.hyphenate(name) } + self.containers_[name]
       for name in container_names_ordered
-      if name != null and self.containers_[name] != null
+      if name != null && self.containers_[name] != null
     ],
 
 
