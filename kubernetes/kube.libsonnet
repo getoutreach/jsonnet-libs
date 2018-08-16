@@ -403,7 +403,7 @@
     name: target.metadata.name,
   },
 
-  HorizontalPodAutoscaler(name): $._Object('autoscaling/v1', 'HorizontalPodAutoscaler', name) {
+  HorizontalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling/v1', 'HorizontalPodAutoscaler', name, app=app, namespace=namespace) {
     local hpa = self,
 
     target:: error 'target required',
