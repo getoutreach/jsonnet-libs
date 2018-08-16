@@ -218,7 +218,10 @@
   PodSpec: {
     // The 'first' container is used in various defaults in k8s.
     local container_names = std.objectFields(self.containers_),
-    default_container:: if std.length(container_names) > 1 then 'default' else container_names[0],
+    default_container::
+      if std.length(container_names) > 1 then 'default'
+      else if std.length(container_names) == 1 then container_names[0],
+      else '', // this happens if we directly set self.containers, and then we don't use this
     containers_:: {},
 
     local container_names_ordered = [self.default_container] + [
