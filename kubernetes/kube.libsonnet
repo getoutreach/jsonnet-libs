@@ -221,7 +221,7 @@
     default_container::
       if std.length(container_names) > 1 then 'default'
       else if std.length(container_names) == 1 then container_names[0]
-      else '',  // this happens if we directly set self.containers, and then we don't use this
+      else null,  // this happens if we directly set self.containers, and then we don't use this
     containers_:: {},
 
     local container_names_ordered = [self.default_container] + [
@@ -232,7 +232,7 @@
     containers: [
       { name: $.hyphenate(name) } + self.containers_[name]
       for name in container_names_ordered
-      if self.containers_[name] != null
+      if name != null and self.containers_[name] != null
     ],
 
 
