@@ -418,27 +418,30 @@
     },
   },
 
-  StatefulSet(name): $._Object('apps/v1', 'StatefulSet', name) {
-    local sset = self,
 
-    spec: {
-      serviceName: name,
+  StatefulSet(name, namespace, app=name):
+    $._Object('apps/v1', 'StatefulSet', name, app=app, namespace=namespace) {
+      local sset = self,
 
-      template: {
-        spec: $.PodSpec,
-        metadata: {
-          labels: sset.metadata.labels,
-          annotations: {},
+      spec: {
+        selector: { matchLabels: sset.metadata.labels },
+        serviceName: name,
+
+        template: {
+          spec: $.PodSpec,
+          metadata: {
+            labels: sset.metadata.labels,
+            annotations: {},
+          },
         },
+
+        volumeClaimTemplates_:: {},
+        volumeClaimTemplates: [$.PersistentVolumeClaim($.hyphenate(kv[0])) + kv[1] for kv in $.objectItems(self.volumeClaimTemplates_)],
+
+        replicas: 1,
+        assert self.replicas >= 1,
       },
-
-      volumeClaimTemplates_:: {},
-      volumeClaimTemplates: [$.PersistentVolumeClaim($.hyphenate(kv[0])) + kv[1] for kv in $.objectItems(self.volumeClaimTemplates_)],
-
-      replicas: 1,
-      assert self.replicas >= 1,
     },
-  },
 
   Job(name): $._Object('batch/v1', 'Job', name) {
     local job = self,
