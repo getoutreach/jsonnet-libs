@@ -525,6 +525,10 @@
     kind: 'ClusterRoleBinding',
   },
 
+  LimitRange(name, namespace): $._Object('v1', 'LimitRange', name, namespace=namespace),
+
+  PodDisruptionBudget(name, namespace): $._Object('policy/v1beta1', 'PodDisruptionBudget', name, namespace=namespace),
+
   APIService(name, app=name): $._Object('apiregistration.k8s.io/v1beta1', 'APIService', name, app=app) {
     local api = self,
     kind: 'APIService',
