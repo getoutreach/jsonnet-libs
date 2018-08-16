@@ -16,11 +16,12 @@ k + kubecfg {
     servicePort='http',
     tlsSecret=null,
   ): self.Ingress(name, namespace, app=app) {
+    local this = self,
 
-    local host = '%s.%s.%s' % [name, $.cluster.name, ingressDomain],
+    host:: '%s.%s.%s' % [name, $.cluster.name, ingressDomain],
     local target = '%s.%s.%s' % [contour, $.cluster.name, contourDomain],
     local rule = {
-      host: host,
+      host: this.host,
       http: {
         paths: [{
           backend: {
@@ -31,7 +32,7 @@ k + kubecfg {
       },
     },
     local tls = {
-      hosts: [host],
+      hosts: [this.host],
       secretName: tlsSecret,
     },
     local tlsAnnotations = {

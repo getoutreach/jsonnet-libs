@@ -217,17 +217,29 @@
 
   PodSpec: {
     // The 'first' container is used in various defaults in k8s.
-    default_container:: std.objectFields(self.containers)[0],
-    //containers_:: {},
+    local container_names = std.objectFields(self.containers_),
+    default_container:: if std.length(container_names) > 1 then 'default' else container_names[0],
+    containers_:: {},
 
-    //containers: [{ name: $.hyphenate(name) } + self.containers_[name] for name in [self.default_container] + [n for n in std.objectFields(self.containers_) if n != self.default_container]],
+    local container_names_ordered = [self.default_container] + [
+      n
+      for n in container_names
+      if n != self.default_container
+    ],
+    containers: [
+      { name: $.hyphenate(name) } + self.containers_[name]
+      for name in container_names_ordered
+      if self.containers_[name] != null
+    ],
 
-    //initContainers_:: {},
-    //initContainers:
-    //  [
-    //    { name: $.hyphenate(name) } + self.initContainers_[name]
-    //    for name in std.objectFields(self.initContainers_)
-    //  ],
+
+    // Note initContainers are inherently ordered, and using this
+    // named object will lose that ordering.  If order matters, then
+    // manipulate `initContainers` directly (perhaps
+    // appending/prepending to `super.initContainers` to mix+match
+    // both approaches)
+    initContainers_:: {},
+    initContainers: [{ name: $.hyphenate(name) } + self.initContainers_[name] for name in std.objectFields(self.initContainers_) if self.initContainers_[name] != null],
 
     volumes_:: {},
     volumes: $.mapToNamedList(self.volumes_),
@@ -391,7 +403,7 @@
     name: target.metadata.name,
   },
 
-  HorizontalPodAutoscaler(name): $._Object('autoscaling/v1', 'HorizontalPodAutoscaler', name) {
+  HorizontalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling/v1', 'HorizontalPodAutoscaler', name, app=app, namespace=namespace) {
     local hpa = self,
 
     target:: error 'target required',
@@ -406,27 +418,30 @@
     },
   },
 
-  StatefulSet(name): $._Object('apps/v1', 'StatefulSet', name) {
-    local sset = self,
 
-    spec: {
-      serviceName: name,
+  StatefulSet(name, namespace, app=name):
+    $._Object('apps/v1', 'StatefulSet', name, app=app, namespace=namespace) {
+      local sset = self,
 
-      template: {
-        spec: $.PodSpec,
-        metadata: {
-          labels: sset.metadata.labels,
-          annotations: {},
+      spec: {
+        selector: { matchLabels: sset.metadata.labels },
+        serviceName: name,
+
+        template: {
+          spec: $.PodSpec,
+          metadata: {
+            labels: sset.metadata.labels,
+            annotations: {},
+          },
         },
+
+        volumeClaimTemplates_:: {},
+        volumeClaimTemplates: [$.PersistentVolumeClaim($.hyphenate(kv[0])) + kv[1] for kv in $.objectItems(self.volumeClaimTemplates_)],
+
+        replicas: 1,
+        assert self.replicas >= 1,
       },
-
-      volumeClaimTemplates_:: {},
-      volumeClaimTemplates: [$.PersistentVolumeClaim($.hyphenate(kv[0])) + kv[1] for kv in $.objectItems(self.volumeClaimTemplates_)],
-
-      replicas: 1,
-      assert self.replicas >= 1,
     },
-  },
 
   Job(name): $._Object('batch/v1', 'Job', name) {
     local job = self,
@@ -509,6 +524,10 @@
   ClusterRoleBinding(name, app=name): $.RoleBinding(name, app=app) {
     kind: 'ClusterRoleBinding',
   },
+
+  LimitRange(name, namespace): $._Object('v1', 'LimitRange', name, namespace=namespace),
+
+  PodDisruptionBudget(name, namespace): $._Object('policy/v1beta1', 'PodDisruptionBudget', name, namespace=namespace),
 
   APIService(name, app=name): $._Object('apiregistration.k8s.io/v1beta1', 'APIService', name, app=app) {
     local api = self,
