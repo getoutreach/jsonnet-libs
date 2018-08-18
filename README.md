@@ -3,7 +3,7 @@ Libraries to help simplify Outreach manifests
 
 ## Use Jsonnet to deploy to Kubernetes
 
-To build deploy to Kubernetes manifests we use kubecfg, it natively supports jsonnet and helps simplify and standardize the way we build our manifests.
+To deploy to Kubernetes we use kubecfg, it natively supports jsonnet and helps simplify and standardize the way we build our manifests.
 
 ### Install kubecfg
 
