@@ -1,6 +1,6 @@
 local k = import 'kube.libsonnet';
 local kubecfg = import 'kubecfg.libsonnet';
-local clusters = kubecfg.parseYaml(importstr 'clusters.yaml')[0];
+local clusters = kubecfg.parseYaml(importstr 'clusters.yaml');
 
 k + kubecfg {
   cluster:: clusters[std.extVar('cluster')] {
