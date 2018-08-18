@@ -21,7 +21,7 @@ https://github.com/getoutreach/concourse-example/blob/master/k8s/manifests/deplo
 
 ```Bash
 kubecfg \
---jurl http://k8s-clusters.outreach.cloud \
+--jurl http://k8s-clusters.outreach.cloud/ \
 --jurl https://raw.githubusercontent.com/getoutreach/jsonnet-libs/master \
 show deployment.jsonnet
 ```
