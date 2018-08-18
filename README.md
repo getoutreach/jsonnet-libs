@@ -13,7 +13,7 @@ brew install kubecfg
 
 ### Create your K8s manifest
 
-You can use the jsonnet manifests in the concourse-example repo as an example:
+You can use the jsonnet manifests in the `concourse-example` repo as an example:
 
 https://github.com/getoutreach/concourse-example/blob/master/k8s/manifests/deployment.jsonnet
 
@@ -40,7 +40,7 @@ brew install jsonnet
 
 ### Create a your Concourse pipeline
 
-You can use the jsonnet pipeline in the concourse-example repo as an example:
+You can use the jsonnet pipeline in the `concourse-example` repo as an example:
 
 https://github.com/getoutreach/concourse-example/blob/master/ci/pipeline.jsonnet
 
