@@ -1,9 +1,8 @@
 local k = import 'kube.libsonnet';
 local kubecfg = import 'kubecfg.libsonnet';
-local clusters = kubecfg.parseYaml(importstr 'clusters.yaml')[0];
 
 k + kubecfg {
-  cluster:: clusters[std.extVar('cluster')] {
+  cluster:: kubecfg.parseYaml(importstr 'clusters.yaml')[0][std.extVar('cluster')] {
     fqdn: '%s.%s.%s.%s' % [self.name, self.region, self.cloud_provider, self.dns_zone],
   },
   ContourIngress(
