@@ -270,6 +270,7 @@
     manifests = null,
     kubecfg_vars = {},
     semver = null,
+    params = {},
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
     local secret_array = if std.isArray(vault_secrets) then vault_secrets else [vault_secrets];
@@ -296,7 +297,7 @@
             namespace: namespace,
             cluster_name: cluster_name,
           } + kubecfg_vars,
-        },
+        } + params,
       },
     ]),
 }
