@@ -332,7 +332,7 @@
           [if source != null && manifests != null then 'manifest_path']: source + '/' + manifests,
           kubecfg_variables: {
             namespace: namespace,
-            cluster_name: cluster_name,
+            cluster: cluster_name,
           } + kubecfg_vars,
           debug: debug,
         } + params,
