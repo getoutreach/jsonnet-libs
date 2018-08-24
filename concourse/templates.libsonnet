@@ -81,6 +81,35 @@
       },
     ]),
 
+  // Template for running tasks inline
+  newInlineTask(
+    name,
+    inputs = [],
+    args = [],
+    outputs = [],
+  )::
+    {
+      task: name,
+      config: {
+        platform: 'linux',
+        image_resource: {
+          type: 'docker-image',
+          source: {
+            repository: 'registry.outreach.cloud/alpine/tools',
+            tag: 'latest',
+            username: '((outreach-registry-username))',
+            password: '((outreach-registry-password))',
+          },
+        },
+        inputs: inputs,
+        outputs: outputs,
+        run: {
+          path: 'bash',
+          args: ['-c'] + args,
+        },
+      },
+    },
+
   // Update Github
   updateGithub(
     name = 'Step',
@@ -180,7 +209,7 @@
   slackMessage(
     type = 'success',
     title,
-    text,
+    text = null,
     channel = '#botland',
     color = null,
     inputs = [],
@@ -188,7 +217,7 @@
     local status_color = if color != null then color
       else if type == 'success' then 'good'
       else if type == 'failure' then 'danger'
-      else null;
+      else "#439FE0";
     local custom_inputs = std.prune(std.map(function(i) if i.name != null then { name: i.name, optional: true}, inputs));
     local custom_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, inputs) + [
       {
@@ -213,7 +242,7 @@
           },
           params: {
             STATUS_TITLE: title,
-            STATUS_TEXT: text,
+            [if text != null then 'STATUS_TEXT']: text,
             STATUS_COLOR: status_color,
           },
           inputs: [{ name: 'metadata' }] + custom_inputs,
@@ -223,7 +252,7 @@
             args: [
               '-c',
               |||
-                set -euf -o pipefail
+                set -ef -o pipefail
                 export ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
                 export BUILD_TEAM_NAME=$(cat metadata/build_team_name)
                 export BUILD_PIPELINE_NAME=$(cat metadata/build_pipeline_name)
@@ -231,14 +260,21 @@
                 export BUILD_ID=$(cat metadata/build_id)
                 export BUILD_NAME=$(cat metadata/build_name)
 
+                if [ "${STATUS_TEXT}" = "" ]; then
+                  export FALLBACK_TEXT="${STATUS_TITLE}"
+                else
+                  export FALLBACK_TEXT="${STATUS_TEXT}"
+                  export TEXT="\"text\": \"${STATUS_TEXT}\","
+                fi
+
                 cat <<EOF > ./status/message.json
                 [
                   {
-                    "fallback": "${STATUS_TEXT}",
+                    "fallback": "${FALLBACK_TEXT}",
                     "color": "${STATUS_COLOR}",
                     "title": "${STATUS_TITLE}",
                     "title_link": "$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME",
-                    "text": "${STATUS_TEXT}",
+                    ${TEXT}
                     "fields": %s
                   }
                 ]
@@ -270,6 +306,7 @@
     manifests = null,
     kubecfg_vars = {},
     semver = null,
+    debug = false,
     params = {},
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
@@ -297,6 +334,7 @@
             namespace: namespace,
             cluster_name: cluster_name,
           } + kubecfg_vars,
+          debug: debug,
         } + params,
       },
     ]),
