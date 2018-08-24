@@ -306,6 +306,7 @@
     manifests = null,
     kubecfg_vars = {},
     semver = null,
+    debug = false,
     params = {},
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
@@ -333,6 +334,7 @@
             namespace: namespace,
             cluster_name: cluster_name,
           } + kubecfg_vars,
+          debug: debug,
         } + params,
       },
     ]),
