@@ -394,9 +394,6 @@
           //  maxUnavailable: 1,
           //},
         },
-
-        replicas: 1,
-        assert self.replicas >= 1,
       },
     },
 
