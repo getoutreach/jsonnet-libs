@@ -208,7 +208,7 @@
   // Slack Message
   slackMessage(
     type = 'success',
-    title,
+    title = 'default title',
     text = null,
     channel = '#botland',
     color = null,
