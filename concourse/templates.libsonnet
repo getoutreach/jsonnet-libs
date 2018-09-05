@@ -208,7 +208,7 @@
   // Slack Message
   slackMessage(
     type = 'success',
-    title = 'default title',
+    title = 'Untitled',
     text = null,
     channel = '#botland',
     color = null,
@@ -329,7 +329,7 @@
           [if vault then 'vault_token_file']: 'vault/token',
           [if vault && vault_secrets != null then 'vault_secrets']: secret_array,
           [if vault && vault_configs != null then 'vault_configs']: config_array,
-          [if source != null && manifests != null then 'manifest_path']: source + '/' + manifests,
+          manifest_paths: if std.isArray(manifests) then manifests else [manifests],
           kubecfg_variables: {
             namespace: namespace,
             cluster: cluster_name,
