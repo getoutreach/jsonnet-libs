@@ -329,7 +329,7 @@
           [if vault then 'vault_token_file']: 'vault/token',
           [if vault && vault_secrets != null then 'vault_secrets']: secret_array,
           [if vault && vault_configs != null then 'vault_configs']: config_array,
-          manifest_paths: if std.isArray(manifests) then manifests else [manifests],
+          manifest_paths: if std.isArray(manifests) then std.map(function(p) source + '/' + p, manifests) else [source + '/' + manifests],
           kubecfg_variables: {
             namespace: namespace,
             cluster: cluster_name,
