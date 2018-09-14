@@ -10,10 +10,8 @@
       build_logs_to_retain: 100,
       plan_:: [],
       plan: self.plan_,
-      on_success_:: {},
-      on_success: self.on_success_,
-      on_failure_:: {},
-      on_failure: self.on_failure_,
+      on_success_:: null,
+      on_failure_:: null,
     },
 
   // Get semver resource
