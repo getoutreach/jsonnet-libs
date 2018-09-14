@@ -92,8 +92,10 @@ local newPipeline(name, source_repo) = {
     std.map(
       function(j) if std.objectHas(j, 'on_success') && !std.objectHas(j.on_success, 'do') then $.resourceList([j.on_success])
                   else if std.objectHas(j, 'on_success') && std.objectHas(j.on_success, 'do') then $.resourceList(j.on_success.do)
+                  else if std.objectHas(j, 'on_success') && std.objectHas(j.on_success, 'aggregate') then $.resourceList(j.on_success.aggregate)
                   else if std.objectHas(j, 'on_failure') && !std.objectHas(j.on_failure, 'do') then $.resourceList([j.on_failure])
-                  else if std.objectHas(j, 'on_failure') && std.objectHas(j.on_failure, 'do') then $.resourceList(j.on_failure.do),
+                  else if std.objectHas(j, 'on_failure') && std.objectHas(j.on_failure, 'do') then $.resourceList(j.on_failure.do)
+                  else if std.objectHas(j, 'on_failure') && std.objectHas(j.on_failure, 'aggregate') then $.resourceList(j.on_failure.aggregate),
       $.jobs
     )
     ))),
