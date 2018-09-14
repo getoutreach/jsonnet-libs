@@ -28,7 +28,17 @@ local newPipeline(name, source_repo) = {
   groups: $.groupsOutput + self.groups_,
   
   jobs_:: [],
-  jobs: self.jobs_,
+  jobs: $.jobsOutput(self.jobs_),
+
+  jobsOutput(new_jobs)::
+    std.map(
+      function(j) j + {
+                        [if std.objectHasAll(j, 'on_success_') && j.on_success_ !=null then 'on_success']: j.on_success_,
+                        [if std.objectHasAll(j, 'on_failure_') && j.on_failure_ !=null then 'on_failure']: j.on_failure_,
+                      },
+      new_jobs
+    ),
+
 
   // Returns array of values from given object.  Does not include hidden fields.
   objectValues(o):: [o[field] for field in std.objectFields(o)],
@@ -80,8 +90,14 @@ local newPipeline(name, source_repo) = {
       $.jobs
     ) +
     std.map(
-      function(j) if std.objectHas(j, 'on_success') then $.resourceList(j.on_success.do)
-                  else if std.objectHas(j, 'on_failure') then $.resourceList(j.on_success.do),
+      function(j) if std.objectHas(j, 'on_success') && !std.objectHas(j.on_success, 'do') then $.resourceList([j.on_success])
+                  else if std.objectHas(j, 'on_success') && std.objectHas(j.on_success, 'do') then $.resourceList(j.on_success.do)
+                  else if std.objectHas(j, 'on_success') && std.objectHas(j.on_success, 'aggregate') then $.resourceList(j.on_success.aggregate)
+                  else if std.objectHas(j, 'on_success') && std.objectHas(j.on_success, 'try') then $.resourceList(j.on_success.try)
+                  else if std.objectHas(j, 'on_failure') && !std.objectHas(j.on_failure, 'do') then $.resourceList([j.on_failure])
+                  else if std.objectHas(j, 'on_failure') && std.objectHas(j.on_failure, 'do') then $.resourceList(j.on_failure.do)
+                  else if std.objectHas(j, 'on_failure') && std.objectHas(j.on_failure, 'aggregate') then $.resourceList(j.on_failure.aggregate)
+                  else if std.objectHas(j, 'on_failure') && std.objectHas(j.on_failure, 'try') then $.resourceList(j.on_failure.try),
       $.jobs
     )
     ))),
