@@ -101,6 +101,23 @@
     },
   },
 
+  CRD(kind, group, version):: (
+    local names = {
+      kind: kind,
+      listKind: (kind + "List"),
+      plural: self.singular + "s",
+      singular: std.asciiLower(kind),
+      full:: self.plural + "." + group,
+    };
+    $._Object("apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", names.full) {
+      spec: {
+        group: group,
+        names: names,
+        version: version,
+      },
+    }
+  ),
+
   List(): {
     apiVersion: 'v1',
     kind: 'List',
@@ -418,6 +435,15 @@
     },
   },
 
+  VerticalPodAutoscaler(name, namespace, app=name): $._Object('poc.autoscaling.k8s.io/v1alpha1', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
+    local vpa = self,
+    target_pod:: error 'target_pod required',
+    spec: {
+      selector: {
+        matchLabels: vpa.target_pod.metadata.labels,
+      },
+    },
+  },
 
   StatefulSet(name, namespace, app=name):
     $._Object('apps/v1', 'StatefulSet', name, app=app, namespace=namespace) {
