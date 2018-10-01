@@ -16,7 +16,7 @@
 
   // Get semver resource
   getSemver(trigger = false, passed = null, params = null)::
-    { 
+    {
       get: 'version',
       [if trigger then 'trigger']: trigger,
       [if passed != null then 'passed']: passed,
@@ -45,6 +45,7 @@
     params = null,
     attempts = null,
     update = true,
+    privileged = null,
   )::
     local source = if pr then 'source_pr' else 'source';
     local custom_params = {
@@ -76,6 +77,7 @@
         params: custom_params,
         file: source + '/' + path,
         [if attempts != null then 'attempts']: attempts,
+        [if privileged != null then 'privileged']: privileged,
       },
     ]),
 
