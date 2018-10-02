@@ -16,10 +16,20 @@ k + kubecfg {
     serviceName=name,
     servicePort='http',
     tlsSecret=null,
+    forceDisableTLS=false,
   ): self.Ingress(name, namespace, app=app) {
     local this = self,
 
     host:: '%s.%s.%s' % [subdomain, $.cluster.name, ingressDomain],
+
+    # in default scenarios, for external ingresses
+    # tls will be enabled
+    local resolvedTlsSecret = 
+      if tlsSecret != null
+      then tlsSecret
+      else
+        if contour == 'contour' then "%s-tls" % name else null,
+    local tlsEnabled = if forceDisableTLS || resolvedTlsSecret != null then false else true,
     local target = '%s.%s.%s' % [contour, $.cluster.name, contourDomain],
     local rule = {
       host: this.host,
@@ -34,7 +44,7 @@ k + kubecfg {
     },
     local tls = {
       hosts: [this.host],
-      secretName: tlsSecret,
+      secretName: resolvedTlsSecret,
     },
     local tlsAnnotations = {
       'certmanager.k8s.io/acme-http01-edit-in-place': 'false',
@@ -46,11 +56,11 @@ k + kubecfg {
       annotations+: {
         'external-dns.alpha.kubernetes.io/target': target,
         'kubernetes.io/ingress.class': 'contour',
-      } + (if tlsSecret != null then tlsAnnotations else {}),
+      } + (if tlsEnabled == true then tlsAnnotations else {}),
     },
     spec+: {
       rules: [rule],
-      [if tlsSecret != null then 'tls']: [tls],
+      [if tlsEnabled == true then 'tls']: [tls],
     },
   },
 }
