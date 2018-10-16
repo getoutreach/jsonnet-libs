@@ -3,7 +3,7 @@ local kubecfg = import 'kubecfg.libsonnet';
 
 k + kubecfg {
   cluster:: kubecfg.parseYaml(importstr 'clusters.yaml')[0][std.extVar('cluster')] {
-    fqdn: '%s.%s.%s.%s' % [self.name, self.region, self.cloud_provider, self.dns_zone],
+    fqdn: '%s.%s.%s.%s' % [self.environment, self.region, self.cloud_provider, self.dns_zone],
   },
   ContourIngress(
     name,
@@ -19,8 +19,9 @@ k + kubecfg {
   ): self.Ingress(name, namespace, app=app) {
     local this = self,
 
-    host:: '%s.%s.%s' % [subdomain, $.cluster.name, ingressDomain],
-    local target = '%s.%s.%s' % [contour, $.cluster.name, contourDomain],
+    global_name:: '%s.%s' % [$.cluster.environment,$.cluster.region],
+    host:: '%s.%s.%s' % [subdomain, this.global_name, ingressDomain],
+    local target = '%s.%s.%s' % [contour, this.global_name, contourDomain],
     local rule = {
       host: this.host,
       http: {
