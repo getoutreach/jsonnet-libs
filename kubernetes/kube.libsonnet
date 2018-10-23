@@ -529,7 +529,7 @@
     kind: 'ClusterRole',
   },
 
-  RoleBinding(name, app=name): $._Object('rbac.authorization.k8s.io/v1', 'RoleBinding', name, app=app) {
+  RoleBinding(name, app=name, namespace=null): $._Object('rbac.authorization.k8s.io/v1', 'RoleBinding', name, app=app, namespace=namespace) {
     local rb = self,
 
     subjects_:: [],
