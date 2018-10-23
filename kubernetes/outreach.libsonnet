@@ -41,6 +41,7 @@ k + kubecfg {
       'certmanager.k8s.io/acme-http01-edit-in-place': 'false',
       'ingress.kubernetes.io/force-ssl-redirect': 'true',
       'kubernetes.io/tls-acme': 'true',
+      'contour.heptio.com/tls-minimum-protocol-version': '1.2',
     },
 
     metadata+: {
