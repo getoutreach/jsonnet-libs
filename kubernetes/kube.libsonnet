@@ -172,7 +172,7 @@
       },
     },
 
-  extService(name, namespace, address): $.Service(name, namespace) {
+  ExternalNameService(name, namespace, address): $.Service(name, namespace) {
     metadata+: {namespace: namespace},
     spec: {
       type: 'ExternalName',
