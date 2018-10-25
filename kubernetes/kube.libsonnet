@@ -172,6 +172,15 @@
       },
     },
 
+  ExternalNameService(name, namespace, address): 
+    $._Object('v1', 'Service', name, app=app, namespace=namespace) {
+      metadata+: {namespace: namespace},
+      spec: {
+        type: 'ExternalName',
+        externalName: address,
+      },
+    },
+
   PersistentVolume(name): $._Object('v1', 'PersistentVolume', name) {
     spec: {},
   },
