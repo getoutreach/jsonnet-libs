@@ -173,7 +173,7 @@
     },
 
   ExternalNameService(name, namespace, address): 
-    $._Object('v1', 'Service', name, app=app, namespace=namespace) {
+    $._Object('v1', 'Service', name, app=name, namespace=namespace) {
       metadata+: {namespace: namespace},
       spec: {
         type: 'ExternalName',
