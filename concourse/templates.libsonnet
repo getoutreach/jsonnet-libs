@@ -332,8 +332,8 @@
           [if vault && vault_secrets != null then 'vault_secrets']: secret_array,
           [if vault && vault_configs != null then 'vault_configs']: config_array,
           [if source != null then 'manifest_paths']: if std.isArray(manifests) then std.map(function(p) source + '/' + p, manifests) else [source + '/' + manifests],
-          [ if validation_retries != null then 'validation_retries']: "%s" % [validation_retries],
-          [ if job_validation_retries != null then 'job_validation_retries']: "%s" % [job_validation_retries],
+          [ if validation_retries != null then 'validation_retries']: std.toString(validation_retries),
+          [ if job_validation_retries != null then 'job_validation_retries']: std.toString(job_validation_retries),
           kubecfg_variables: {
             namespace: namespace,
             cluster: cluster_name,
