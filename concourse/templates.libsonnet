@@ -318,10 +318,10 @@
       if cluster_name == null then error '`cluster_name` parameter is required!',
       if namespace == null then error '`namespace` parameter is required!',
 
-      { get: 'kubeconfig' },
-      if semver != null then $.getSemver(params = semver),
-      if vault then { get: 'vault' },
-      if source != null then { get: source },
+      { get: 'kubeconfig', attempts: 3 },
+      if semver != null then ($.getSemver(params = semver) + { attempts: 3 }),
+      if vault then { get: 'vault', attempts: 3 },
+      if source != null then { get: source, attempts: 3 },
       {
         put: 'k8s_deploy',
         params: {
