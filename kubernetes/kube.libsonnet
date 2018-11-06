@@ -391,7 +391,28 @@
           },
         },
         template: {
-          spec: $.PodSpec,
+          spec: $.PodSpec {
+            // Set anti-affinity to help AZ distributiuon
+            affinity: {
+              podAntiAffinity: {
+                preferredDuringSchedulingIgnoredDuringExecution: [{
+                  podAffinityTerm: {
+                    labelSelector: {
+                      matchExpressions: [
+                        {
+                          key: 'name',
+                          operator: 'In',
+                          values: [ name ],
+                        },
+                      ],
+                    },
+                    topologyKey: 'failure-domain.beta.kubernetes.io/zone',
+                  },
+                weight: 100,
+                }],
+              },
+            },
+          },
           metadata: {
             labels: deployment.metadata.labels,
             annotations: {},
