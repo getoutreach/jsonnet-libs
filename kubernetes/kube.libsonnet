@@ -415,7 +415,9 @@
           },
           metadata: {
             labels: deployment.metadata.labels,
-            annotations: {},
+            annotations: {
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+            },
           },
         },
 
@@ -484,10 +486,33 @@
         serviceName: name,
 
         template: {
-          spec: $.PodSpec,
+          spec: $.PodSpec {
+            // Set anti-affinity to help AZ distributiuon
+            affinity: {
+              podAntiAffinity: {
+                preferredDuringSchedulingIgnoredDuringExecution: [{
+                  podAffinityTerm: {
+                    labelSelector: {
+                      matchExpressions: [
+                        {
+                          key: 'name',
+                          operator: 'In',
+                          values: [ name ],
+                        },
+                      ],
+                    },
+                    topologyKey: 'failure-domain.beta.kubernetes.io/zone',
+                  },
+                weight: 100,
+                }],
+              },
+            },
+          },
           metadata: {
             labels: sset.metadata.labels,
-            annotations: {},
+            annotations: {
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+            },
           },
         },
 
@@ -509,7 +534,9 @@
         },
         metadata: {
           labels: job.metadata.labels,
-          annotations: {},
+          annotations: {
+            "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+          },
         },
       },
 
@@ -531,7 +558,9 @@
         template: {
           metadata: {
             labels: ds.metadata.labels,
-            annotations: {},
+            annotations: {
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+            },
           },
           spec: $.PodSpec,
         },
