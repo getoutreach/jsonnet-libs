@@ -415,7 +415,9 @@
           },
           metadata: {
             labels: deployment.metadata.labels,
-            annotations: {},
+            annotations: {
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+            },
           },
         },
 
@@ -487,7 +489,9 @@
           spec: $.PodSpec,
           metadata: {
             labels: sset.metadata.labels,
-            annotations: {},
+            annotations: {
+              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+            },
           },
         },
 
