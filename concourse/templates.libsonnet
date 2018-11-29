@@ -222,7 +222,7 @@
     local custom_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, inputs) + [
       {
         title: 'Project',
-        value: '${BUILD_PIPELINE_NAME}',
+        value: '${SLACK_BUILD_PIPELINE_NAME}',
         short: true,
       }
     ];
