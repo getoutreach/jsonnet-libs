@@ -222,7 +222,7 @@
     local custom_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, inputs) + [
       {
         title: 'Project',
-        value: '${BUILD_PIPELINE_NAME}',
+        value: '${SLACK_BUILD_PIPELINE_NAME}',
         short: true,
       }
     ];
@@ -253,12 +253,12 @@
               '-c',
               |||
                 set -ef -o pipefail
-                export ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
-                export BUILD_TEAM_NAME=$(cat metadata/build_team_name)
-                export BUILD_PIPELINE_NAME=$(cat metadata/build_pipeline_name)
-                export BUILD_JOB_NAME=$(cat metadata/build_job_name)
-                export BUILD_ID=$(cat metadata/build_id)
-                export BUILD_NAME=$(cat metadata/build_name)
+                export SLACK_ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
+                export SLACK_BUILD_TEAM_NAME=$(cat metadata/build_team_name)
+                export SLACK_BUILD_PIPELINE_NAME=$(cat metadata/build_pipeline_name)
+                export SLACK_BUILD_JOB_NAME=$(cat metadata/build_job_name)
+                export SLACK_BUILD_ID=$(cat metadata/build_id)
+                export SLACK_BUILD_NAME=$(cat metadata/build_name)
 
                 if [ "${STATUS_TEXT}" = "" ]; then
                   export FALLBACK_TEXT="${STATUS_TITLE}"
@@ -273,7 +273,7 @@
                     "fallback": "${FALLBACK_TEXT}",
                     "color": "${STATUS_COLOR}",
                     "title": "${STATUS_TITLE}",
-                    "title_link": "$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME",
+                    "title_link": "$SLACK_ATC_EXTERNAL_URL/teams/$SLACK_BUILD_TEAM_NAME/pipelines/$SLACK_BUILD_PIPELINE_NAME/jobs/$SLACK_BUILD_JOB_NAME/builds/$SLACK_BUILD_NAME",
                     ${TEXT}
                     "fields": %s
                   }
