@@ -31,6 +31,7 @@
       type: 'docker-image',
       source: {
         repository: 'olhtbr/metadata-resource',
+        tag: '2.0.0',
       },
     },
     vault: {
