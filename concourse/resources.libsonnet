@@ -76,6 +76,7 @@
         branch: 'master',
         private_key: $.github_key,
       },
+      webhook_token: $.webhook_token,
     },
     source_pr: {
       name: 'source_pr',
@@ -87,6 +88,7 @@
         access_token: $.github_access_token,
         private_key: $.github_key,
       },
+      webhook_token: $.webhook_token,
     },
     slack_message: {
       name: 'slack_message',
@@ -106,6 +108,7 @@
         access_key_id: $.aws_access_key_id,
         secret_access_key: $.aws_secret_access_key,
       },
+      webhook_token: $.webhook_token,
     },
     task_image: {
       name: 'task_image',
