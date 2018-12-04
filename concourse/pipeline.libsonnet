@@ -16,6 +16,7 @@ local newPipeline(name, source_repo) = {
   aws_secret_access_key:: '((aws-secret-access-key))',
   slack_username:: 'concourse',
   slack_url:: '((slack-url))',
+  webhook_token:: '((webhook-token))',
 
   // Pipeline output
   resource_types_:: [],
