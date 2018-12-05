@@ -614,7 +614,7 @@
 
   PodDisruptionBudget(name, namespace, app=name): $._Object('policy/v1beta1', 'PodDisruptionBudget', name, namespace=namespace) {
     spec: {
-      maxUnavailable: 1,
+      maxUnavailable: '50%',
       selector: {
         matchLabels: {
           app: app
