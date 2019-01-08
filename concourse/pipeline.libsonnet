@@ -69,7 +69,7 @@ local newPipeline(name, source_repo) = {
   // Convert steps to concourse compatible output
   steps(steps):: 
     local default_steps = [
-      { get: 'metadata' },
+      { put: 'metadata' },
     ];
     $.uniqueSteps(default_steps + std.flattenArrays($.convertToArrays(steps))),
 
