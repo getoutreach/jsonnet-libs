@@ -172,7 +172,7 @@
       },
     },
 
-  ExternalNameService(name, namespace, address): 
+  ExternalNameService(name, namespace, address):
     $._Object('v1', 'Service', name, app=name, namespace=namespace) {
       metadata+: {namespace: namespace},
       spec: {
@@ -524,7 +524,7 @@
       },
     },
 
-  Job(name): $._Object('batch/v1', 'Job', name) {
+  Job(name, namespace, app=name): $._Object('batch/v1', 'Job', name, app=app, namespace=namespace) {
     local job = self,
 
     spec: {
