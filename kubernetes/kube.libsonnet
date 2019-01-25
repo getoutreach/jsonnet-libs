@@ -524,7 +524,7 @@
       },
     },
 
-  Job(name, namespace, app=name): $._Object('batch/v1', 'Job', name, app=app, namespace=namespace) {
+  Job(name, namespace='default', app=name): $._Object('batch/v1', 'Job', name, app=app, namespace=namespace) {
     local job = self,
 
     spec: {
