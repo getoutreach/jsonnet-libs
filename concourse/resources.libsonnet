@@ -40,6 +40,8 @@
       source: {
         repository: 'registry.outreach.cloud/concourse/vault-resource',
         tag: 'latest',
+        username: $.outreach_registry_username,
+        password: $.outreach_registry_password,
       },
     },
     k8s_deploy: {
