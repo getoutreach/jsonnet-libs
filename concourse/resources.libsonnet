@@ -38,7 +38,10 @@
       name: 'vault',
       type: 'docker-image',
       source: {
-        repository: 'docurated/concourse-vault-resource',
+        repository: 'registry.outreach.cloud/concourse/vault-resource',
+        tag: 'latest',
+        username: $.outreach_registry_username,
+        password: $.outreach_registry_password,
       },
     },
     k8s_deploy: {
