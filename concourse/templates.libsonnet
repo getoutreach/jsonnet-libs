@@ -46,6 +46,7 @@
     attempts = null,
     update = true,
     privileged = null,
+    context = 'status',
   )::
     local source = if pr then 'source_pr' else 'source';
     local custom_params = {
@@ -60,6 +61,7 @@
         params: {
           path: source,
           status: 'pending',
+          context: context,
         },
       }
       else if update then {
@@ -116,6 +118,7 @@
     state = 'success',
     pr = false,
     desc = null,
+    context = 'status',
   )::
     local source = if pr then 'source_pr' else 'source';
     local description = if desc != null then desc
@@ -128,6 +131,7 @@
         params: {
           path: source,
           status: state,
+          context: context
         },
       }
       else {
