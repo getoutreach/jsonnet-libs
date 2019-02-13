@@ -196,6 +196,7 @@
     },
   ]),
 
+  // Deprecated method
   slackInput(
     name = null,
     title = null,
@@ -209,6 +210,12 @@
       short: short,
     },
 
+  slackField():: {
+    title: null,
+    value: null,
+    short: true,
+  },
+
   // Slack Message
   slackMessage(
     type = 'success',
@@ -216,14 +223,18 @@
     text = null,
     channel = '#botland',
     color = null,
-    inputs = [],
+    inputs = [], // Deprecated
+    fields = [],
+    resources = [],
   )::
     local status_color = if color != null then color
       else if type == 'success' then 'good'
       else if type == 'failure' then 'danger'
       else "#439FE0";
-    local custom_inputs = std.prune(std.map(function(i) if i.name != null then { name: i.name, optional: true}, inputs));
-    local custom_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, inputs) + [
+    local deprecated_inputs = std.prune(std.map(function(i) if i.name != null then { name: i.name, optional: true}, inputs));
+    local custom_inputs = std.prune(std.map(function(resource) { name: resource, optional: true}, resources) + deprecated_inputs);
+    local deprecated_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, inputs);
+    local custom_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, fields) + deprecated_fields + [
       {
         title: 'Project',
         value: '${SLACK_BUILD_PIPELINE_NAME}',
