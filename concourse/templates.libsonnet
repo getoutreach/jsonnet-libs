@@ -119,6 +119,7 @@
     pr = false,
     desc = null,
     context = 'status',
+    comment = null,
   )::
     local source = if pr then 'source_pr' else 'source';
     local description = if desc != null then desc
@@ -131,7 +132,8 @@
         params: {
           path: source,
           status: state,
-          context: context
+          context: context,
+          [if comment != null then 'comment']: comment,
         },
       }
       else {
