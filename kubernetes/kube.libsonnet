@@ -637,6 +637,46 @@
     },
   },
 
+  ServiceMonitor(name, namespace, app=name): $._Object(
+    'monitoring.coreos.com/v1',
+    'ServiceMonitor',
+    name,
+    app=app,
+    namespace=namespace,
+  ) {
+    target_service:: error 'target_service required',
+
+    local this = self,
+
+    // discover metrics port if exists, else use first port
+    // whatever this resolves to is only used as the default
+    // if spec.endpoints|spec.endpoints_ aren't specified below
+    local default_port = (
+      local ports = this.target_service.spec.ports;
+      std.filter(function(p) std.setMember('metrics', [p.name, p.targetPort]), ports)
+        + this.target_service.spec.ports
+    )[0],
+
+    metadata+: { labels+: { 'prometheus.io/scrape': 'true' }},
+    spec: {
+      // endpoint-level config here will override defaults
+      // this is just map-based sugar around self.endpoints
+      endpoints_:: { [default_port.targetPort]: {} },
+      // override this to explicitly adhere to the operator's API
+      // and ignore all of the above, which is simply sugar
+      endpoints: [
+        { honorLabels: true, interval: '1m', targetPort: p }
+          + this.spec.endpoints_[p]
+        for p in std.objectFields(this.spec.endpoints_)
+      ],
+      jobLabel: 'app',
+      selector: {
+        matchLabels: this.target_service.metadata.labels,
+      },
+      targetLabels: this.target_service.metadata.labels,
+    },
+  },
+
   Mixins: {
     'cluster-service': {
       metadata+: {
