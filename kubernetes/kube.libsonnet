@@ -673,7 +673,7 @@
       selector: {
         matchLabels: this.target_service.metadata.labels,
       },
-      targetLabels: this.target_service.metadata.labels,
+      targetLabels: std.objectFields(this.target_service.metadata.labels),
     },
   },
 
