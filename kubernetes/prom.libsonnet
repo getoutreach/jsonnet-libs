@@ -1,5 +1,5 @@
 local ok = import 'outreach.libsonnet';
-local cluster = ok.cluster;
+local cluster = import 'cluster.libsonnet';
 
 {
   alertmanager: {
@@ -29,4 +29,8 @@ local cluster = ok.cluster;
     // #alertmanager-info
     info(name, interval='1h'): self.alert(name, 'info', interval=interval),
   },
+  PrometheusRule(name, namespace, tribe = null):
+    ok._Object('v1', 'monitoring.coreos.com/v1', name, app=name, namespace=namespace) {
+      metadata+: { labels+: { [if tribe != null then 'tribe']: tribe } },
+    },
 }
