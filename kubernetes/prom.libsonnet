@@ -30,7 +30,7 @@ local cluster = import 'cluster.libsonnet';
     info(name, interval='1h'): self.alert(name, 'info', interval=interval),
   },
   PrometheusRule(name, namespace, tribe = null):
-    ok._Object('v1', 'monitoring.coreos.com/v1', name, app=name, namespace=namespace) {
+    ok._Object('monitoring.coreos.com/v1', 'PrometheusRule', name, app=name, namespace=namespace) {
       metadata+: { labels+: { [if tribe != null then 'tribe']: tribe } },
     },
 }
