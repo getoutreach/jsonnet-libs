@@ -319,14 +319,16 @@
   },
 
   ConfigMap(name, namespace, app=name): $._Object('v1', 'ConfigMap', name, namespace=namespace, app=app) {
+    local this = self,
+    md5:: std.md5(std.toString(this.data)),
     data: {},
 
     // I keep thinking data values can be any JSON type.  This check
     // will remind me that they must be strings :(
     local nonstrings = [
       k
-      for k in std.objectFields(self.data)
-      if std.type(self.data[k]) != 'string'
+      for k in std.objectFields(this.data)
+      if std.type(this.data[k]) != 'string'
     ],
     assert std.length(nonstrings) == 0 : 'data contains non-string values: %s' % [nonstrings],
   },
@@ -344,6 +346,7 @@
     local secret = self,
 
     type: 'Opaque',
+    md5:: std.md5(std.toString(secret.data_)),
     data_:: {},
     data: { [k]: std.base64(secret.data_[k]) for k in std.objectFields(secret.data_) },
   },
