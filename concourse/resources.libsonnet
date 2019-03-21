@@ -5,7 +5,7 @@
   basicResourceTypes:: {
     slack_message: {
       name: 'slack_message',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'cfcommunity/slack-notification-resource',
         tag: 'latest',
@@ -13,7 +13,7 @@
     },
     github_status: {
       name: 'github_status',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'dpb587/github-status-resource',
         tag: 'master',
@@ -21,14 +21,14 @@
     },
     source_pr: {
       name: 'source_pr',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'jtarchie/pr',
       },
     },
     metadata: {
       name: 'metadata',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'olhtbr/metadata-resource',
         tag: '1.0.0',
@@ -36,7 +36,7 @@
     },
     vault: {
       name: 'vault',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'registry.outreach.cloud/concourse/vault-resource',
         tag: 'latest',
@@ -46,7 +46,7 @@
     },
     k8s_deploy: {
       name: 'k8s_deploy',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'registry.outreach.cloud/concourse/k8s-deploy-resource',
         tag: 'latest',
@@ -115,7 +115,7 @@
     },
     task_image: {
       name: 'task_image',
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: 'registry.outreach.cloud/alpine/tools',
         tag: '1.2',
