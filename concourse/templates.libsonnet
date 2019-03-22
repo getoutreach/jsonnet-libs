@@ -95,7 +95,7 @@
       config: {
         platform: 'linux',
         image_resource: {
-          type: 'docker-image',
+          type: 'registry-image',
           source: {
             repository: 'registry.outreach.cloud/alpine/tools',
             tag: 'latest',
@@ -156,9 +156,9 @@
     pr = false,
   )::
     {
-      require_name:: if name == null then error '`name` paramater is required!',
+      require_name:: if name == null then error '`name` parameter is required!',
       name: if pr then name + '-pr' else name,
-      type: 'docker-image',
+      type: 'registry-image',
       source: {
         repository: repo,
         tag: if pr then tag + '-pr' else tag,
@@ -178,25 +178,85 @@
     build_args = null,
     pr = false,
   )::
-  std.prune([
-    if semver != null then $.getSemver(params = semver),
-    {
-      put: if pr then name + '-pr' else name,
-      params: {
-        build: source,
-        tag: tag_file,
-        [if additional_tags_file != null then 'additional_tags']: additional_tags_file,
-        tag_as_latest: if pr then false else latest,
-        [if build_args != null then 'build_args']: build_args,
-      },
-      [if semver != null && pr != true then 'on_success']: {
-        put: 'version',
-        params: {
-          file: 'version/version',
+    local real_name = if pr then name + '-pr' else name;
+    local builder_name = 'build-%s' % real_name;
+    local repo = 'registry.outreach.cloud/outreach/' + real_name;
+    local output = '%s-image' % real_name;
+    local latest_tag = if latest then 'latest' else '';
+    local tags_file = if additional_tags_file != null then additional_tags_file else tag_file;
+
+    local build_args_rendered = if build_args != null then
+      std.map(function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args))
+    else
+      [];
+
+    std.prune([
+      if semver != null then $.getSemver(params = semver),
+      {
+        task: builder_name,
+        privileged: true,
+        config: {
+          platform: 'linux',
+          image_resource: {
+            type: 'registry-image',
+            source: {
+              repository: 'registry.outreach.cloud/concourse/builder',
+              tag: 'latest',
+              username: '((outreach-registry-username))',
+              password: '((outreach-registry-password))',
+            },
+          },
+          params: {
+            REPOSITORY: repo,
+            OUTPUT: output,
+            CONTEXT: source,
+            BUILD_ARGS: std.join(' ', build_args_rendered),
+          } + build_args,
+          inputs: [{name: source}, {name: 'version', optional: true}],
+          outputs: [{name: output}],
+          caches: [{path: 'cache'}],
+          run: {
+            path: 'bash',
+            args: [
+              '-c',
+              |||
+                set -ex
+                export TAG=$(cat %(t)s)
+
+                # Add tag
+                cat %(t)s > %(o)s/additional_tags
+
+                # Add additional tags
+                echo -n " $(cat %(tf)s)" >> %(o)s/additional_tags
+
+                # Add latest tag
+                echo -n " %(lt)s" >> %(o)s/additional_tags
+
+                build
+              ||| % {
+                o: output,
+                t: tag_file,
+                tf: tags_file,
+                lt: latest_tag,
+              },
+            ],
+          },
         },
       },
-    },
-  ]),
+      {
+        put: real_name,
+        params: {
+          image: '%s/image.tar' % output,
+          additional_tags: '%s/additional_tags' % output,
+        },
+        [if semver != null && pr != true then 'on_success']: {
+          put: 'version',
+          params: {
+            file: 'version/version',
+          },
+        },
+      },
+    ]),
 
   // Deprecated method
   slackInput(
@@ -249,7 +309,7 @@
         config: {
           platform: 'linux',
           image_resource: {
-            type: 'docker-image',
+            type: 'registry-image',
             source: {
               repository: 'registry.outreach.cloud/alpine/tools',
               tag: 'latest',
