@@ -185,6 +185,11 @@
     local latest_tag = if latest then 'latest' else '';
     local tags_file = if additional_tags_file != null then additional_tags_file else tag_file;
 
+    local build_args_rendered = if build_args != null then
+      std.map(function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args))
+    else
+      [];
+
     std.prune([
       if semver != null then $.getSemver(params = semver),
       {
@@ -195,12 +200,17 @@
           image_resource: {
             type: 'registry-image',
             source: {
-              repository: 'concourse/builder',
+              repository: 'registry.outreach.cloud/concourse/builder',
+              tag: 'latest',
+              username: '((outreach-registry-username))',
+              password: '((outreach-registry-password))',
             },
           },
           params: {
             REPOSITORY: repo,
+            OUTPUT: output,
             CONTEXT: source,
+            BUILD_ARGS: std.join(' ', build_args_rendered),
           } + build_args,
           inputs: [{name: source}, {name: 'version', optional: true}],
           outputs: [{name: output}],
@@ -236,7 +246,7 @@
       {
         put: real_name,
         params: {
-          image: '%s-image' % real_name,
+          image: '%s/image.tar' % output,
           additional_tags: '%s/additional_tags' % output,
         },
         [if semver != null && pr != true then 'on_success']: {
