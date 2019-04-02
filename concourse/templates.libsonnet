@@ -207,6 +207,8 @@
             },
           },
           params: {
+            REPOSITORY_USER: '((outreach-registry-username))',
+            REPOSITORY_PASS: '((outreach-registry-password))',
             REPOSITORY: real_repo,
             OUTPUT: output,
             CONTEXT: source,
@@ -220,6 +222,8 @@
             args: [
               '-c',
               |||
+                img login -u ${REPOSITORY_USER} -p ${REPOSITORY_PASS} https://registry.outreach.cloud/v2/
+
                 set -ex
                 export TAG=$(cat %(t)s)
 
