@@ -175,20 +175,20 @@
     additional_tags_file = null,
     latest = true,
     semver = { bump: 'patch' },
-    build_args = null,
+    build_args = {},
     pr = false,
+    repo = null,
   )::
     local real_name = if pr then name + '-pr' else name;
     local builder_name = 'build-%s' % real_name;
-    local repo = 'registry.outreach.cloud/outreach/' + real_name;
+    local real_repo = if repo != null then repo else 'registry.outreach.cloud/outreach/' + real_name;
     local output = '%s-image' % real_name;
     local latest_tag = if latest then 'latest' else '';
     local tags_file = if additional_tags_file != null then additional_tags_file else tag_file;
 
-    local build_args_rendered = if build_args != null then
-      std.map(function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args))
-    else
-      [];
+    local build_args_rendered = std.map(
+      function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args)
+    );
 
     std.prune([
       if semver != null then $.getSemver(params = semver),
@@ -207,7 +207,9 @@
             },
           },
           params: {
-            REPOSITORY: repo,
+            REPOSITORY_USER: '((outreach-registry-username))',
+            REPOSITORY_PASS: '((outreach-registry-password))',
+            REPOSITORY: real_repo,
             OUTPUT: output,
             CONTEXT: source,
             BUILD_ARGS: std.join(' ', build_args_rendered),
@@ -220,6 +222,8 @@
             args: [
               '-c',
               |||
+                img login -u ${REPOSITORY_USER} -p ${REPOSITORY_PASS} https://registry.outreach.cloud/v2/
+
                 set -ex
                 export TAG=$(cat %(t)s)
 
