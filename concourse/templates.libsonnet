@@ -179,11 +179,12 @@
     pr = false,
     repo = null,
   )::
-    local real_name = if pr then name + '-pr' else name;
+    local pr_suffix = if pr then '-pr' else '';
+    local real_name = name + pr_suffix;
     local builder_name = 'build-%s' % real_name;
     local real_repo = if repo != null then repo else 'registry.outreach.cloud/outreach/' + real_name;
     local output = '%s-image' % real_name;
-    local latest_tag = if latest then 'latest' else '';
+    local latest_tag = if latest then 'latest' + pr_suffix else '';
     local tags_file = if additional_tags_file != null then additional_tags_file else tag_file;
 
     local build_args_rendered = std.map(
