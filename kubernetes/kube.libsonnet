@@ -65,6 +65,11 @@
   // Convert {foo: {a: b}} to [{name: foo, a: b}]
   mapToNamedList(o):: [{ name: $.hyphenate(n) } + o[n] for n in std.objectFields(o)],
 
+  envList(map):: [
+    if std.type(map[x]) == 'object' then { name: x, valueFrom: map[x] } else { name: x, value: map[x] }
+    for x in std.objectFields(map)
+  ],
+
   // Convert from SI unit suffixes to regular number
   siToNum(n):: (
     local convert =
@@ -215,13 +220,8 @@
     name: name,
     image: error 'container image value required',
 
-    envList(map):: [
-      if std.type(map[x]) == 'object' then { name: x, valueFrom: map[x] } else { name: x, value: map[x] }
-      for x in std.objectFields(map)
-    ],
-
     env_:: {},
-    env: self.envList(self.env_),
+    env: $.envList(self.env_),
 
     args_:: {},
     args: ['--%s=%s' % kv for kv in $.objectItems(self.args_)],
@@ -625,6 +625,22 @@
           app: app
         },
       },
+    },
+  },
+
+  PodPreset(name, namespace, app=name): $._Object('settings.k8s.io/v1alpha1', 'PodPreset', name, app=app, namespace=namespace) {
+    spec: {
+
+      selector: error 'selector required',
+
+      env: $.envList(self.env_),
+      env_:: {},
+
+      volumeMounts: $.mapToNamedList(self.volumeMounts_),
+      volumeMounts_:: {},
+
+      volumes: $.mapToNamedList(self.volumes_),
+      volumes_:: {},
     },
   },
 
