@@ -401,21 +401,22 @@
             // Set anti-affinity to help AZ distributiuon
             affinity: {
               podAntiAffinity: {
-                preferredDuringSchedulingIgnoredDuringExecution: [{
+                local podAffinityTerm(topologyKey, weight=100) = {
                   podAffinityTerm: {
                     labelSelector: {
-                      matchExpressions: [
-                        {
-                          key: 'name',
-                          operator: 'In',
-                          values: [ name ],
-                        },
-                      ],
+                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
                     },
-                    topologyKey: 'failure-domain.beta.kubernetes.io/zone',
+                    topologyKey: topologyKey,
                   },
-                weight: 100,
-                }],
+                  weight: weight,
+                },
+                preferredDuringSchedulingIgnoredDuringExecution: [
+                  podAffinityTerm(k)
+                  for k in [
+                    'kubernetes.io/hostname',
+                    'failure-domain.beta.kubernetes.io/zone',
+                  ]
+                ],
               },
             },
           },
