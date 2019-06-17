@@ -363,6 +363,22 @@
     },
   },
 
+  local hashed = {
+    local this = self,
+    metadata+: {
+      local hash = std.substr(this.md5, 0, 7),
+      local orig_name = super.name,
+      name: orig_name + "-" + hash,
+      labels+: { name: orig_name },
+    },
+  },
+
+  HashedConfigMap(name, namespace, app=name):
+    $.ConfigMap(name, namespace, app=app) + hashed,
+
+  HashedSecret(name, namespace, app=name):
+    $.Secret(name, namespace, app=app) + hashed,
+
   // subtype of EnvVarSource
   FieldRef(key): {
     fieldRef: {
