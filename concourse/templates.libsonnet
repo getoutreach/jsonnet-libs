@@ -392,6 +392,7 @@
     params = {},
     validation_retries = null,
     job_validation_retries = null,
+    put_name = 'k8s_deploy',
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
     local secret_array = if std.isArray(vault_secrets) then vault_secrets else [vault_secrets];
@@ -405,7 +406,7 @@
       if vault then { get: 'vault', attempts: 3 },
       if source != null then { get: source, attempts: 3 },
       {
-        put: 'k8s_deploy',
+        put: put_name,
         params: {
           cluster_name: cluster_name,
           namespace: namespace,
