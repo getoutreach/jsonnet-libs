@@ -567,6 +567,17 @@
     },
   },
 
+  CronJob(name, namespace, app=name): $._Object('batch/v1beta1', 'CronJob', name, app=app, namespace=namespace) {
+    spec: {
+      jobTemplate: $.Job(name, namespace, app) {
+        apiVersion:: null,
+        kind:: null,
+        metadata:: super.metadata,
+      },
+      schedule: error 'schedule is required',
+    },
+  },
+
   DaemonSet(name, namespace, app=name):
     $._Object('apps/v1', 'DaemonSet', name, app=app, namespace=namespace) {
       local ds = self,
