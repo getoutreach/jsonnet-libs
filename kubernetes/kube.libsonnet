@@ -677,8 +677,8 @@
     kind: 'APIService',
     service:: error 'service required',
     spec+: {
-      group: std.split(name, '.')[0],
-      version: std.join('.', std.split(name, '.')[1:]),
+      group: std.join('.', std.split(name, '.')[1:]),
+      version: std.split(name, '.')[0],
       service+: {
         name: api.service.metadata.name,
         namespace: api.service.metadata.namespace,
