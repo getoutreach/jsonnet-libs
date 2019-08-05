@@ -650,7 +650,7 @@
       maxUnavailable: '50%',
       selector: {
         matchLabels: {
-          name: name
+          app: app
         },
       },
     },
