@@ -138,8 +138,8 @@
       name: 'vault',
       type: 'vault',
       source: {
-        url: 'https://outreach.vault.svc.cluster.local:8200',
-        tls_skip_verify: true,
+        url: 'https://vault.outreach.cloud',
+        tls_skip_verify: false,
         auth_method: 'AppRole',
         role_id: '((vault-role-id))',
         expose_token: true,
@@ -149,8 +149,8 @@
       name: 'k8s_deploy',
       type: 'k8s_deploy',
       source: {
-        vault_url: 'https://outreach.vault.svc.cluster.local:8200',
-        vault_skip_verify: true,
+        vault_url: 'https://vault.outreach.cloud',
+        vault_skip_verify: false,
       },
     },
   },
