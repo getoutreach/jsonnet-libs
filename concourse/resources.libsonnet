@@ -142,6 +142,7 @@
         tls_skip_verify: false,
         auth_method: 'AppRole',
         role_id: '((vault-role-id))',
+        secret_id: '((vault-secret-id))',
         expose_token: true,
       },
     },
