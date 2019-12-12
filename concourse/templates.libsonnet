@@ -393,6 +393,8 @@
     validation_retries = null,
     job_validation_retries = null,
     put_name = 'k8s_deploy',
+    on_success = null,
+    on_failure = null,
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
     local secret_array = if std.isArray(vault_secrets) then vault_secrets else [vault_secrets];
@@ -407,6 +409,8 @@
       if source != null then { get: source, attempts: 3 },
       {
         put: put_name,
+        [if on_success != null then 'on_success']: on_success,
+        [if on_failure != null then 'on_failure']: on_failure,
         params: {
           cluster_name: cluster_name,
           namespace: namespace,
