@@ -3,6 +3,16 @@
 {
   // Basic resource types
   basicResourceTypes:: {
+    maestro: {
+      name: 'maestro',
+      type: 'registry-image',
+      source: {
+        repository: 'registry.outreach.cloud/maestro-resource',
+        tag: 'latest',
+        username: $.outreach_registry_username,
+        password: $.outreach_registry_password,
+      },
+    },
     slack_message: {
       name: 'slack_message',
       type: 'registry-image',
@@ -58,6 +68,14 @@
 
   // Basic resources
   basicResources:: {
+    maestro: {
+      name: 'maestro',
+      type: 'maestro',
+      source: {
+        application: $.name,
+        secret: $.maestro_secret,
+      },
+    },
     metadata: {
       name: 'metadata',
       type: 'metadata',

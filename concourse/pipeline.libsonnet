@@ -17,6 +17,7 @@ local newPipeline(name, source_repo) = {
   slack_username:: 'concourse',
   slack_url:: '((slack-url))',
   webhook_token:: '((webhook-token))',
+  maestro_secret:: '((maestro-secret))'
 
   // Pipeline output
   resource_types_:: [],
