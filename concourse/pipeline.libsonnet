@@ -17,7 +17,7 @@ local newPipeline(name, source_repo) = {
   slack_username:: 'concourse',
   slack_url:: '((slack-url))',
   webhook_token:: '((webhook-token))',
-  maestro_secret:: '((maestro-secret))'
+  maestro_secret:: '((maestro-secret))',
 
   // Pipeline output
   resource_types_:: [],
@@ -28,7 +28,7 @@ local newPipeline(name, source_repo) = {
 
   groups_:: [],
   groups: $.groupsOutput + self.groups_,
-  
+
   jobs_:: [],
   jobs: $.jobsOutput(self.jobs_),
 
@@ -68,7 +68,7 @@ local newPipeline(name, source_repo) = {
   do(steps)::{ do: std.flattenArrays($.convertToArrays(steps)) },
 
   // Convert steps to concourse compatible output
-  steps(steps):: 
+  steps(steps)::
     local default_steps = [
       { get: 'metadata' },
     ];
@@ -77,7 +77,7 @@ local newPipeline(name, source_repo) = {
   // Read resources from job steps
   resourceList(steps)::
     local read(step) = {
-      resource: [if type == 'get' || type == 'put' || type == 'image' then step[type] 
+      resource: [if type == 'get' || type == 'put' || type == 'image' then step[type]
                 for type in std.objectFields(step)],
     };
     std.set(std.flattenArrays([
