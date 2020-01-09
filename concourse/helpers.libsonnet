@@ -1,7 +1,7 @@
 // Outreach-specific helpers for concourse
 
 {
-  appClusters: [
+  appClusters():: [
     {
       name: 'staging.us-east-2',
       env: 'staging',
@@ -23,7 +23,7 @@
       passed: 'production.us-west-2'
     },
   ],
-  appBentos: [
+  appBentos():: [
     {
       name: 'staging1a',
       cluster: 'staging.us-east-2',

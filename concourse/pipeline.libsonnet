@@ -134,7 +134,8 @@ local newPipeline(name, source_repo) = {
     ],
 }
 + resources
-+ templates;
++ templates
++ helpers;
 
 {
   newPipeline:: newPipeline,
