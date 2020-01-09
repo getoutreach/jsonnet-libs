@@ -429,29 +429,32 @@
         } + params,
       },
     ]),
-  deploymentStartSlackMessage(name)::
+  deploymentStartSlackMessage(name, target = null)::
+    local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
       channel = '#deployments',
       type = 'notice',
-      title = ':airplane_departure: %s deployment is starting...' % [name],
+      title = ':airplane_departure: %s deployment%s is starting...' % [name, targetMessage],
       inputs = [
         $.slackInput(title = 'Deployment', text = name),
       ],
     ),
-  deploymentSuccessfulSlackMessage(name)::
+  deploymentSuccessfulSlackMessage(name, target = null)::
+    local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
       channel = '#deployments',
       type = 'success',
-      title = ':airplane_arriving: %s deployment succeeded! :successkid:' % [name],
+      title = ':airplane_arriving: %s deployment%s succeeded! :successkid:' % [name, targetMessage],
       inputs = [
         $.slackInput(title = 'Deployment', text = name),
       ],
     ),
-  deploymentFailedSlackMessage(name)::
+  deploymentFailedSlackMessage(name, target = null)::
+    local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
       channel = '#deployments',
       type = 'failure',
-      title = ":boom: %s deployment failed..." % [name],
+      title = ":boom: %s deployment%s failed..." % [name, targetMessage],
       inputs = [
         $.slackInput(title = 'Deployment', text = name),
       ],
