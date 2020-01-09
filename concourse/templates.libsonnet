@@ -429,4 +429,31 @@
         } + params,
       },
     ]),
+  deploymentStartSlackMessage(name)::
+    $.slackMessage(
+      channel = '#deployments',
+      type = 'notice',
+      title = ':airplane_departure: %s deployment is starting...' % [name],
+      inputs = [
+        $.slackInput(title = 'Deployment', text = name),
+      ],
+    ),
+  deploymentSuccessfulSlackMessage(name)::
+    $.slackMessage(
+      channel = '#deployments',
+      type = 'success',
+      title = ':airplane_arriving: %s deployment succeeded! :successkid:' % [name],
+      inputs = [
+        $.slackInput(title = 'Deployment', text = name),
+      ],
+    ),
+  deploymentFailedSlackMessage(name)::
+    $.slackMessage(
+      channel = '#deployments',
+      type = 'failure',
+      title = ":boom: %s deployment failed..." % [name],
+      inputs = [
+        $.slackInput(title = 'Deployment', text = name),
+      ],
+    )
 }
