@@ -3,6 +3,7 @@
 
 local resources = import 'resources.libsonnet';
 local templates = import 'templates.libsonnet';
+local helpers = import 'helpers.libsonnet';
 
 local newPipeline(name, source_repo) = {
   // Configuration values
