@@ -10,17 +10,17 @@
     {
       name: 'staging.us-west-2',
       env: 'staging',
-      passed: ['Deploy staging.us-east-2']
+      passed: 'staging.us-east-2'
     },
     {
       name: 'production.us-west-2',
       env: 'production',
-      passed: ['Deploy staging.us-west-2']
+      passed: 'staging.us-west-2'
     },
     {
       name: 'production.us-west-2',
       env: 'production',
-      passed: ['Deploy production.us-west-2']
+      passed: 'production.us-west-2'
     },
   ],
   appBentos: [
@@ -34,55 +34,55 @@
       name: 'staging2',
       cluster: 'staging.us-west-2',
       channel: 'red',
-      passed: ['Deploy staging1a']
+      passed: 'staging1a'
     },
     {
       name: 'app1d',
       cluster: 'production.us-west-2',
       channel: 'orange',
-      passed: ['Deploy staging2']
+      passed: 'staging2'
     },
     {
       name: 'app1e',
       cluster: 'production.us-west-2',
       channel: 'amber',
-      passed: ['Deploy app1d']
+      passed: 'app1d'
     },
     {
       name: 'app1b',
       cluster: 'production.us-west-2',
       channel: 'yellow',
-      passed: ['Deploy app1e']
+      passed: 'app1e'
     },
     {
       name: 'app1a',
       cluster: 'production.us-west-2',
       channel: 'green',
-      passed: ['Deploy app1b']
+      passed: 'app1b'
     },
     {
       name: 'app1c',
       cluster: 'production.us-west-2',
       channel: 'green',
-      passed: ['Deploy app1a']
+      passed: 'app1a'
     },
     {
       name: 'app1f',
       cluster: 'production.us-west-2',
       channel: 'green',
-      passed: ['Deploy app1a']
+      passed: 'app1a'
     },
     {
       name: 'app2a',
       cluster: 'production.us-east-1',
       channel: 'green',
-      passed: ['Deploy app1b']
+      passed: 'app1b'
     },
     {
       name: 'app2b',
       cluster: 'production.us-east-1',
       channel: 'green',
-      passed: ['Deploy app2a']
+      passed: 'app2a'
     },
   ],
 }
