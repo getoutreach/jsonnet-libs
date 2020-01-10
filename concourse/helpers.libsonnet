@@ -4,22 +4,22 @@
   appClusters():: [
     {
       name: 'staging.us-east-2',
-      env: 'staging',
+      environment: 'staging',
       passed: null
     },
     {
       name: 'staging.us-west-2',
-      env: 'staging',
+      environment: 'staging',
       passed: 'staging.us-east-2'
     },
     {
       name: 'production.us-west-2',
-      env: 'production',
+      environment: 'production',
       passed: 'staging.us-west-2'
     },
     {
       name: 'production.us-west-2',
-      env: 'production',
+      environment: 'production',
       passed: 'production.us-west-2'
     },
   ],
