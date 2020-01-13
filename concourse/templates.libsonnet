@@ -166,6 +166,27 @@
         password: if username != null then password else $.outreach_registry_password,
       },
     },
+  
+  // Docker image configuration for GCR
+  gcrImage(
+    name = null,
+    repo = 'grc.io/docker-images-264720/' + name,
+    tag = 'latest',
+    username = null,
+    password = null,
+    pr = false,
+  )::
+    {
+      require_name:: if name == null then error '`name` parameter is required!',
+      name: if pr then name + '-pr' else name,
+      type: 'registry-image',
+      source: {
+        repository: repo,
+        tag: if pr then tag + '-pr' else tag,
+        username: if username != null then username else $.gcr_service_account_username,
+        password: if username != null then password else $.gcr_service_account_password,
+      },
+    },
 
   // Build docker image
   buildDockerImage(
