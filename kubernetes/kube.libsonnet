@@ -490,7 +490,7 @@
     },
   },
 
-  VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta1', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
+  VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta2', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
     local vpa = self,
     target:: error 'target required',
     spec: {
