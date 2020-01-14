@@ -492,10 +492,12 @@
 
   VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta1', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
     local vpa = self,
-    target_pod:: error 'target_pod required',
+    target:: error 'target required',
     spec: {
-      selector: {
-        matchLabels: vpa.target_pod.metadata.labels,
+      targetRef: $.CrossVersionObjectReference(vpa.target),
+
+      updatePolicy: {
+        updateMode: "Auto",
       },
     },
   },
