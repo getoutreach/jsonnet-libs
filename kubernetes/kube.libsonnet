@@ -502,7 +502,7 @@
       targetRef: $.CrossVersionObjectReference(vpa.target),
 
       updatePolicy: {
-        updateMode: "Auto",
+        updateMode: "Initial",
       },
     },
   },
