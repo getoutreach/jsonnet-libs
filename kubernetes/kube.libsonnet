@@ -490,12 +490,19 @@
     },
   },
 
-  VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta1', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
+  VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta2', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
     local vpa = self,
-    target_pod:: error 'target_pod required',
+    target:: error 'target required',
     spec: {
+      // Because this is a transitional patch to VPA we still require the spec.selector to not be empty.
+      // We can remove this after we upgrade VPA from 0.4.1 to 0.5.X or greater.
       selector: {
-        matchLabels: vpa.target_pod.metadata.labels,
+        matchLabels: {},
+      },
+      targetRef: $.CrossVersionObjectReference(vpa.target),
+
+      updatePolicy: {
+        updateMode: "Initial",
       },
     },
   },
