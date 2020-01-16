@@ -170,7 +170,7 @@
   // Docker image configuration for GCR
   gcrImage(
     name = null,
-    repo = 'grc.io/docker-images-264720/' + name,
+    repo = 'grc.io/outreach-docker/' + name,
     tag = 'latest',
     username = null,
     password = null,
