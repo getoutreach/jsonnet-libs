@@ -183,8 +183,8 @@
       source: {
         repository: repo,
         tag: if pr then tag + '-pr' else tag,
-        username: if username != null then username else $.gcr_service_account_username,
-        password: if username != null then password else $.gcr_service_account_password,
+        username: if username != null then username else $.gcr_registry_username,
+        password: if username != null then password else $.gcr_registry_password,
       },
     },
 
@@ -204,7 +204,7 @@
         privileged: true,
         config: {
           platform: 'linux',
-          image_resource: $.basicResourceTypes.build_task,
+          image_resource: $.basicResourceTypes.build_task + { name:: null },
           params: {
             CONTEXT: source,
           } + params,
