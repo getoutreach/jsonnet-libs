@@ -217,7 +217,7 @@
             REPOSITORY: 'gcr.io/outreach-docker/%s' % name,
             OUTPUT: 'image',
             BUILD_ARGS: std.join(' ', build_args_rendered),
-          } + params,
+          } + params + build_args,
           inputs: [{name: source}, {name: 'version', optional: true}],
           outputs: [{name: 'image'}],
           caches: [{path: 'cache'}],
@@ -226,9 +226,10 @@
             args: [
               '-c',
               |||
-                img login -u ${REPOSITORY_USER} -p ${REPOSITORY_PASS} https://gcr.io/v2/
+                img login -u ${REPOSITORY_USER} -p ${REPOSITORY_PASS} https://gcr.io
 
                 set -ex
+                export TAG=$(cat %(tf)s)
                 cat %(tf)s > image/tags
                 echo -n " %(extra_tags)s" >> image/tags
                 build
