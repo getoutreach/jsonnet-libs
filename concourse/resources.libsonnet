@@ -3,6 +3,17 @@
 {
   // Basic resource types
   basicResourceTypes:: {
+    // https://github.com/vito/oci-build-task
+    build_task: {
+      name: 'oci-build-task',
+      type: 'registry-image',
+      source: {
+        repository: 'gcr.io/outreach-docker/concourse/vito/oci-build-task',
+        tag: 'latest',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
+      },
+    },
     maestro: {
       name: 'maestro',
       type: 'registry-image',

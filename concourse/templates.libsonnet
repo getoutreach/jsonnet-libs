@@ -188,6 +188,57 @@
       },
     },
 
+  // Build and push docker images with specified tags
+  imageBuildPush(
+    name        = $.name,
+    source      = 'source',
+    tag_file    = 'version/version',
+    extra_tags  = [],
+    # https://github.com/vito/oci-build-task#params
+    params      = {},
+  )::
+    std.prune([
+      // Build image using the concourse oci-build-task
+      {
+        task: 'build-%s' % name,
+        privileged: true,
+        config: {
+          platform: 'linux',
+          image_resource: $.basicResourceTypes.build_task,
+          params: {
+            CONTEXT: source,
+          } + params,
+          inputs: [{name: source}, {name: 'version', optional: true}],
+          outputs: [{name: 'image'}],
+          caches: [{path: 'cache'}],
+          run: {
+            path: '/bin/sh',
+            args: [
+              '-c',
+              |||
+                set -ex
+                cat %(tf)s > image/tags
+                echo -n " %(extra_tags)s" >> image/tags
+                build
+              ||| % {
+                tf: tag_file,
+                extra_tags: std.join(' ', extra_tags),
+              },
+            ],
+          },
+        },
+      },
+
+      // Push the built image to the registry with the tags specified
+      {
+        put: name,
+        params: {
+          image: 'image/image.tar',
+          additional_tags: 'image/tags',
+        },
+      },
+    ]),
+
   // Build docker image
   buildDockerImage(
     name = $.name,
