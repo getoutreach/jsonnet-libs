@@ -222,11 +222,11 @@
           outputs: [{name: 'image'}],
           caches: [{path: 'cache'}],
           run: {
-            path: '/bin/sh',
+            path: '/bin/bash',
             args: [
               '-c',
               |||
-                img login -u ${REPOSITORY_USER} -p ${REPOSITORY_PASS} https://gcr.io
+                echo ${REPOSITORY_PASS} | img login -u ${REPOSITORY_USER} --password-stdin https://gcr.io
 
                 set -ex
                 export TAG=$(cat %(tf)s)
