@@ -16,7 +16,7 @@
     },
     // Deprecated but still in use until the oci-build-task works
     builder_task: {
-      name: 'oci-build-task',
+      name: 'builder-task',
       type: 'registry-image',
       source: {
         repository: 'gcr.io/outreach-docker/concourse/builder',
