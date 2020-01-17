@@ -14,6 +14,17 @@
         password: $.gcr_registry_password,
       },
     },
+    // Deprecated but still in use until the oci-build-task works
+    builder_task: {
+      name: 'oci-build-task',
+      type: 'registry-image',
+      source: {
+        repository: 'gcr.io/outreach-docker/concourse/builder',
+        tag: 'latest',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
+      },
+    },
     maestro: {
       name: 'maestro',
       type: 'registry-image',

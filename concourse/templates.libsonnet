@@ -196,7 +196,12 @@
     extra_tags  = [],
     # https://github.com/vito/oci-build-task#params
     params      = {},
+    build_args  = {},
   )::
+    local build_args_rendered = std.map(
+      function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args)
+    );
+
     std.prune([
       // Build image using the concourse oci-build-task
       {
@@ -204,9 +209,14 @@
         privileged: true,
         config: {
           platform: 'linux',
-          image_resource: $.basicResourceTypes.build_task + { name:: null },
+          image_resource: $.basicResourceTypes.builder_task + { name:: null },
           params: {
             CONTEXT: source,
+            REPOSITORY_USER: $.gcr_registry_username,
+            REPOSITORY_PASS: $.gcr_registry_password,
+            REPOSITORY: 'gcr.io/outreach-docker/%s' % name,
+            OUTPUT: 'image',
+            BUILD_ARGS: std.join(' ', build_args_rendered),
           } + params,
           inputs: [{name: source}, {name: 'version', optional: true}],
           outputs: [{name: 'image'}],
@@ -216,6 +226,8 @@
             args: [
               '-c',
               |||
+                img login -u ${REPOSITORY_USER} -p ${REPOSITORY_PASS} https://gcr.io/v2/
+
                 set -ex
                 cat %(tf)s > image/tags
                 echo -n " %(extra_tags)s" >> image/tags
