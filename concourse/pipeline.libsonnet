@@ -13,7 +13,7 @@ local newPipeline(name, source_repo) = {
   github_access_token:: '((github-access-token))',
   outreach_registry_username:: '((outreach-registry-username))',
   outreach_registry_password:: '((outreach-registry-password))',
-  gcr_registry_username:: '((gcr-service-account-password))',
+  gcr_registry_username:: '((gcr-service-account-username))',
   gcr_registry_password:: '((gcr-service-account-password))',
   aws_access_key_id:: '((aws-access-key-id))',
   aws_secret_access_key:: '((aws-secret-access-key))',
