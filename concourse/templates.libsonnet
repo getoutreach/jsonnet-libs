@@ -183,10 +183,74 @@
       source: {
         repository: repo,
         tag: if pr then tag + '-pr' else tag,
-        username: if username != null then username else $.gcr_service_account_username,
-        password: if username != null then password else $.gcr_service_account_password,
+        username: if username != null then username else $.gcr_registry_username,
+        password: if username != null then password else $.gcr_registry_password,
       },
     },
+
+  // Build and push docker images with specified tags
+  imageBuildPush(
+    name        = $.name,
+    source      = 'source',
+    tag_file    = 'version/version',
+    extra_tags  = [],
+    # https://github.com/vito/oci-build-task#params
+    params      = {},
+    build_args  = {},
+  )::
+    local build_args_rendered = std.map(
+      function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args)
+    );
+
+    std.prune([
+      // Build image using the concourse oci-build-task
+      {
+        task: 'build-%s' % name,
+        privileged: true,
+        config: {
+          platform: 'linux',
+          image_resource: $.basicResourceTypes.builder_task + { name:: null },
+          params: {
+            CONTEXT: source,
+            REPOSITORY_USER: $.gcr_registry_username,
+            REPOSITORY_PASS: $.gcr_registry_password,
+            REPOSITORY: 'gcr.io/outreach-docker/%s' % name,
+            OUTPUT: 'image',
+            BUILD_ARGS: std.join(' ', build_args_rendered),
+          } + params + build_args,
+          inputs: [{name: source}, {name: 'version', optional: true}],
+          outputs: [{name: 'image'}],
+          caches: [{path: 'cache'}],
+          run: {
+            path: '/bin/bash',
+            args: [
+              '-c',
+              |||
+                echo ${REPOSITORY_PASS} | img login -u ${REPOSITORY_USER} --password-stdin https://gcr.io
+
+                set -ex
+                export TAG=$(cat %(tf)s)
+                cat %(tf)s > image/tags
+                echo -n " %(extra_tags)s" >> image/tags
+                build
+              ||| % {
+                tf: tag_file,
+                extra_tags: std.join(' ', extra_tags),
+              },
+            ],
+          },
+        },
+      },
+
+      // Push the built image to the registry with the tags specified
+      {
+        put: name,
+        params: {
+          image: 'image/image.tar',
+          additional_tags: 'image/tags',
+        },
+      },
+    ]),
 
   // Build docker image
   buildDockerImage(
