@@ -94,15 +94,7 @@
       task: name,
       config: {
         platform: 'linux',
-        image_resource: {
-          type: 'registry-image',
-          source: {
-            repository: 'registry.outreach.cloud/alpine/tools',
-            tag: 'latest',
-            username: '((outreach-registry-username))',
-            password: '((outreach-registry-password))',
-          },
-        },
+        image_resource: $.basicResources.task_image + { name:: null },
         inputs: inputs,
         outputs: outputs,
         run: {
@@ -398,15 +390,7 @@
         task: type + '_payload',
         config: {
           platform: 'linux',
-          image_resource: {
-            type: 'registry-image',
-            source: {
-              repository: 'registry.outreach.cloud/alpine/tools',
-              tag: 'latest',
-              username: $.outreach_registry_username,
-              password: $.outreach_registry_password,
-            },
-          },
+          image_resource: $.basicResources.task_image + { name:: null },
           params: {
             STATUS_TITLE: title,
             [if text != null then 'STATUS_TEXT']: text,
