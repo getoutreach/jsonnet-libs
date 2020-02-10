@@ -35,7 +35,7 @@
     {
       name: 'staging2',
       cluster: 'staging.us-west-2',
-      channel: 'red',
+      channel: 'white',
       environment: 'staging',
       region: 'us-west-2',
       passed: 'staging1a'
@@ -51,7 +51,7 @@
     {
       name: 'app1e',
       cluster: 'production.us-west-2',
-      channel: 'amber',
+      channel: 'yellow',
       environment: 'production',
       region: 'us-west-2',
       passed: 'app1d'
