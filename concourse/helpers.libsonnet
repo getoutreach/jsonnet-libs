@@ -29,6 +29,7 @@
       cluster: 'staging.us-east-2',
       channel: 'white',
       environment: 'staging',
+      region: 'us-east-2',
       passed: null
     },
     {
@@ -36,6 +37,7 @@
       cluster: 'staging.us-west-2',
       channel: 'red',
       environment: 'staging',
+      region: 'us-west-2',
       passed: 'staging1a'
     },
     {
@@ -43,6 +45,7 @@
       cluster: 'production.us-west-2',
       channel: 'orange',
       environment: 'production',
+      region: 'us-west-2',
       passed: 'staging2'
     },
     {
@@ -50,6 +53,7 @@
       cluster: 'production.us-west-2',
       channel: 'amber',
       environment: 'production',
+      region: 'us-west-2',
       passed: 'app1d'
     },
     {
@@ -57,6 +61,7 @@
       cluster: 'production.us-west-2',
       channel: 'yellow',
       environment: 'production',
+      region: 'us-west-2',
       passed: 'app1e'
     },
     {
@@ -64,6 +69,7 @@
       cluster: 'production.us-west-2',
       channel: 'green',
       environment: 'production',
+      region: 'us-west-2',
       passed: 'app1b'
     },
     {
@@ -71,6 +77,7 @@
       cluster: 'production.us-west-2',
       channel: 'green',
       environment: 'production',
+      region: 'us-west-2',
       passed: 'app1a'
     },
     {
@@ -78,6 +85,7 @@
       cluster: 'production.us-west-2',
       channel: 'green',
       environment: 'production',
+      region: 'us-west-2',
       passed: 'app1a'
     },
     {
@@ -85,6 +93,7 @@
       cluster: 'production.us-east-1',
       channel: 'green',
       environment: 'production',
+      region: 'us-east-1',
       passed: 'app1b'
     },
     {
@@ -92,6 +101,7 @@
       cluster: 'production.us-east-1',
       channel: 'green',
       environment: 'production',
+      region: 'us-east-1',
       passed: 'app2a'
     },
   ],
