@@ -35,6 +35,16 @@
         password: $.gcr_registry_password,
       },
     },
+    maestrov2: {
+      name: 'maestrov2',
+      type: 'registry-image',
+      source: {
+        repository: 'gcr.io/outreach-docker/concourse/maestro-resource',
+        tag: 'v2',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
+      },
+    },
     slack_message: {
       name: 'slack_message',
       type: 'registry-image',
