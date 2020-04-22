@@ -634,7 +634,7 @@
     subjects_:: [],
     subjects: [{
       kind: o.kind,
-      namespace: o.metadata.namespace,
+      namespace: if std.objectHas(o.metadata, "namespace") then o.metadata.namespace else null,
       name: o.metadata.name,
     } for o in self.subjects_],
 
