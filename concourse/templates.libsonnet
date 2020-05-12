@@ -30,7 +30,6 @@
       get: source,
       [if trigger != null then 'trigger']: trigger,
       [if passed != null then 'passed']: passed,
-      [if pr then 'version']: 'every',
     },
 
   // Template for running tasks from repo
