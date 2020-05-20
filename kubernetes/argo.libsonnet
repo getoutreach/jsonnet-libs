@@ -72,7 +72,7 @@ local ok = import 'outreach.libsonnet';
         spec: {
           containers: [
             ok.Container('gateway-client') {
-              image: 'gcr.io/outreach-docker/argo/gateway-client:v0.12.1',
+              image: 'gcr.io/outreach-docker/argo/outreach-gateway-client:v0.12.1',
               command: [ '/bin/gateway-client' ],
               resources: {
                 limits: { memory: '100Mi' },
@@ -80,7 +80,7 @@ local ok = import 'outreach.libsonnet';
               },
             },
             ok.Container('%s-events' % this.gatewayType) {
-              image: 'gcr.io/outreach-docker/argo/%s-gateway:v0.12.1' % this.gatewayType,
+              image: 'gcr.io/outreach-docker/argo/outreach-%s-gateway:v0.12.1' % this.gatewayType,
               command: [ '/bin/%s-gateway' % this.gatewayType ],
               resources: {
                 limits: { memory: '100Mi' },
