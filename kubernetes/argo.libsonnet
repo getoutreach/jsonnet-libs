@@ -115,7 +115,7 @@ local ok = import 'outreach.libsonnet';
         spec: {
           containers: [
             ok.Container('sensor') {
-              image: 'gcr.io/outreach-docker/argo/sensor:v0.12.1',
+              image: 'gcr.io/outreach-docker/argo/outreach-sensor:v0.12.1',
               resources: {
                 limits: { memory: '100Mi' },
                 requests: { cpu: '10m' },
