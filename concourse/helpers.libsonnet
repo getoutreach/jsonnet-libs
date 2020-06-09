@@ -23,6 +23,24 @@
       passed: 'production.us-west-2'
     },
   ],
+  stagingBentos():: [
+    {
+      name: 'staging1a',
+      cluster: 'staging.us-east-2',
+      channel: 'white',
+      environment: 'staging',
+      region: 'us-east-2',
+      passed: null
+    },
+    {
+      name: 'staging2',
+      cluster: 'staging.us-west-2',
+      channel: 'white',
+      environment: 'staging',
+      region: 'us-west-2',
+      passed: 'staging1a'
+    },
+  ],
   appBentos():: [
     {
       name: 'staging1a',
