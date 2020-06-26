@@ -620,7 +620,7 @@
   ServiceAccount(name, namespace, app=name): $._Object('v1', 'ServiceAccount', name, namespace=namespace, app=app) {
   },
 
-  Role(name, app=name): $._Object('rbac.authorization.k8s.io/v1', 'Role', name, app=app) {
+  Role(name, app=name, namespace=null): $._Object('rbac.authorization.k8s.io/v1', 'Role', name, app=app, namespace=namespace) {
     rules: [],
   },
 
