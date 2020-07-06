@@ -526,5 +526,15 @@
       inputs = [
         $.slackInput(title = 'Deployment', text = name),
       ],
-    )
+    ),
+  maestroResource(name, deploy_name, resource)::{
+    name: 'maestro-%s-%s' % [deploy_name, resource],
+    type: 'maestrov3',
+    source: {
+      application: name,
+      secret: $.maestro_secret,
+      segmentName: deploy_name,
+      resource: resource,
+    },
+  }
 }
