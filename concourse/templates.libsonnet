@@ -157,7 +157,7 @@
         password: if username != null then password else $.outreach_registry_password,
       },
     },
-  
+
   // Docker image configuration for GCR
   gcrImage(
     name = null,
@@ -536,5 +536,7 @@
       segmentName: deploy_name,
       resource: resource,
     },
-  }
+  },
+  maestroActionableVersion(name, deploy_name):: $.maestroResource(name, deploy_name, 'actionable_version'),
+  maestroDeployedVersion(name, deploy_name):: $.maestroResource(name, deploy_name, 'deployed_version'),
 }
