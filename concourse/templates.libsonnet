@@ -497,20 +497,20 @@
         } + params,
       },
     ]),
-  deploymentStartSlackMessage(name, target = null)::
+  deploymentStartSlackMessage(name, target = null, slackChannel = '#deployments')::
     local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
-      channel = '#deployments',
+      channel = slackChannel,
       type = 'notice',
       title = ':airplane_departure: %s deployment%s is starting...' % [name, targetMessage],
       inputs = [
         $.slackInput(title = 'Deployment', text = name),
       ],
     ),
-  deploymentSuccessfulSlackMessage(name, target = null)::
+  deploymentSuccessfulSlackMessage(name, target = null, slackChannel = '#deployments')::
     local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
-      channel = '#deployments',
+      channel = slackChannel,
       type = 'success',
       title = ':airplane_arriving: %s deployment%s succeeded! :successkid:' % [name, targetMessage],
       inputs = [
