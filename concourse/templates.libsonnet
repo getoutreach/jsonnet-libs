@@ -517,10 +517,10 @@
         $.slackInput(title = 'Deployment', text = name),
       ],
     ),
-  deploymentFailedSlackMessage(name, target = null)::
+  deploymentFailedSlackMessage(name, target = null, slackChannel = '#deployments')::
     local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
-      channel = '#deployments',
+      channel = slackChannel,
       type = 'failure',
       title = ":boom: %s deployment%s failed..." % [name, targetMessage],
       inputs = [
