@@ -18,9 +18,16 @@
       passed: 'staging.us-west-2'
     },
     {
-      name: 'production.us-west-2',
+      name: 'production.us-east-1',
       environment: 'production',
       passed: 'production.us-west-2'
+    },
+  ],
+  infraClusters():: [
+    {
+      name: 'ops.us-west-2',
+      environment: 'production'
+      passed: null
     },
   ],
   stagingBentos():: [
