@@ -26,7 +26,7 @@
   infraClusters():: [
     {
       name: 'ops.us-west-2',
-      environment: 'production'
+      environment: 'production',
       passed: null
     },
   ],
