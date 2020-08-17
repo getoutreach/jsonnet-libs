@@ -539,4 +539,17 @@
   },
   maestroActionableVersion(name, deploy_name):: $.maestroResource(name, deploy_name, 'actionable_version'),
   maestroDeployedVersion(name, deploy_name):: $.maestroResource(name, deploy_name, 'deployed_version'),
+  checkoutMaestroVersion(maestro_resource_name):: $.newInlineTask(
+    "Checkout Maestro Version",
+    [{name: 'source'}, {name: maestro_resource_name}],
+    [
+      |||
+        set -euf -o pipefail
+        maestro_version=$(cat ./%s/version)
+        cd source
+        git checkout $maestro_version
+      ||| % [maestro_resource_name]
+    ],
+    [{name: 'source'}],
+  ),
 }
