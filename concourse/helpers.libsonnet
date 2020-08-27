@@ -42,7 +42,8 @@
       channel: 'white',
       environment: 'staging',
       region: 'us-east-2',
-      passed: null
+      passed: null,
+      next: 'app1d'
     },
     {
       name: 'app1d',
@@ -50,7 +51,8 @@
       channel: 'orange',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'staging1a'
+      passed: 'staging1a',
+      next: 'app1e'
     },
     {
       name: 'app1e',
@@ -58,7 +60,8 @@
       channel: 'yellow',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1d'
+      passed: 'app1d',
+      next: 'app1b'
     },
     {
       name: 'app1b',
@@ -66,7 +69,8 @@
       channel: 'yellow',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1e'
+      passed: 'app1e',
+      next: 'app1a'
     },
     {
       name: 'app1a',
@@ -74,7 +78,8 @@
       channel: 'green',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1b'
+      passed: 'app1b',
+      next: 'app1c'
     },
     {
       name: 'app1c',
@@ -82,7 +87,8 @@
       channel: 'green',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1a'
+      passed: 'app1a',
+      next: 'app1f'
     },
     {
       name: 'app1f',
@@ -90,7 +96,8 @@
       channel: 'green',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1a'
+      passed: 'app1a',
+      next: 'app2a'
     },
     {
       name: 'app2a',
@@ -98,7 +105,8 @@
       channel: 'green',
       environment: 'production',
       region: 'us-east-1',
-      passed: 'app1b'
+      passed: 'app1b',
+      next: 'app2b'
     },
     {
       name: 'app2b',
@@ -106,7 +114,8 @@
       channel: 'green',
       environment: 'production',
       region: 'us-east-1',
-      passed: 'app2a'
+      passed: 'app2a',
+      next: null
     },
   ],
 }
