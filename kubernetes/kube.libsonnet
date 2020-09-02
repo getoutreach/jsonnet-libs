@@ -130,6 +130,14 @@
     apiVersion: 'v1',
     kind: 'List',
     items_:: {},
+    items: $.objectValues(self.items_),
+  },
+
+  // FilteredList is the same as List(), but it removes null from the array
+  FilteredList(): {
+    apiVersion: 'v1',
+    kind: 'List',
+    items_:: {},
     items: std.filter($.isNotNull, $.objectValues(self.items_)),
   },
 
