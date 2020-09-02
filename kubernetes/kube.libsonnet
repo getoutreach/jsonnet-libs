@@ -59,6 +59,9 @@
   // Returns array of [key, value] pairs from given object.  Does not include hidden fields.
   objectItems(o):: [[k, o[k]] for k in std.objectFields(o)],
 
+  // Returns true if a value is not equal to null
+  isNotNull(v):: v != null,
+
   // Replace all occurrences of `_` with `-`.
   hyphenate(s):: std.join('-', std.split(s, '_')),
 
@@ -127,7 +130,7 @@
     apiVersion: 'v1',
     kind: 'List',
     items_:: {},
-    items: $.objectValues(self.items_),
+    items: std.filter($.isNotNull, $.objectValues(self.items_)),
   },
 
   Namespace(name): $._Object('v1', 'Namespace', name) {
