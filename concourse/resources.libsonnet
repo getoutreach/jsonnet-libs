@@ -59,7 +59,7 @@
       name: 'slack_message',
       type: 'registry-image',
       source: {
-        repository: 'cfcommunity/slack-notification-resource',
+        repository: 'gcr.io/outreach-docker/cfcommunity/slack-notification-resource',
         tag: 'latest',
       },
     },
@@ -67,7 +67,7 @@
       name: 'github_status',
       type: 'registry-image',
       source: {
-        repository: 'dpb587/github-status-resource',
+        repository: 'gcr.io/outreach-docker/dpb587/github-status-resource',
         tag: 'master',
       },
     },
@@ -75,14 +75,14 @@
       name: 'source_pr',
       type: 'registry-image',
       source: {
-        repository: 'jtarchie/pr',
+        repository: 'gcr.io/outreach-docker/jtarchie/pr',
       },
     },
     metadata: {
       name: 'metadata',
       type: 'registry-image',
       source: {
-        repository: 'olhtbr/metadata-resource',
+        repository: 'gcr.io/outreach-docker/olhtbr/metadata-resource',
         tag: '1.0.0',
       },
     },
