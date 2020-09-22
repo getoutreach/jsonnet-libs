@@ -61,6 +61,8 @@
       source: {
         repository: 'gcr.io/outreach-docker/cfcommunity/slack-notification-resource',
         tag: 'latest',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
       },
     },
     github_status: {
@@ -69,6 +71,8 @@
       source: {
         repository: 'gcr.io/outreach-docker/dpb587/github-status-resource',
         tag: 'master',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
       },
     },
     source_pr: {
@@ -76,6 +80,8 @@
       type: 'registry-image',
       source: {
         repository: 'gcr.io/outreach-docker/jtarchie/pr',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
       },
     },
     metadata: {
@@ -84,6 +90,8 @@
       source: {
         repository: 'gcr.io/outreach-docker/olhtbr/metadata-resource',
         tag: '1.0.0',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
       },
     },
     vault: {
