@@ -46,6 +46,7 @@
     update = true,
     privileged = null,
     context = 'status',
+    timeout = null,
   )::
     local source = if pr then 'source_pr' else 'source';
     local custom_params = {
@@ -79,6 +80,7 @@
         file: source + '/' + path,
         [if attempts != null then 'attempts']: attempts,
         [if privileged != null then 'privileged']: privileged,
+        [if timeout != null then 'timeout']: timeout,
       },
     ]),
 
