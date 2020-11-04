@@ -101,10 +101,12 @@
       annotations: {},
       labels: {
         name: name,
-        [if app != null then 'app']: app,
-        [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
+        # ':' is not allowed in labels and so we replace it with '-'
+        [if app != null then 'app']: std.strReplace(app, ":", "-"),
+        [if app != null && namespace == 'kube-system' then 'k8s-app']: std.strReplace(app, ":", "-"),
       },
-      name: name,
+      # ':' is not allowed in labels and so we replace it with '-'
+      name: std.strReplace(name, ":", "-"),
       [if namespace != null then 'namespace']: namespace,
     },
   },
