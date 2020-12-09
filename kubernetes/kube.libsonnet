@@ -505,11 +505,6 @@
     local vpa = self,
     target:: error 'target required',
     spec: {
-      // Because this is a transitional patch to VPA we still require the spec.selector to not be empty.
-      // We can remove this after we upgrade VPA from 0.4.1 to 0.5.X or greater.
-      selector: {
-        matchLabels: {},
-      },
       targetRef: $.CrossVersionObjectReference(vpa.target),
 
       updatePolicy: {
