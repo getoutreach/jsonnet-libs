@@ -755,4 +755,13 @@
       },
     },
   },
+
+  VaultSecret(name, namespace): $._Object('secrets.outreach.io/v1alpha1', 'VaultSecret', name, namespace) {
+    vaultPath_:: error 'vaultPath_ is required',
+    local this = self,
+    spec: {
+      reconciled: false,
+      vaultPath: this.vaultPath_,
+    },
+  },
 }
