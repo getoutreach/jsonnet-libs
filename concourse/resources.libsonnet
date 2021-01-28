@@ -144,7 +144,7 @@
       type: 'git',
       source: {
         uri: 'git@github.com:' + $.source_repo + '.git',
-        branch: 'master',
+        branch: $.branch,
         private_key: $.github_key,
       },
       webhook_token: $.webhook_token,

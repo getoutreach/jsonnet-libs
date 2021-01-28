@@ -5,10 +5,11 @@ local resources = import 'resources.libsonnet';
 local templates = import 'templates.libsonnet';
 local helpers = import 'helpers.libsonnet';
 
-local newPipeline(name, source_repo) = {
+local newPipeline(name, source_repo, branch="master") = {
   // Configuration values
   name:: name,
   source_repo:: source_repo,
+  branch:: branch,
   github_key:: '((github-key))',
   github_access_token:: '((github-access-token))',
   outreach_registry_username:: '((outreach-registry-username))',
