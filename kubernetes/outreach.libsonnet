@@ -42,6 +42,7 @@ k + kubecfg {
       'ingress.kubernetes.io/force-ssl-redirect': 'true',
       'kubernetes.io/tls-acme': 'true',
       'contour.heptio.com/tls-minimum-protocol-version': '1.2',
+      'projectcontour.io/tls-minimum-protocol-version': '1.2',
     },
 
     metadata+: {
