@@ -213,7 +213,6 @@
           } + params + build_args,
           inputs: [{name: source}, {name: 'version', optional: true}],
           outputs: [{name: 'image'}],
-          caches: [{path: 'cache'}],
           run: {
             path: '/bin/bash',
             args: [
