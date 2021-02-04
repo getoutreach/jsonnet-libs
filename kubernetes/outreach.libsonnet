@@ -2,8 +2,6 @@ local k = import 'kube.libsonnet';
 local kubecfg = import 'kubecfg.libsonnet';
 
 k + kubecfg {
-  // DEPRECATED: will be removing the cluster key
-  cluster: import 'cluster.libsonnet',
   ContourIngress(
     name,
     namespace,
@@ -15,10 +13,10 @@ k + kubecfg {
     serviceName=name,
     servicePort='http',
     tlsSecret=null,
+    cluster_info=null,
   ): self.Ingress(name, namespace, app=app) {
     local this = self,
-    local cluster = import 'cluster.libsonnet',
-
+    local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
     host:: '%s.%s.%s' % [subdomain, cluster.global_name, ingressDomain],
     local target = '%s.%s.%s' % [contour, cluster.global_name, contourDomain],
     local rule = {
