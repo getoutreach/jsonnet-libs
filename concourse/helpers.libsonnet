@@ -52,15 +52,6 @@
       environment: 'production',
       region: 'us-west-2',
       passed: 'staging1a',
-      next: 'app1e'
-    },
-    {
-      name: 'app1e',
-      cluster: 'production.us-west-2',
-      channel: 'yellow',
-      environment: 'production',
-      region: 'us-west-2',
-      passed: 'app1d',
       next: 'app1b'
     },
     {
@@ -69,7 +60,16 @@
       channel: 'yellow',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1e',
+      passed: 'app1d',
+      next: 'app1e'
+    },
+    {
+      name: 'app1e',
+      cluster: 'production.us-west-2',
+      channel: 'green',
+      environment: 'production',
+      region: 'us-west-2',
+      passed: 'app1b',
       next: 'app1a'
     },
     {
@@ -78,7 +78,7 @@
       channel: 'green',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1b',
+      passed: 'app1e',
       next: 'app1c'
     },
     {
