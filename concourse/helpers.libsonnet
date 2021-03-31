@@ -115,6 +115,15 @@
       environment: 'production',
       region: 'us-east-1',
       passed: 'app2a',
+      next: 'app2c'
+    },
+    {
+      name: 'app2c',
+      cluster: 'production.us-east-1',
+      channel: 'green',
+      environment: 'production',
+      region: 'us-east-1',
+      passed: 'app2b',
       next: null
     },
   ],
