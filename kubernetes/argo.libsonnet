@@ -5,7 +5,7 @@ local ok = import 'outreach.libsonnet';
       type: 'webhook',
       webhook: {
         ['%s' % [name]]: {
-          port: "12000",
+          port: "443",
           endpoint: "/%s" % name,
           method: "POST"
         },
