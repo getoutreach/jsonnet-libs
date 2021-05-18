@@ -94,13 +94,13 @@
     std.parseInt(std.substr(n, 0, n_len - convert[0])) * convert[1]
   ),
 
-  _Object(apiVersion, kind, name, app=null, namespace=null):: {
+  _Object(apiVersion, kind, name, app=null, namespace=null, short_name=null):: {
     apiVersion: apiVersion,
     kind: kind,
     metadata: {
       annotations: {},
       labels: {
-        name: name,
+        name: if short_name != null then short_name else name,
         [if app != null then 'app']: app,
         [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
       },
