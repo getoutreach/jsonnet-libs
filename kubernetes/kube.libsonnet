@@ -764,4 +764,7 @@
       vaultPath: this.vaultPath_,
     },
   },
+  
+  // GoSecretData adds a helper for creating the go-outreach/gobox secretData struct
+  GoSecretData(path): { Path: path },
 }
