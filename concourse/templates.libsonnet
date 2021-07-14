@@ -553,4 +553,53 @@
     ],
     [{name: 'source'}],
   ),
+
+  // Sends OpsLevel Deployment Updates
+  deploymentSuccessfulOpsLevelMessage(service, bento = null)::
+  {
+    task: "Send OpsLevel Deploy Message",
+    config: {
+      platform: 'linux',
+      image_resource: $.basicResources.task_image + { name:: null },
+      inputs: [{ name: 'metadata' }, { name: 'source' }],
+      outputs: [],
+      run: {
+        path: '/bin/bash',
+        args: [
+          '-c',
+          |||
+            set -euf -o pipefail
+            SERVICE=%s
+            BENTO=%s
+            OPSLEVEL_DEPLOY=/tmp/opslevel_deploy.json
+            ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
+            BUILD_TEAM_NAME=$(cat metadata/build_team_name)
+            BUILD_PIPELINE_NAME=$(cat metadata/build_pipeline_name)
+            BUILD_JOB_NAME=$(cat metadata/build_job_name)
+            BUILD_ID=$(cat metadata/build_id)
+            BUILD_NAME=$(cat metadata/build_name)
+            cat <<EOF > $OPSLEVEL_DEPLOY
+            {
+              "dedup_id": "$BUILD_ID",
+              "service": "$SERVICE",
+              "deployer": {
+                "email": "$BUILD_TEAM_NAME@outreach.io"
+              },
+              "deployed_at": "$(date -u '+%%FT%%TZ')",
+              "environment": "$BENTO",
+              "description": "Deployed by Concourse: $BUILD_PIPELINE_NAME#$BUILD_NAME",
+              "deploy_url": "$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME",
+              "deploy_number": "$BUILD_ID"
+            }
+            EOF
+            echo "OpsLevel Payload:"
+            cat $OPSLEVEL_DEPLOY
+            curl -X POST https://app.opslevel.com/integrations/deploy/6a9c1f3e-d708-4f00-99d8-c4831ee03f49 \
+              -H 'content-type: application/json' \
+              --data-binary @$OPSLEVEL_DEPLOY
+          ||| % [service, bento],
+        ],
+      },
+    },
+  },
 }
