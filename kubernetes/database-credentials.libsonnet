@@ -8,10 +8,10 @@ local k = import 'kubernetes/kube.libsonnet';
       grants: this.grants,
     },
   },
-  Grant(privilege, pattern): { 
-    assert privilege != "": 'privilege is required',
+  Grant(privileges, pattern): { 
+    assert std.length(privileges) > 0: 'privileges(array of string) is required',
     assert  pattern != "": 'pattern is required',
-    privilege: privilege,
+    privileges: privileges,
     pattern: pattern,
   },
 }
