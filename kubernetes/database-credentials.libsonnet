@@ -6,6 +6,7 @@ local k = import 'kubernetes/kube.libsonnet';
     spec: {
       username: this.username,
       grants: this.grants,
+      vault: this.vault,
     },
   },
   Grant(privileges, pattern): { 
