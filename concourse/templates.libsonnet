@@ -555,7 +555,7 @@
   ),
 
   // Sends OpsLevel Deployment Updates
-  deploymentSuccessfulOpsLevelMessage(service, bento = null)::
+  deploymentSuccessfulOpsLevelMessage(service, bento = null, env = null)::
   {
     task: "Send OpsLevel Deploy Message",
     config: {
@@ -571,6 +571,7 @@
             set -euf -o pipefail
             SERVICE=%s
             BENTO=%s
+            ENV=%s
             OPSLEVEL_DEPLOY=/tmp/opslevel_deploy.json
             ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
             BUILD_TEAM_NAME=$(cat metadata/build_team_name)
@@ -586,7 +587,7 @@
                 "email": "$BUILD_TEAM_NAME@outreach.io"
               },
               "deployed_at": "$(date -u '+%%FT%%TZ')",
-              "environment": "$BENTO",
+              "environment": "$ENV-$BENTO",
               "description": "Deployed by Concourse: $BUILD_PIPELINE_NAME#$BUILD_NAME",
               "deploy_url": "$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME",
               "deploy_number": "$BUILD_ID"
@@ -597,7 +598,7 @@
             curl -X POST https://app.opslevel.com/integrations/deploy/6a9c1f3e-d708-4f00-99d8-c4831ee03f49 \
               -H 'content-type: application/json' \
               --data-binary @$OPSLEVEL_DEPLOY
-          ||| % [service, bento],
+          ||| % [service, bento, environment],
         ],
       },
     },
