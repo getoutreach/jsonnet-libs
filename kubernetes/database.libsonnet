@@ -19,15 +19,16 @@ local k = import 'kubernetes/kube.libsonnet';
         version: version,
         parameter_group_family: parameter_group_family,
   },
-  PostgresqlDatabaseCluster(name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name, app=app, namespace=namespace) {
+  PostgresqlDatabaseCluster(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
     database_name:: error 'database_name is required',
     engine:: error 'engine is required',
     instance_class:: error 'instance_class is required',
     team:: error 'team is required',
     tier:: error 'tier is required',
+    personal_information:: "",
     local this = self,
     spec: {
-      name: name,
+      name: database_cluster_name,
       database_name: this.database_name,
       instance_class: this.instance_class,
       engine+: this.engine,
