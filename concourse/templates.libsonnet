@@ -598,7 +598,7 @@
             curl -X POST https://app.opslevel.com/integrations/deploy/6a9c1f3e-d708-4f00-99d8-c4831ee03f49 \
               -H 'content-type: application/json' \
               --data-binary @$OPSLEVEL_DEPLOY
-          ||| % [service, bento, environment],
+          ||| % [service, bento, env],
         ],
       },
     },
