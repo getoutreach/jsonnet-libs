@@ -25,15 +25,18 @@ local k = import 'kubernetes/kube.libsonnet';
       version: error "engine.version is required",
       parameter_group_family: error "engine.parameter_group_family is requied",
     },
+    instance_classes:: {
+      default: error "missing instance_classes.default",
+    },
     local this = self,
     spec: {
       name: database_cluster_name,
       database_name: this.database_name,
-      instance_class: this.instance_class,
       engine: this.engine,
       team: this.team,
       tier: this.tier,
-      personal_information: this.personal_information
+      personal_information: this.personal_information,
+      instance_class: if this.instance_classes[namespace] != '' then this.instance_classes[namespace] else this.instance_classes['default'],
     },
   },
 }
