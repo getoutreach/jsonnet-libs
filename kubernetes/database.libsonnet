@@ -36,7 +36,7 @@ local k = import 'kubernetes/kube.libsonnet';
       team: this.team,
       tier: this.tier,
       personal_information: this.personal_information,
-      instance_class: if this.instance_classes[namespace] != '' then this.instance_classes[namespace] else this.instance_classes['default'],
+      instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
     },
   },
 }
