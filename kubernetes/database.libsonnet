@@ -31,7 +31,7 @@ local k = import 'kubernetes/kube.libsonnet';
     },
     local this = self,
     spec: {
-      bneto: this.bento,
+      bento: this.bento,
       name: database_cluster_name,
       database_name: this.database_name,
       engine: this.engine,
