@@ -16,6 +16,7 @@ local k = import 'kubernetes/kube.libsonnet';
     pattern: pattern,
   },
   PostgresqlDatabaseCluster(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
+    bento:: error 'bento is required',
     database_name:: error 'database_name is required',
     instance_class:: error 'instance_class is required',
     team:: error 'team is required',
@@ -30,6 +31,7 @@ local k = import 'kubernetes/kube.libsonnet';
     },
     local this = self,
     spec: {
+      bento: this.bento,
       name: database_cluster_name,
       database_name: this.database_name,
       engine: this.engine,
