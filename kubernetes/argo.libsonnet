@@ -1,5 +1,44 @@
 local ok = import 'outreach.libsonnet';
-{
+
+// namespace for argocd
+local argocdNamespace = 'argocd';
+
+{ 
+  Application(name): ok._Object('argoproj.io/v1alpha1', 'Application', name, namespace=argocdNamespace) {
+    local this = self,
+
+    namespace:: error 'namespace is required',
+    path:: error 'path is required',
+    repo:: error 'repo is required',
+    initial_revision:: 'none',
+    repo_name:: std.split(this.repo, "/")[std.length(std.split(this.repo, "/"))-1],
+    source_path:: std.join("/", std.slice(std.split(this.path, "/"), 0, std.length(std.split(this.path, "/"))-1, 1)),
+    env:: {},
+    spec: {
+      destination: {
+        namespace: this.namespace,
+        server: 'https://kubernetes.default.svc'
+      },
+      project: 'default',
+      source: {
+        path: this.source_path,
+        repoURL: this.repo,
+        [if this.initial_revision != '' then 'targetRevision']: this.initial_revision,
+        plugin: {
+          name: 'kubecfg', 
+          env: ok.envList(this.env + {
+          	TAG: this.initial_revision,
+          	NAMESPACE: this.namespace,
+          	MANIFESTPATH: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name, path: this.path }
+          }),
+        },
+      },
+      syncPolicy: {
+        automated: {},
+        syncOptions: [ 'CreateNamespace=true' ],
+      },
+    },
+  },
   WebhookEventSource(name): ok._Object('argoproj.io/v1alpha1', 'EventSource', name, namespace='argo-events') {
     spec: {
       type: 'webhook',
