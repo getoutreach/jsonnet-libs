@@ -26,11 +26,11 @@ local argocdNamespace = 'argocd';
         [if this.initial_revision_ != '' then 'targetRevision']: this.initial_revision_,
         plugin: {
           name: 'kubecfg', 
-          env: ok.envList(this.env_) + [
-            { name: 'TAG', value: this.initial_revision_ },
-            { name: 'NAMESPACE', value: this.namespace_ },
-            { name: 'MANIFESTPATH', value: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name_, path: this.path_ } },
-          ],
+          env: ok.envList(this.env_ + {
+          	TAG: this.initial_revision_,
+          	NAMESPACE: this.namespace_,
+          	MANIFESTPATH: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name_, path: this.path_ }
+          }),
         },
       },
       syncPolicy: {
