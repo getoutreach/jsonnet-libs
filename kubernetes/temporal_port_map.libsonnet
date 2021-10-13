@@ -1,3 +1,8 @@
+// This will serve as a centralized place for both bootstrap/non-bootstrap services to
+//to define the temporal port mapping.
+// The format to be followed is -
+// appName : {TEMPORAL_FRONTEND: 'XXX', TEMPORAL_HISTORY:'XXX', TEMPORAL_MATCHING:'XXX', TEMPORAL_WORKER: 'XXX',},
+
 {
     dsngtemporalcontrolplane: {
         app1a : {TEMPORAL_FRONTEND: '6933', TEMPORAL_HISTORY:'6934', TEMPORAL_MATCHING:'6935', TEMPORAL_WORKER: '6936',},
