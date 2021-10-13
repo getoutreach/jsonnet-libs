@@ -740,7 +740,7 @@ local temporalPorts = import 'temporal_port_map.libsonnet';
     },
   },
 
-  TemporalPortMap(name, bento):{
+  TemporalPortMap(name, bento)::{
     if std.objectHas(temporalPorts, name) && std.objectHas(temporalPorts[name], bento) then 
       temporalPorts[name][bento]
     else 
