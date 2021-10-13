@@ -756,7 +756,7 @@ local temporalPorts = import 'temporal_port_map.libsonnet';
   // },
 
   TemporalPortMap(name, bento, entity): {
-    '123';
+    '123'
   }
 
   Mixins: {
