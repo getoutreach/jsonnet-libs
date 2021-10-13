@@ -739,6 +739,23 @@
     },
   },
 
+  TemporalPortMap(name, bento, entity):{
+    if std.objectHas(ports, name) &&
+    std.objectHas(ports[name], bento) &&
+    std.objectHas(ports[name][bento],entity) then
+        ports[name][bento][entity]
+    else if entity == "frontend" then
+        6933
+    else if entity == "history" then
+        6934
+    else if entity == "matching" then
+        6935
+    else if entity == "worker" then
+        6939
+    else
+        0
+  },
+
   Mixins: {
     'cluster-service': {
       metadata+: {
