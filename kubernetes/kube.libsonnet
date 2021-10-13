@@ -755,7 +755,7 @@ local temporalPorts = import 'temporal_port_map.libsonnet';
   //       0
   // },
 
-  TemporalPortMap(name, bento, entity):: {foo: 123},
+  TemporalPortMap(name, bento, entity): {foo: 123},
 
   Mixins: {
     'cluster-service': {
