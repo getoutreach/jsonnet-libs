@@ -743,7 +743,7 @@ local temporalPorts = import 'temporal_port_map.libsonnet';
   TemporalPortMap(name, bento):: 
     local ports = if std.objectHas(temporalPorts, name) && std.objectHas(temporalPorts[name], bento) then temporalPorts[name][bento]
                 else {TEMPORAL_FRONTEND: 6933, TEMPORAL_HISTORY: 6934, TEMPORAL_MATCHING: 6935, TEMPORAL_WORKER: 6939,}
-    ports
+    ports;
 
   Mixins: {
     'cluster-service': {
