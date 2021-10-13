@@ -740,21 +740,23 @@ local temporalPorts = import 'temporal_port_map.libsonnet';
     },
   },
 
+  // TemporalPortMap(name, bento, entity):{
+  //   if std.objectHas(temporalPorts, name) && std.objectHas(temporalPorts[name], bento) && std.objectHas(temporalPorts[name][bento],entity) then
+  //       temporalPorts[name][bento][entity]
+  //   else if entity == "frontend" then
+  //       6933
+  //   else if entity == "history" then
+  //       6934
+  //   else if entity == "matching" then
+  //       6935
+  //   else if entity == "worker" then
+  //       6939
+  //   else
+  //       0
+  // },
+
   TemporalPortMap(name, bento, entity):{
-    if std.objectHas(temporalPorts, name) &&
-    std.objectHas(temporalPorts[name], bento) &&
-    std.objectHas(temporalPorts[name][bento],entity) then
-        temporalPorts[name][bento][entity]
-    else if entity == "frontend" then
-        6933
-    else if entity == "history" then
-        6934
-    else if entity == "matching" then
-        6935
-    else if entity == "worker" then
-        6939
-    else
-        0
+    0
   },
 
   Mixins: {
