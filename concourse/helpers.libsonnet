@@ -34,6 +34,14 @@
       region: 'us-east-2',
       passed: null
     },
+    {
+      name: 'staging2b',
+      cluster: 'staging.us-east-2',
+      channel: 'white',
+      environment: 'staging',
+      region: 'us-east-2',
+      passed: null
+    },
   ],
   appBentos():: [
     {
