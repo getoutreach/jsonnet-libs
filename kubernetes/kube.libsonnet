@@ -761,7 +761,7 @@
     local this = self,
     metadata+: {
         annotations+: {
-          'argocd.argoproj.io/hook:': 'PreSync',
+          'argocd.argoproj.io/hook': 'PreSync',
         },
     },
     spec: {
