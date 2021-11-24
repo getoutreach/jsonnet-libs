@@ -112,16 +112,34 @@
   CRD(kind, group, version):: (
     local names = {
       kind: kind,
-      listKind: (kind + "List"),
-      plural: self.singular + "s",
+      listKind: (kind + 'List'),
+      plural: self.singular + 's',
       singular: std.asciiLower(kind),
-      full:: self.plural + "." + group,
+      full:: self.plural + '.' + group,
     };
-    $._Object("apiextensions.k8s.io/v1beta1", "CustomResourceDefinition", names.full) {
+    $._Object('apiextensions.k8s.io/v1beta1', 'CustomResourceDefinition', names.full) {
       spec: {
         group: group,
         names: names,
         version: version,
+      },
+    }
+  ),
+
+  // TODO: update CRD to use v1 api once all clusters are 1.16+
+  CRDv1(kind, group):: (
+    local names = {
+      kind: kind,
+      listKind: (kind + 'List'),
+      plural: self.singular + 's',
+      singular: std.asciiLower(kind),
+      full:: self.plural + '.' + group,
+    };
+    $._Object('apiextensions.k8s.io/v1', 'CustomResourceDefinition', names.full) {
+      spec: {
+        group: group,
+        names: names,
+        versions: error 'versions required',
       },
     }
   ),
@@ -190,7 +208,7 @@
 
   ExternalNameService(name, namespace, address):
     $._Object('v1', 'Service', name, app=name, namespace=namespace) {
-      metadata+: {namespace: namespace},
+      metadata+: { namespace: namespace },
       spec: {
         type: 'ExternalName',
         externalName: address,
@@ -288,7 +306,7 @@
 
     terminationGracePeriodSeconds: 30,
     dnsConfig+: {
-      options: [{ name: "ndots", value: "1" }]
+      options: [{ name: 'ndots', value: '1' }],
     },
 
     assert std.length(self.containers) > 0 : 'must have at least one container',
@@ -379,7 +397,7 @@
     metadata+: {
       local hash = std.substr(this.md5, 0, 7),
       local orig_name = super.name,
-      name: orig_name + "-" + hash,
+      name: orig_name + '-' + hash,
       labels+: { name: orig_name },
     },
   },
@@ -450,7 +468,7 @@
           metadata: {
             labels: deployment.metadata.labels,
             annotations: {
-              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
             },
           },
         },
@@ -508,7 +526,7 @@
       targetRef: $.CrossVersionObjectReference(vpa.target),
 
       updatePolicy: {
-        updateMode: "Initial",
+        updateMode: 'Initial',
       },
     },
   },
@@ -533,13 +551,13 @@
                         {
                           key: 'name',
                           operator: 'In',
-                          values: [ name ],
+                          values: [name],
                         },
                       ],
                     },
                     topologyKey: 'failure-domain.beta.kubernetes.io/zone',
                   },
-                weight: 100,
+                  weight: 100,
                 }],
               },
             },
@@ -547,7 +565,7 @@
           metadata: {
             labels: sset.metadata.labels,
             annotations: {
-              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
             },
           },
         },
@@ -570,7 +588,7 @@
         metadata: {
           labels: job.metadata.labels,
           annotations: {
-            "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+            'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
           },
         },
       },
@@ -605,7 +623,7 @@
           metadata: {
             labels: ds.metadata.labels,
             annotations: {
-              "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
             },
           },
           spec: $.PodSpec,
@@ -640,7 +658,7 @@
     subjects_:: [],
     subjects: [{
       kind: o.kind,
-      namespace: if std.objectHas(o.metadata, "namespace") then o.metadata.namespace else null,
+      namespace: if std.objectHas(o.metadata, 'namespace') then o.metadata.namespace else null,
       name: o.metadata.name,
     } for o in self.subjects_],
 
@@ -663,7 +681,7 @@
       maxUnavailable: '50%',
       selector: {
         matchLabels: {
-          app: app
+          app: app,
         },
       },
     },
@@ -716,10 +734,10 @@
     local default_port = (
       local ports = this.target_service.spec.ports;
       std.filter(function(p) std.setMember('metrics', [p.name, p.targetPort]), ports)
-        + this.target_service.spec.ports
+      + this.target_service.spec.ports
     )[0],
 
-    metadata+: { labels+: { 'prometheus.io/scrape': 'true' }},
+    metadata+: { labels+: { 'prometheus.io/scrape': 'true' } },
     spec: {
       // endpoint-level config here will override defaults
       // this is just map-based sugar around self.endpoints
@@ -728,7 +746,7 @@
       // and ignore all of the above, which is simply sugar
       endpoints: [
         { honorLabels: true, interval: '1m', targetPort: p }
-          + this.spec.endpoints_[p]
+        + this.spec.endpoints_[p]
         for p in std.objectFields(this.spec.endpoints_)
       ],
       jobLabel: 'app',
@@ -760,16 +778,16 @@
     vaultPath_:: error 'vaultPath_ is required',
     local this = self,
     metadata+: {
-        annotations+: {
-          'argocd.argoproj.io/hook': 'PreSync',
-        },
+      annotations+: {
+        'argocd.argoproj.io/hook': 'PreSync',
+      },
     },
     spec: {
       reconciled: false,
       vaultPath: this.vaultPath_,
     },
   },
-  
+
   // GoSecretData adds a helper for creating the go-outreach/gobox secretData struct
   GoSecretData(path): { Path: path },
 }
