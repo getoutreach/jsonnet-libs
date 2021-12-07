@@ -632,7 +632,7 @@
     },
 
   Ingress(name, namespace, app=name):
-    $._Object('extensions/v1beta1', 'Ingress', name, app=app, namespace=namespace) {
+    $._Object('networking.k8s.io/v1beta1', 'Ingress', name, app=app, namespace=namespace) {
       spec: {},
     },
 
