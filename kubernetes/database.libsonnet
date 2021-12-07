@@ -41,4 +41,28 @@ local k = import 'kubernetes/kube.libsonnet';
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
     },
   },
+  WaitForDatabaseProvisioning(database_cluster_name, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, namespace=namespace) {
+    task: "Wait for database to deploy",
+    local this = self,
+    bento:: error 'bento is required',
+    config: {
+      platform: 'linux',
+      image_resource: $.basicResources.task_image + { name:: null },
+      inputs: [{ name: 'metadata' }, { name: 'source' }],
+      outputs: [],
+      run: {
+        path: '/bin/bash',
+        args: [
+          '-c',
+          |||
+            set -euf -o pipefail
+            DATABASECLUSTERNAME=%s
+            BENTO=%s
+            NAMESPACE=%s
+            kubectl wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready
+          ||| % [this.database_cluster_name, this.bento, this.namespace],
+        ],
+      },
+    },
+  },
 }
