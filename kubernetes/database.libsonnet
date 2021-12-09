@@ -41,7 +41,7 @@ local k = import 'kubernetes/kube.libsonnet';
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
     },
   },
-  WaitForDatabaseProvisioning(database_cluster_name, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, namespace=namespace) {
+  WaitForDatabaseProvisioning(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
     task: "Wait for database to deploy",
     local this = self,
     kubernetes_cluster_name:: error 'k8 cluster name is required',
