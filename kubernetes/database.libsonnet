@@ -44,7 +44,7 @@ local k = import 'kubernetes/kube.libsonnet';
   WaitForDatabaseProvisioning(database_cluster_name, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, namespace=namespace) {
     task: "Wait for database to deploy",
     local this = self,
-    bento:: error 'bento is required',
+    kubernetes_cluster_name:: error 'k8 cluster name is required',
     config: {
       platform: 'linux',
       image_resource: $.basicResources.task_image + { name:: null },
@@ -57,10 +57,11 @@ local k = import 'kubernetes/kube.libsonnet';
           |||
             set -euf -o pipefail
             DATABASECLUSTERNAME=%s
-            BENTO=%s
+            K8SCLUSTER=%s
             NAMESPACE=%s
+            kubectl config use-context $K8SCLUSTER
             kubectl wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready
-          ||| % [this.database_cluster_name, this.bento, this.namespace],
+          ||| % [this.database_cluster_name, this.kubernetes_cluster_name, this.namespace],
         ],
       },
     },
