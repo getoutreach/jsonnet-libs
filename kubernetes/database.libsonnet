@@ -1,4 +1,6 @@
 local k = import 'kubernetes/kube.libsonnet';
+local resources = import 'resources.libsonnet';
+
 {
   DatabaseCredential(name, app, namespace): k._Object('databases.outreach.io/v1', 'DatabaseCredential', name, app=app, namespace=namespace) {
     username:: error 'username is required',
@@ -41,13 +43,25 @@ local k = import 'kubernetes/kube.libsonnet';
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
     },
   },
-  WaitForDatabaseProvisioning(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
-    task: "Wait for database to deploy",
+  WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
+    task: 'Wait for database to deploy',
     local this = self,
     kubernetes_cluster_name:: error 'k8 cluster name is required',
+    gcr_registry_username:: '((gcr-service-account-username))',
+    gcr_registry_password:: '((gcr-service-account-password))',
+
     config: {
       platform: 'linux',
-      image_resource: $.basicResources.task_image + { name:: null },
+      image_resource: {
+        name: 'task_image',
+        type: 'registry-image',
+        source: {
+          repository: 'gcr.io/outreach-docker/alpine/tools',
+          tag: 'latest',
+          username: this.gcr_registry_username,
+          password: this.gcr_registry_password,
+        },
+      },
       inputs: [{ name: 'metadata' }, { name: 'source' }],
       outputs: [],
       run: {
@@ -61,7 +75,7 @@ local k = import 'kubernetes/kube.libsonnet';
             NAMESPACE=%s
             kubectl config use-context $K8SCLUSTER
             kubectl wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready
-          ||| % [this.database_cluster_name, this.kubernetes_cluster_name, this.namespace],
+          ||| % [database_cluster_name, this.kubernetes_cluster_name, namespace],
         ],
       },
     },
