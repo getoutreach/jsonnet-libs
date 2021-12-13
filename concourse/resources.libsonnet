@@ -114,6 +114,16 @@
         password: $.gcr_registry_password,
       },
     },
+    db_deploy: {
+      name: 'db_deploy',
+      type: 'registry-image',
+      source: {
+        repository: 'gcr.io/outreach-docker/concourse/k8s-deploy-resource',
+        tag: 'latest',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
+      },
+    },
   },
 
   // Basic resources
@@ -216,6 +226,14 @@
     k8s_deploy: {
       name: 'k8s_deploy',
       type: 'k8s_deploy',
+      source: {
+        vault_url: 'https://vault.outreach.cloud',
+        vault_skip_verify: false,
+      },
+    },
+    db_deploy: {
+      name: 'db_deploy',
+      type: 'db_deploy',
       source: {
         vault_url: 'https://vault.outreach.cloud',
         vault_skip_verify: false,

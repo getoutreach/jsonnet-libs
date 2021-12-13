@@ -53,7 +53,7 @@ local resources = import 'resources.libsonnet';
     config: {
       platform: 'linux',
       image_resource: {
-        name: 'task_image',
+        name: 'kubectl_task_image',
         type: 'registry-image',
         source: {
           repository: 'gcr.io/outreach-docker/alpine/tools',
@@ -62,7 +62,7 @@ local resources = import 'resources.libsonnet';
           password: this.gcr_registry_password,
         },
       },
-      inputs: [{ name: 'metadata' }, { name: 'source' }],
+      inputs: [{ name: 'metadata' }, { name: 'source' }, { name: 'kubeconfig' }],
       outputs: [],
       run: {
         path: '/bin/bash',
@@ -73,8 +73,8 @@ local resources = import 'resources.libsonnet';
             DATABASECLUSTERNAME=%s
             K8SCLUSTER=%s
             NAMESPACE=%s
-            kubectl config use-context $K8SCLUSTER
-            kubectl wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready
+            echo kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
+            kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
           ||| % [database_cluster_name, this.kubernetes_cluster_name, namespace],
         ],
       },
