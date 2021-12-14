@@ -44,6 +44,8 @@ local resources = import 'resources.libsonnet';
     },
   },
   PostgresqlSharedDevenvDatabase(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
+    // this method connects to a pre-provisioned database here:
+    // https://github.com/getoutreach/devenv-snapshots/blob/a24992d8058eb34b45b311f255bd34d7b4bfc5c6/target_manifests/base/stage-1/postgresql.yaml
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
     local this = self,
