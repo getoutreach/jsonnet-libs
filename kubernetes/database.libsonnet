@@ -19,8 +19,12 @@ local resources = import 'resources.libsonnet';
   },
   PostgresqlDatabaseCluster(database_cluster_name, app, namespace, environment=''):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
     local this = self,
+    // You can find instance class description here:
+    // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
     defaultStagingInstanceClass:: 'db.t4g.medium',
     defaultProductionInstanceClass:: 'db.t4g.medium',
+    // instance_class unused in devenv
+    defaultDevInstanceClass:: '',
     isDev:: environment == 'development' || environment == 'local_development',
     isProd:: environment == 'production',
     isStaging: environment == 'staging',
@@ -37,13 +41,12 @@ local resources = import 'resources.libsonnet';
     },
     instance_classes:: {
       default: if this.isDev 
-        then '' 
-        else
-          if this.isProd 
-          then defaultProductionInstanceClass 
+        then this.defaultDevInstanceClass
+        else if this.isProd 
+          then this.defaultProductionInstanceClass 
           else if this.isStaging
-            then defaultStagingInstanceClass
-            else error 'missing instance_class or one of the supported environment values',
+            then this.defaultStagingInstanceClass
+            else error 'missing instance_classes.default or one of the supported environment values',
     },
     spec: {
       provisioner: this.provisioner,
