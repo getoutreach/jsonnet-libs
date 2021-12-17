@@ -21,13 +21,13 @@ local resources = import 'resources.libsonnet';
     local this = self,
     // You can find instance class description here:
     // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
-    defaultStagingInstanceClass:: 'db.t4g.medium',
-    defaultProductionInstanceClass:: 'db.t4g.medium',
+    local defaultStagingInstanceClass = 'db.t4g.medium',
+    local defaultProductionInstanceClass ='db.t4g.medium',
     // instance_class unused in devenv
-    defaultDevInstanceClass:: '',
-    isDev:: environment == 'development' || environment == 'local_development',
-    isProd:: environment == 'production',
-    isStaging: environment == 'staging',
+    local defaultDevInstanceClass = '',
+    local isDev = environment == 'development' || environment == 'local_development',
+    local isProd = environment == 'production',
+    local isStaging = environment == 'staging',
 
     provisioner::  if this.isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
