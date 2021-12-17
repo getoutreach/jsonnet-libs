@@ -17,11 +17,17 @@ local resources = import 'resources.libsonnet';
     privileges: privileges,
     pattern: pattern,
   },
-  PostgresqlDatabaseCluster(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
-    provisioner:: "",
+  PostgresqlDatabaseCluster(database_cluster_name, app, namespace, environment=''):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
+    local this = self,
+    defaultStagingInstanceClass:: 'db.t4g.medium',
+    defaultProductionInstanceClass:: 'db.t4g.medium',
+    isDev:: environment == 'development' || environment == 'local_development',
+    isProd:: environment == 'production',
+    isStaging: environment == 'staging',
+
+    provisioner::  if this.isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
-    instance_class:: error 'instance_class is required',
     team:: error 'team is required',
     tier:: error 'tier is required',
     personal_information:: "",
@@ -30,9 +36,15 @@ local resources = import 'resources.libsonnet';
       parameter_group_family: error "engine.parameter_group_family is requied",
     },
     instance_classes:: {
-      default: error "missing instance_classes.default",
+      default: if this.isDev 
+        then '' 
+        else
+          if this.isProd 
+          then defaultProductionInstanceClass 
+          else if this.isStaging
+            then defaultStagingInstanceClass
+            else error 'missing instance_class or one of the supported environment values',
     },
-    local this = self,
     spec: {
       provisioner: this.provisioner,
       bento: this.bento,
