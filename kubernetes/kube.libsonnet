@@ -780,6 +780,7 @@
     metadata+: {
       annotations+: {
         'argocd.argoproj.io/hook': 'PreSync',
+        'argocd.argoproj.io/hook-delete-policy': 'HookSucceeded',
       },
     },
     spec: {
