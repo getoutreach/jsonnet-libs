@@ -777,12 +777,6 @@
   VaultSecret(name, namespace): $._Object('secrets.outreach.io/v1alpha1', 'VaultSecret', name, namespace=namespace) {
     vaultPath_:: error 'vaultPath_ is required',
     local this = self,
-    metadata+: {
-      annotations+: {
-        'argocd.argoproj.io/hook': 'PreSync',
-        'argocd.argoproj.io/hook-delete-policy': 'BeforeHookCreation',
-      },
-    },
     spec: {
       reconciled: false,
       vaultPath: this.vaultPath_,
