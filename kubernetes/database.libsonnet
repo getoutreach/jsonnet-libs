@@ -29,7 +29,7 @@ local resources = import 'resources.libsonnet';
     local isProd = environment == 'production',
     local isStaging = environment == 'staging',
 
-    provisioner::  if this.isDev then 'SharedDevenv' else 'AuroraRDS',
+    provisioner::  if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
     team:: error 'team is required',
@@ -40,12 +40,12 @@ local resources = import 'resources.libsonnet';
       parameter_group_family: error "engine.parameter_group_family is requied",
     },
     instance_classes:: {
-      default: if this.isDev 
-        then this.defaultDevInstanceClass
-        else if this.isProd 
-          then this.defaultProductionInstanceClass 
-          else if this.isStaging
-            then this.defaultStagingInstanceClass
+      default: if isDev 
+        then defaultDevInstanceClass
+        else if isProd 
+          then defaultProductionInstanceClass 
+          else if isStaging
+            then defaultStagingInstanceClass
             else error 'missing instance_classes.default or one of the supported environment values',
     },
     spec: {
