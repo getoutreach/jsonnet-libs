@@ -17,11 +17,21 @@ local resources = import 'resources.libsonnet';
     privileges: privileges,
     pattern: pattern,
   },
-  PostgresqlDatabaseCluster(database_cluster_name, app, namespace):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
-    provisioner:: "",
+  PostgresqlDatabaseCluster(database_cluster_name, app, namespace, environment=''):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
+    local this = self,
+    // You can find instance class description here:
+    // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
+    local defaultStagingInstanceClass = 'db.t4g.medium',
+    local defaultProductionInstanceClass ='db.t4g.medium',
+    // instance_class unused in devenv
+    local defaultDevInstanceClass = '',
+    local isDev = environment == 'development' || environment == 'local_development',
+    local isProd = environment == 'production',
+    local isStaging = environment == 'staging',
+
+    provisioner::  if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
-    instance_class:: error 'instance_class is required',
     team:: error 'team is required',
     tier:: error 'tier is required',
     personal_information:: "",
@@ -30,9 +40,14 @@ local resources = import 'resources.libsonnet';
       parameter_group_family: error "engine.parameter_group_family is requied",
     },
     instance_classes:: {
-      default: error "missing instance_classes.default",
+      default: if isDev 
+        then defaultDevInstanceClass
+        else if isProd 
+          then defaultProductionInstanceClass 
+          else if isStaging
+            then defaultStagingInstanceClass
+            else error 'missing instance_classes.default or one of the supported environment values',
     },
-    local this = self,
     spec: {
       provisioner: this.provisioner,
       bento: this.bento,
