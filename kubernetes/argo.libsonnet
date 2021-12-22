@@ -3,39 +3,39 @@ local ok = import 'outreach.libsonnet';
 // namespace for argocd
 local argocdNamespace = 'argocd';
 
-{ 
+{
   Application(name): ok._Object('argoproj.io/v1alpha1', 'Application', name, namespace=argocdNamespace) {
     local this = self,
 
-    namespace:: error 'namespace is required',
-    path:: error 'path is required',
-    repo:: error 'repo is required',
-    initial_revision:: 'none',
-    repo_name:: std.split(this.repo, "/")[std.length(std.split(this.repo, "/"))-1],
-    source_path:: std.join("/", std.slice(std.split(this.path, "/"), 0, std.length(std.split(this.path, "/"))-1, 1)),
-    env:: {},
+    namespace_:: error 'namespace_ is required',
+    path_:: error 'path_ is required',
+    repo_:: error 'repo_ is required',
+    initial_revision_:: '',
+    repo_name_:: std.split(this.repo_, "/")[std.length(std.split(this.repo_, "/"))-1],
+    source_path_:: std.join("/", std.slice(std.split(this.path_, "/"), 0, std.length(std.split(this.path_, "/"))-1, 1)),
+    env_:: {},
     spec: {
       destination: {
-        namespace: this.namespace,
+        namespace: this.namespace_,
         server: 'https://kubernetes.default.svc'
       },
       project: 'default',
       source: {
-        path: this.source_path,
-        repoURL: this.repo,
-        [if this.initial_revision != '' then 'targetRevision']: this.initial_revision,
+        path: this.source_path_,
+        repoURL: this.repo_,
+        [if this.initial_revision_ != '' then 'targetRevision']: this.initial_revision_,
         plugin: {
           name: 'kubecfg', 
-          env: ok.envList(this.env + {
-          	TAG: this.initial_revision,
-          	NAMESPACE: this.namespace,
-          	MANIFESTPATH: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name, path: this.path }
-          }),
+          env: ok.envList(this.env_) + [
+            { name: 'VERSION', value: this.initial_revision_ },
+            { name: 'NAMESPACE', value: this.namespace_ },
+            { name: 'MANIFESTPATH', value: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name_, path: this.path_ } },
+          ],
         },
       },
       syncPolicy: {
         automated: {},
-        syncOptions: [ 'CreateNamespace=true' ],
+        syncOptions: [ 'CreateNamespace=true', 'ApplyOutOfSyncOnly=true' ],
       },
     },
   },
