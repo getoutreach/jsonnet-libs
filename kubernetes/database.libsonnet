@@ -48,6 +48,9 @@ local resources = import 'resources.libsonnet';
             then defaultStagingInstanceClass
             else error 'missing instance_classes.default or one of the supported environment values',
     },
+    cluster_parameters:: {
+      default: [],
+    },
     spec: {
       provisioner: this.provisioner,
       bento: this.bento,
@@ -58,6 +61,7 @@ local resources = import 'resources.libsonnet';
       tier: this.tier,
       personal_information: this.personal_information,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
+      cluster_parameters: if std.objetctHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters['default'],
     },
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
