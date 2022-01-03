@@ -4,28 +4,28 @@ local ok = import 'outreach.libsonnet';
 local argocdNamespace = 'argocd';
 
 {
-  Application(name): ok._Object('argoproj.io/v1alpha1', 'Application', name, namespace=argocdNamespace) {
+  Application(name, appProject='default'): ok._Object('argoproj.io/v1alpha1', 'Application', name, namespace=argocdNamespace) {
     local this = self,
-
     namespace_:: error 'namespace_ is required',
     path_:: error 'path_ is required',
     repo_:: error 'repo_ is required',
     initial_revision_:: '',
-    repo_name_:: std.split(this.repo_, "/")[std.length(std.split(this.repo_, "/"))-1],
-    source_path_:: std.join("/", std.slice(std.split(this.path_, "/"), 0, std.length(std.split(this.path_, "/"))-1, 1)),
+    repo_name_:: std.split(this.repo_, '/')[std.length(std.split(this.repo_, '/')) - 1],
+    source_path_:: std.join('/', std.slice(std.split(this.path_, '/'), 0, std.length(std.split(this.path_, '/')) - 1, 1)),
     env_:: {},
+
     spec: {
       destination: {
         namespace: this.namespace_,
-        server: 'https://kubernetes.default.svc'
+        server: 'https://kubernetes.default.svc',
       },
-      project: 'default',
+      project: appProject,
       source: {
         path: this.source_path_,
         repoURL: this.repo_,
         [if this.initial_revision_ != '' then 'targetRevision']: this.initial_revision_,
         plugin: {
-          name: 'kubecfg', 
+          name: 'kubecfg',
           env: ok.envList(this.env_) + [
             { name: 'VERSION', value: this.initial_revision_ },
             { name: 'NAMESPACE', value: this.namespace_ },
@@ -35,7 +35,7 @@ local argocdNamespace = 'argocd';
       },
       syncPolicy: {
         automated: {},
-        syncOptions: [ 'CreateNamespace=true', 'ApplyOutOfSyncOnly=true' ],
+        syncOptions: ['CreateNamespace=true', 'ApplyOutOfSyncOnly=true'],
       },
     },
   },
@@ -44,9 +44,9 @@ local argocdNamespace = 'argocd';
       type: 'webhook',
       webhook: {
         ['%s' % [name]]: {
-          port: "12000",
-          endpoint: "/%s" % name,
-          method: "POST"
+          port: '12000',
+          endpoint: '/%s' % name,
+          method: 'POST',
         },
       },
     },
@@ -60,7 +60,7 @@ local argocdNamespace = 'argocd';
       calendar: {
         ['%s' % [name]]: {
           schedule: this.cronstring,
-          timezone: "America/Los_Angeles"
+          timezone: 'America/Los_Angeles',
         },
       },
     },
@@ -88,31 +88,31 @@ local argocdNamespace = 'argocd';
     eventSourceName:: error 'eventSourceName required',
     targetSensor:: error 'targetSensor required',
 
-    sensorServiceEndpoint:: 'http://%s.%s.svc.cluster.local:%s/' % [this.targetSensor.metadata.name, this.targetSensor.metadata.namespace, this.targetSensor.spec.subscription.http.port ],
+    sensorServiceEndpoint:: 'http://%s.%s.svc.cluster.local:%s/' % [this.targetSensor.metadata.name, this.targetSensor.metadata.namespace, this.targetSensor.spec.subscription.http.port],
 
     metadata+: {
       labels+: {
-        'gateways.argoproj.io/gateway-controller-instanceid': 'argo-events'
+        'gateways.argoproj.io/gateway-controller-instanceid': 'argo-events',
       },
     },
     spec: {
       type: this.gatewayType,
       eventSourceRef: {
-        name: this.eventSourceName
+        name: this.eventSourceName,
       },
       template: {
         metadata: {
           name: name,
           namespace: namespace,
           labels: {
-            'gateway-name': name
+            'gateway-name': name,
           },
         },
         spec: {
           containers: [
             ok.Container('gateway-client') {
               image: 'gcr.io/outreach-docker/argo/outreach-gateway-client:v0.12.1',
-              command: [ '/bin/gateway-client' ],
+              command: ['/bin/gateway-client'],
               resources: {
                 limits: { memory: '100Mi' },
                 requests: { cpu: '10m' },
@@ -120,19 +120,19 @@ local argocdNamespace = 'argocd';
             },
             ok.Container('%s-events' % this.gatewayType) {
               image: 'gcr.io/outreach-docker/argo/outreach-%s-gateway:v0.12.1' % this.gatewayType,
-              command: [ '/bin/%s-gateway' % this.gatewayType ],
+              command: ['/bin/%s-gateway' % this.gatewayType],
               resources: {
                 limits: { memory: '100Mi' },
                 requests: { cpu: '10m' },
               },
             },
           ],
-          serviceAccountName: 'argo-events-sa'
+          serviceAccountName: 'argo-events-sa',
         },
       },
       subscribers: {
         http: [
-          this.sensorServiceEndpoint
+          this.sensorServiceEndpoint,
         ],
       },
     },
@@ -146,7 +146,7 @@ local argocdNamespace = 'argocd';
 
     metadata+: {
       labels+: {
-        'sensors.argoproj.io/sensor-controller-instanceid': 'argo-events'
+        'sensors.argoproj.io/sensor-controller-instanceid': 'argo-events',
       },
     },
     spec: {
@@ -161,7 +161,7 @@ local argocdNamespace = 'argocd';
               },
             },
           ],
-          serviceAccountName: this.serviceAccountName
+          serviceAccountName: this.serviceAccountName,
         },
       },
       dependencies: [
@@ -175,7 +175,7 @@ local argocdNamespace = 'argocd';
         http: { port: this.subscriptionPort },
       },
       triggers: [],
-    }
+    },
   },
   WorkflowCreationTrigger(name): {
     local this = self,
@@ -183,17 +183,17 @@ local argocdNamespace = 'argocd';
     template: {
       name: name,
       k8s: {
-        group: "argoproj.io",
-        version: "v1alpha1",
-        operation: "create",
-        resource: "workflows",
+        group: 'argoproj.io',
+        version: 'v1alpha1',
+        operation: 'create',
+        resource: 'workflows',
         source: {
-          resource: this.workflow
-        }
-      }
-    }
+          resource: this.workflow,
+        },
+      },
+    },
   },
-  Workflow(name, namespace): ok._Object('argoproj.io/v1alpha1', 'Workflow', name, namespace=namespace) { },
+  Workflow(name, namespace): ok._Object('argoproj.io/v1alpha1', 'Workflow', name, namespace=namespace) {},
   BashScriptContainer(name): {
     local this = self,
     bash_script:: error 'script required',
@@ -201,7 +201,73 @@ local argocdNamespace = 'argocd';
     script: {
       image: 'gcr.io/outreach-docker/alpine/scripts:1.0',
       command: ['bash'],
-      source: this.bash_script
+      source: this.bash_script,
+    },
+  },
+  AppProject(name): ok._Object('argoproj.io/v1alpha1', 'AppProject', name, namespace=argocdNamespace) {
+    spec: {
+      clusterResourceWhitelist: [
+        {
+          group: '*',
+          kind: '*',
+        },
+      ],
+      destinations: [
+        {
+          namespace: '*',
+          server: '*',
+        },
+      ],
+      sourceRepos: [
+        '*',
+      ],
+    },
+  },
+  ApplicationSet(name, appProject='default'): ok._Object('argoproj.io/v1alpha1', 'ApplicationSet', name, namespace=argocdNamespace) {
+    local this = self,
+    namespace_:: error 'namespace_ is required',
+    path_:: error 'path_ is required',
+    repo_:: error 'repo_ is required',
+    initial_revision_:: '',
+    repo_name_:: std.split(this.repo_, '/')[std.length(std.split(this.repo_, '/')) - 1],
+    source_path_:: std.join('/', std.slice(std.split(this.path_, '/'), 0, std.length(std.split(this.path_, '/')) - 1, 1)),
+    env_:: {},
+
+    spec: {
+      template: {
+        metadata: {
+          name: '%s--{{ name }}' % name,
+        },
+        spec: {
+          destination: {
+            namespace: this.namespace_,
+            server: '{{ server }}',
+          },
+          project: appProject,
+          source: {
+            path: this.source_path_,
+            repoURL: this.repo_,
+            [if this.initial_revision_ != '' then 'targetRevision']: this.initial_revision_,
+            plugin: {
+              name: 'kubecfg',
+              env: ok.envList(this.env_) + [
+                { name: 'NAMESPACE', value: this.namespace_ },
+                { name: 'MANIFESTPATH', value: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name_, path: this.path_ } },
+              ],
+            },
+          },
+          syncPolicy: {
+            automated: {
+              prune: true,
+              selfHeal: true,
+            },
+            syncOptions: [
+              'CreateNamespace=true',
+              'ApplyOutOfSyncOnly=true',
+            ],
+          },
+        },
+      },
     },
   },
 }
