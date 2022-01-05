@@ -779,7 +779,8 @@
     local this = self,
     metadata+: {
       annotations+: {
-        'argocd.argoproj.io/hook': 'PreSync',
+        // https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/#how-do-i-configure-waves
+        'argocd.argoproj.io/sync-wave': '-5',
       },
     },
     spec: {
