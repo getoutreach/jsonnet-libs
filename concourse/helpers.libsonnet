@@ -8,9 +8,14 @@
       passed: null
     },
     {
+      name: 'staging.us-west-2',
+      environment: 'staging',
+      passed: 'staging.us-east-2'
+    },
+    {
       name: 'production.us-west-2',
       environment: 'production',
-      passed: 'staging.us-east-2'
+      passed: 'staging.us-west-2'
     },
     {
       name: 'production.us-east-1',
@@ -34,6 +39,14 @@
       region: 'us-east-2',
       passed: null
     },
+    {
+      name: 'staging1c',
+      cluster: 'staging.us-west-2',
+      channel: 'white',
+      environment: 'staging',
+      region: 'us-west-2',
+      passed: 'staging1a'
+    },
   ],
   appBentos():: [
     {
@@ -43,6 +56,15 @@
       environment: 'staging',
       region: 'us-east-2',
       passed: null,
+      next: 'staging1c'
+    },
+    {
+      name: 'staging1c',
+      cluster: 'staging.us-west-2',
+      channel: 'white',
+      environment: 'staging',
+      region: 'us-west-2',
+      passed: 'staging1a',
       next: 'app1d'
     },
     {
@@ -51,7 +73,7 @@
       channel: 'orange',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'staging1a',
+      passed: 'staging1c',
       next: 'app1b'
     },
     {
