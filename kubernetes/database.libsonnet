@@ -35,6 +35,7 @@ local resources = import 'resources.libsonnet';
     team:: error 'team is required',
     tier:: error 'tier is required',
     personal_information:: "",
+    temp_builtin_users:: false,
     engine:: {
       version: error "engine.version is required",
       parameter_group_family: error "engine.parameter_group_family is requied",
@@ -60,6 +61,7 @@ local resources = import 'resources.libsonnet';
       team: this.team,
       tier: this.tier,
       personal_information: this.personal_information,
+      temp_builtin_users: this.temp_builtin_users,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters['default'],
     },
