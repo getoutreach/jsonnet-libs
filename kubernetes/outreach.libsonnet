@@ -65,9 +65,9 @@ k + kubecfg {
   local this = self,
     spec: {
       virtualhost: {
-        fqdn: fqdn_,
+        fqdn: this.fqdn_,
         tls: {
-          passthrough: tlsPassthrough_,
+          passthrough: this.tlsPassthrough_,
         },
       },
       tcpproxy: {
