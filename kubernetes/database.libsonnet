@@ -101,7 +101,6 @@ local resources = import 'resources.libsonnet';
       },
     },
     WaitForDatabaseProvisioningArgoCD(database_cluster_name, app, namespace):: {
-    task: 'Wait for database to deploy',
     local this = self,
     kubernetes_cluster_name:: error 'k8 cluster name is required',
 
