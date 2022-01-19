@@ -789,46 +789,6 @@
     },
   },
 
-  HTTPProxy(name, namespace): $._Object('projectcontour.io/v1','HTTPProxy', name, namespace=namespace){
-  serviceName_:: error 'serviceName_ is required to map httpProxy to a service',
-  fqdn_:: error 'fqdn_ is required',
-  tlsPassthrough_:: error 'tlsPassthrough_ is required. Either set true or false.',
-  tcpProxyPort_:: error 'tcpProxyPort_ is required',
-  routePort_:: error 'routePort_ is required',
-  routePrefix_:: error 'routePrefix_ is required',
-
-  local  this = self
-    spec: {
-      virtualhost: {
-        fqdn: fqdn,
-        tls: {
-          passthrough: tlsPassthrough
-        },
-      },
-      tcpproxy: {
-        services: [
-          {
-            name: this.serviceName,
-            port: this.tcpProxyPort_,
-          },
-        ],
-      },
-      routes: [
-        {
-          services: [
-            name: this.serviceName,
-            port: this.routePort_,
-            conditions: [
-              {
-                prefix: this.routePrefix_,
-              },
-            ],
-          ],
-        },
-      ],
-    },
-  },
-
   // GoSecretData adds a helper for creating the go-outreach/gobox secretData struct
   GoSecretData(path): { Path: path },
 }

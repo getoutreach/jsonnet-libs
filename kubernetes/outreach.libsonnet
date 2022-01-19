@@ -53,4 +53,46 @@ k + kubecfg {
       [if tlsSecret != null then 'tls']: [tls],
     },
   },
+
+  ContourHttpProxy(name, namespace): kubecfg._Object('projectcontour.io/v1','HTTPProxy', name, namespace=namespace){
+  serviceName_:: error 'serviceName_ is required to map httpProxy to a service',
+  fqdn_:: error 'fqdn_ is required',
+  tlsPassthrough_:: error 'tlsPassthrough_ is required. Either set true or false.',
+  tcpProxyPort_:: error 'tcpProxyPort_ is required',
+  routePort_:: error 'routePort_ is required',
+  routePrefix_:: error 'routePrefix_ is required',
+
+  local this = self,
+    spec: {
+      virtualhost: {
+        fqdn: fqdn_,
+        tls: {
+          passthrough: tlsPassthrough_,
+        },
+      },
+      tcpproxy: {
+        services: [
+          {
+            name: this.serviceName_,
+            port: this.tcpProxyPort_,
+          },
+        ],
+      },
+      routes: [
+        {
+          services: [
+            {
+              name: this.serviceName_,
+              port: this.routePort_,
+              conditions: [
+                {
+                  prefix: this.routePrefix_,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
 }
