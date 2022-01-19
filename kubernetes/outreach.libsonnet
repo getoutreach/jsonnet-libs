@@ -84,11 +84,11 @@ k + kubecfg {
             {
               name: this.serviceName_,
               port: this.routePort_,
-              conditions: [
-                {
-                  prefix: this.routePrefix_,
-                },
-              ],
+            },
+          ],
+          conditions: [
+            {
+              prefix: this.routePrefix_,
             },
           ],
         },
