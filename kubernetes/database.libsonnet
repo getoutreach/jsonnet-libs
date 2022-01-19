@@ -104,7 +104,7 @@ local resources = import 'resources.libsonnet';
     local this = self,
     kubernetes_cluster_name:: error 'k8 cluster name is required',
 
-    name: 'kubectl_wait_database_task',
+    name: 'kubectl_wait_database_script',
     script: {
       image: 'gcr.io/outreach-docker/alpine/tools:latest',
       command: ['bash'],
