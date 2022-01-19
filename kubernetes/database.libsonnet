@@ -100,5 +100,24 @@ local resources = import 'resources.libsonnet';
         ],
       },
     },
+    WaitForDatabaseProvisioningArgoCD(database_cluster_name, app, namespace):: {
+    task: 'Wait for database to deploy',
+    local this = self,
+    kubernetes_cluster_name:: error 'k8 cluster name is required',
+
+    name: 'kubectl_wait_database_task',
+    script: {
+      image: 'gcr.io/outreach-docker/alpine/tools:latest',
+      command: ['bash'],
+      source: |||
+            set -euf -o pipefail
+            DATABASECLUSTERNAME=%s
+            K8SCLUSTER=%s
+            NAMESPACE=%s
+            echo kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
+            kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
+          ||| % [database_cluster_name, this.kubernetes_cluster_name, namespace],
+      },
+    },
   },
 }
