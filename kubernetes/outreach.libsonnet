@@ -54,7 +54,7 @@ k + kubecfg {
     },
   },
 
-  ContourHttpProxy(name, namespace): kubecfg._Object('projectcontour.io/v1','HTTPProxy', name, namespace=namespace){
+  ContourHttpProxy(name, namespace): self._Object('projectcontour.io/v1','HTTPProxy', name, namespace=namespace){
   serviceName_:: error 'serviceName_ is required to map httpProxy to a service',
   fqdn_:: error 'fqdn_ is required',
   tlsPassthrough_:: error 'tlsPassthrough_ is required. Either set true or false.',
