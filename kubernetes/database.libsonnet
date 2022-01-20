@@ -100,25 +100,26 @@ local resources = import 'resources.libsonnet';
         ],
       },
     },
-    WaitForDatabaseProvisioningArgoCD(database_cluster_name, app, namespace): k.Job(name='kubectl_wait_database_script', app=app, namespace=namespace){
-      local this = self,
-      kubernetes_cluster_name:: error 'k8 cluster name is required',
-      local job = self,
-      spec: {
-        template: {
-          spec: {
-            containers: [{
-              name: 'kubectl_wait_database_script',
-              image: 'gcr.io/outreach-docker/alpine/tools:latest',
-              command: 
-              [
-              '/bin/bash',
-              |||
-                kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
-              ||| % [database_cluster_name, this.kubernetes_cluster_name, namespace],
-              ],
-            }],
-          },
+  },
+  WaitForDatabaseProvisioningArgoCD(database_cluster_name, app, namespace): k.Job(name='kubectl-wait-database-script', app=app, namespace=namespace){
+    local this = self,
+    kubernetes_cluster_name:: error 'k8 cluster name is required',
+    local job = self,
+    spec: {
+      template: {
+        restartPolicy: 'Never',
+        spec: {
+          containers: [{
+            name: 'kubectl-wait-database-script',
+            image: 'gcr.io/outreach-docker/alpine/tools:latest',
+            command: 
+            [
+            '/bin/bash',
+            |||
+              kubectl --kubeconfig ./kubeconfig/config --context %s wait -n %s postgresqldatabaseclusters.databases.outreach.io/%s --for=condition=Ready --timeout=1800s
+            ||| % [this.kubernetes_cluster_name, namespace, database_cluster_name],
+            ],
+          }],
         },
       },
     },
