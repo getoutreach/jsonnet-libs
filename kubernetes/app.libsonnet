@@ -5,7 +5,7 @@ local std = {
   // it is set by fields(name)
   name: '',
 
-  // namespaces is the Kubernetes namespace this application should deploy into.
+  // namespace is the Kubernetes namespace this application should deploy into.
   //
   // Note: This should generally always be plumbed into namespaced resources
   // as empty namespaces may be deployed into `default` instead of the namespace
