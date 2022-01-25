@@ -1,6 +1,6 @@
 // Standard variables available to all deployments via
 // Concourse or ArgoCD
-local std = {
+local stdfields = {
   // name is the name of this application
   // it is set by fields(name)
   name: '',
@@ -34,5 +34,5 @@ local std = {
 
 {
   // info returns the std fields with name set
-  info(name):: std { name: name },
+  info(name):: stdfields { name: name },
 }
