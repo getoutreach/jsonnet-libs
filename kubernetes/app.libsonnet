@@ -24,7 +24,7 @@ local stdfields = {
   // channel is the channel of the bento this application is being deployed to
   channel: std.extVar('channel'),
 
-  // region is the region of the bento this applicdation is being deployed to
+  // region is the region of the bento this application is being deployed to
   region: std.extVar('region'),
   
   // version is the version of this application being deployed
