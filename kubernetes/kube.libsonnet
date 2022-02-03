@@ -579,8 +579,10 @@
 
   Job(name, namespace='default', app=name): $._Object('batch/v1', 'Job', name, app=app, namespace=namespace) {
     local job = self,
-    metadata: {
-      'argocd.argoproj.io/hook': 'PreSync',
+    metadata+: {
+      annotations+: {
+        'argocd.argoproj.io/hook': 'PreSync',
+      },
     },
     spec: {
       template: {
@@ -601,9 +603,6 @@
   },
 
   CronJob(name, namespace, app=name): $._Object('batch/v1beta1', 'CronJob', name, app=app, namespace=namespace) {
-    metadata: {
-      'argocd.argoproj.io/hook': 'PreSync',
-    },
     spec: {
       jobTemplate: $.Job(name, namespace, app) {
         apiVersion:: null,
