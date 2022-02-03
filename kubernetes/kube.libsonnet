@@ -579,7 +579,11 @@
 
   Job(name, namespace='default', app=name): $._Object('batch/v1', 'Job', name, app=app, namespace=namespace) {
     local job = self,
-
+    metadata+: {
+      annotations+: {
+        'argocd.argoproj.io/hook': 'PreSync',
+      },
+    },
     spec: {
       template: {
         spec: $.PodSpec {
