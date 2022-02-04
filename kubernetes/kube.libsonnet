@@ -581,7 +581,8 @@
     local job = self,
     metadata+: {
       annotations+: {
-        'argocd.argoproj.io/hook': 'PreSync',
+        'argocd.argoproj.io/hook': 'Sync',
+        'argocd.argoproj.io/sync-wave': '-3',
       },
     },
     spec: {
