@@ -239,11 +239,16 @@ local argocdNamespace = 'argocd';
     repo_name_:: std.split(this.repo_, '/')[std.length(std.split(this.repo_, '/')) - 1],
     source_path_:: std.join('/', std.slice(std.split(this.path_, '/'), 0, std.length(std.split(this.path_, '/')) - 1, 1)),
     env_:: {},
-
+    report_maestro_:: true,
+    report_opslevel_:: true,
     spec: {
       template: {
         metadata: {
           name: '%s--{{ name }}' % name,
+          annotations+: {
+            [if this.report_maestro_ then 'notifications.argoproj.io/subscribe.on-deployed.maestro']: '',
+            [if this.report_opslevel_ then 'notifications.argoproj.io/subscribe.on-deployed.opslevel']: '',
+          },
         },
         spec: {
           destination: {
