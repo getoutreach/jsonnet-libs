@@ -52,6 +52,12 @@ local resources = import 'resources.libsonnet';
     cluster_parameters:: {
       default: [],
     },
+    metadata+: {
+      annotations+: {
+        // DPO CR must be created before vault-secret-operator (which has sync wave-value of -5)
+        'argocd.argoproj.io/sync-wave': '-6',
+      },
+    },
     spec: {
       provisioner: this.provisioner,
       bento: this.bento,
