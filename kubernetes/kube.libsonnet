@@ -353,6 +353,11 @@
   ConfigMap(name, namespace, app=name): $._Object('v1', 'ConfigMap', name, namespace=namespace, app=app) {
     local this = self,
     md5:: std.md5(std.toString(this.data)),
+    metadata+: {
+      annotations+: {
+        'argocd.argoproj.io/sync-wave': '-4',
+      },
+    },
     data: {},
 
     // I keep thinking data values can be any JSON type.  This check
