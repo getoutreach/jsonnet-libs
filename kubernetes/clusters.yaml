@@ -1,0 +1,75 @@
+---
+# This is used by the devenv, please talk to us in #dev-tooling-support
+# before removing / modifying. Thanks! <3
+development.us-west-2:
+  availability_zones:
+  - us-east-2a
+  - us-east-2b
+  - us-east-2c
+  cloud_provider: aws
+  dns_zone: outreach.cloud
+  environment: development
+  kubernetes_version: 1.20.5
+  name: development
+  region: us-west-2
+  custom_addons: {}
+ops.us-west-2:
+  availability_zones:
+  - us-west-2a
+  - us-west-2b
+  - us-west-2c
+  cloud_provider: aws
+  dns_zone: outreach.cloud
+  environment: ops
+  kubernetes_version: 1.14.10
+  name: jigglypuff
+  region: us-west-2
+  custom_addons: {}
+production.us-east-1:
+  availability_zones:
+  - us-east-1a
+  - us-east-1c
+  - us-east-1f
+  cloud_provider: aws
+  dns_zone: outreach.cloud
+  environment: production
+  kubernetes_version: 1.14.10
+  name: pikachu
+  region: us-east-1
+  custom_addons: {}
+production.us-west-2:
+  availability_zones:
+  - us-west-2a
+  - us-west-2b
+  - us-west-2c
+  cloud_provider: aws
+  dns_zone: outreach.cloud
+  environment: production
+  kubernetes_version: 1.14.10
+  name: mewtwo
+  region: us-west-2
+  custom_addons: {}
+staging.us-east-2:
+  availability_zones:
+  - us-east-2a
+  - us-east-2b
+  - us-east-2c
+  cloud_provider: aws
+  dns_zone: outreach.cloud
+  environment: staging
+  kubernetes_version: 1.14.10
+  name: eevee
+  region: us-east-2
+  custom_addons: {}
+staging.us-west-2:
+  availability_zones:
+  - us-west-2a
+  - us-west-2b
+  - us-west-2c
+  cloud_provider: aws
+  dns_zone: outreach.cloud
+  environment: staging
+  kubernetes_version: 1.14.10
+  name: turtwig
+  region: us-west-2
+  custom_addons: {}
