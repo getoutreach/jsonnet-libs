@@ -35,6 +35,7 @@ local resources = import 'resources.libsonnet';
     team:: error 'team is required',
     tier:: error 'tier is required',
     personal_information:: "",
+    full_name:: "",
     temp_builtin_users:: false,
     engine:: {
       version: error "engine.version is required",
@@ -52,6 +53,9 @@ local resources = import 'resources.libsonnet';
     cluster_parameters:: {
       default: [],
     },
+    instance_parameters:: {
+      default: [],
+    },
     metadata+: {
       annotations+: {
         // DPO CR must be created before vault-secret-operator (which has sync wave-value of -5)
@@ -61,6 +65,8 @@ local resources = import 'resources.libsonnet';
     spec: {
       provisioner: this.provisioner,
       bento: this.bento,
+      app_name: app,
+      full_name: this.full_name,
       name: database_cluster_name,
       database_name: this.database_name,
       engine: this.engine,
@@ -70,6 +76,7 @@ local resources = import 'resources.libsonnet';
       temp_builtin_users: this.temp_builtin_users,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters['default'],
+      instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters['default'],
     },
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
