@@ -54,7 +54,10 @@ k + kubecfg {
     },
   },
 
-  ContourHttpProxy(name, namespace): self._Object('projectcontour.io/v1','HTTPProxy', name, namespace=namespace){
+  ContourHttpProxy(
+    name, 
+    namespace
+  ): self._Object('projectcontour.io/v1','HTTPProxy', name, namespace=namespace) {
   serviceName_:: error 'serviceName_ is required to map httpProxy to a service',
   fqdn_:: error 'fqdn_ is required',
   tlsPassthrough_:: error 'tlsPassthrough_ is required. Either set true or false.',
@@ -93,6 +96,49 @@ k + kubecfg {
           ],
         },
       ],
+    },
+  },
+
+  ALBIngress(    
+    name,
+    namespace,
+    app=name,
+    subdomain=name,
+    ingressDomain='outreach.cloud',  // which domain to write dns to
+    serviceName=name,
+    servicePort='http',
+    cluster_info=null,
+  ): self.Ingress(name, namespace, app=app) {
+    local this = self,
+    local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
+    host:: '%s.%s.%s' % [subdomain, cluster.global_name, ingressDomain],
+    local rule = {
+      host: this.host,
+      http: {
+        paths: [{
+          backend: {
+            serviceName: serviceName,
+            servicePort: servicePort,
+          },
+        }],
+      },
+    },
+
+    metadata+: {
+      annotations+: {
+        # ALB ANNOTATIONS
+        'kubernetes.io/ingress.class': 'alb',
+        'alb.ingress.kubernetes.io/group.name': name, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
+        'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,outreach:k8s-cluster=%s,outreach:application=%s' % [cluster.environment, cluster.global_name, name], // The easy tags
+        'alb.ingress.kubernetes.io/listen-ports': '[{"HTTPS":443}]',
+        'alb.ingress.kubernetes.io/scheme': 'internet-facing',
+
+        'external-dns.alpha.kubernetes.io/hostname': this.host,
+        'ingress.kubernetes.io/force-ssl-redirect': 'true',
+      },
+    },
+    spec+: {
+      rules: [rule],
     },
   },
 }
