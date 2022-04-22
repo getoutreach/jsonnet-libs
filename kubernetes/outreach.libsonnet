@@ -132,6 +132,7 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,outreach:k8s-cluster=%s,outreach:application=%s' % [cluster.environment, cluster.global_name, name], // The easy tags
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/scheme': 'internet-facing',
+        'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s' % [cluster.region, name],
 
         'external-dns.alpha.kubernetes.io/hostname': this.host,
         'ingress.kubernetes.io/force-ssl-redirect': 'true',
