@@ -1,3 +1,4 @@
+local cluster = import 'kubernetes/cluster.libsonnet';
 // Standard variables available to all deployments via
 // Concourse or ArgoCD
 local stdfields = {
@@ -26,12 +27,15 @@ local stdfields = {
 
   // region is the region of the bento this application is being deployed to
   region: std.extVar('region'),
-  
+
   // version is the version of this application being deployed
   version: std.extVar('version'),
 
   // ts is when this application is being deployed as a timestamp.
   ts: std.extVar('ts'),
+
+  // clusterType is the cluster type of the bento this application is being deployed to (legacy, ngb and shared-service)
+  clusterType: if std.objectHas(cluster, 'type') then cluster.type else 'legacy',
 };
 
 
