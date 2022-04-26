@@ -115,12 +115,14 @@ k + kubecfg {
     local rule = {
       host: this.host,
       http: {
-        paths: [{
-          backend: {
-            serviceName: serviceName,
-            servicePort: servicePort,
+        paths: [
+          {
+            backend: {
+              serviceName: serviceName,
+              servicePort: servicePort,
+            },
           },
-        }],
+        ],
       },
     },
 
@@ -128,9 +130,10 @@ k + kubecfg {
       annotations+: {
         # ALB ANNOTATIONS
         'kubernetes.io/ingress.class': 'alb',
+        'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}',
         'alb.ingress.kubernetes.io/group.name': name, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
-        'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,outreach:k8s-cluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.global_name, name, namespace], // The easy tags
-        'alb.ingress.kubernetes.io/listen-ports': '[{"HTTPS":443}]',
+        'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.fqdn, name, namespace], // The easy tags
+        'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/scheme': 'internet-facing',
         'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,deletion_protection.enabled=true' % [cluster.region, name],
 
@@ -139,7 +142,16 @@ k + kubecfg {
       },
     },
     spec+: {
-      rules: [rule],
+      rules: [
+        {
+          path: '/*',
+          backend: {
+            serviceName: 'ssl-redirect',
+            servicePort: 'use-annotation',
+          },
+        },
+        rule
+      ],
     },
   },
 }
