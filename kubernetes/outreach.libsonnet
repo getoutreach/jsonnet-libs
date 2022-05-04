@@ -138,7 +138,7 @@ k + kubecfg {
 
       # ssl-redirect
       'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
-      'alb.ingress.kubernetes.io/group.order': '0',
+      'alb.ingress.kubernetes.io/group.order': '1', // Explicit order can't be 0
     },
 
     metadata+: {
