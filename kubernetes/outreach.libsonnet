@@ -107,6 +107,7 @@ k + kubecfg {
     ingressDomain='outreach.cloud',  // which domain to write dns to
     serviceName=name,
     servicePort='http',
+    createTls=false,
     cluster_info=null,
   ): self.Ingress(name, namespace, app=app) {
     local this = self,
@@ -126,32 +127,46 @@ k + kubecfg {
       },
     },
 
+    // acm-manager ignores tls if there's a secret declared
+    local tls = {
+      hosts: [this.host],
+    },
+
+    local tlsAnnotations = {
+      # ACM MANAGER
+      'acm-manager.io/enable': 'true',
+
+      # ssl-redirect
+      'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
+      'alb.ingress.kubernetes.io/group.order': '0',
+    },
+
     metadata+: {
       annotations+: {
         # ALB ANNOTATIONS
         'kubernetes.io/ingress.class': 'alb',
-        'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}',
-        'alb.ingress.kubernetes.io/group.name': name, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
-        'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.fqdn, name, namespace], // The easy tags
+        'alb.ingress.kubernetes.io/group.name': this.host, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
+        'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.fqdn, name, namespace], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/scheme': 'internet-facing',
-        'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,deletion_protection.enabled=true' % [cluster.region, name],
-
+        'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,deletion_protection.enabled=true' % [cluster.region, this.host], 
+        'alb.ingress.kubernetes.io/group.order': '100',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
-        'ingress.kubernetes.io/force-ssl-redirect': 'true',
-      },
+      } + (if createTls != false then tlsAnnotations else {})
     },
     spec+: {
       rules: [
+        if createTls != false then
         {
           path: '/*',
           backend: {
             serviceName: 'ssl-redirect',
             servicePort: 'use-annotation',
           },
-        },
+        } else {},
         rule
       ],
+      [if createTls != false then 'tls']: [tls],
     },
   },
 }
