@@ -116,7 +116,15 @@ k + kubecfg {
     local rule = {
       host: this.host,
       http: {
-        paths: [
+        paths: ( if createTls != false then [ 
+          {
+            path: '/*',
+            backend: {
+              serviceName: 'ssl-redirect',
+              servicePort: 'use-annotation',
+            },
+          },
+        ] else [] ) + [
           {
             backend: {
               serviceName: serviceName,
@@ -156,14 +164,6 @@ k + kubecfg {
     },
     spec+: {
       rules: [
-        if createTls != false then
-        {
-          path: '/*',
-          backend: {
-            serviceName: 'ssl-redirect',
-            servicePort: 'use-annotation',
-          },
-        } else {},
         rule
       ],
       [if createTls != false then 'tls']: [tls],
