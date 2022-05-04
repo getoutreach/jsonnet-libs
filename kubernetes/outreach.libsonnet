@@ -138,6 +138,7 @@ k + kubecfg {
 
       # ssl-redirect
       'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
+      'alb.ingress.kubernetes.io/group.order': '0',
     },
 
     metadata+: {
@@ -149,9 +150,8 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/scheme': 'internet-facing',
         'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,deletion_protection.enabled=true' % [cluster.region, this.host], 
-
+        'alb.ingress.kubernetes.io/group.order': '100',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
-        'ingress.kubernetes.io/force-ssl-redirect': 'true',
       } + (if createTls != false then tlsAnnotations else {})
     },
     spec+: {
