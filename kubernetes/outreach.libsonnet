@@ -157,7 +157,7 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/tags': 'outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.fqdn, name, namespace], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/scheme': 'internet-facing',
-        'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,deletion_protection.enabled=true' % [cluster.region, this.host], 
+        'alb.ingress.kubernetes.io/load-balancer-attributes': 'access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s' % [cluster.region, this.host], 
         'alb.ingress.kubernetes.io/group.order': '100',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {})
