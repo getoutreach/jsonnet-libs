@@ -108,7 +108,7 @@ k + kubecfg {
     serviceName=name,
     servicePort='http',
     createTls=false,
-    createSSLRedirect=false,
+    createSSLRedirect=true,
     clusterALB=false,
     cluster_info=null,
   ): self.Ingress(name, namespace, app=app) {
