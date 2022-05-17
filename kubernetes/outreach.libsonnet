@@ -107,7 +107,7 @@ k + kubecfg {
     ingressDomain='outreach.cloud',  // which domain to write dns to
     serviceName=name,
     servicePort='http',
-    createTls=true,
+    createTls=false,
     createSSLRedirect=false,
     clusterALB=false,
     cluster_info=null,
