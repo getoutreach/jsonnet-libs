@@ -108,11 +108,13 @@ k + kubecfg {
     serviceName=name,
     servicePort='http',
     createTls=false,
+    internal=false,
     clusterALB=false,
     cluster_info=null,
   ): self.Ingress(name, namespace, app=app) {
     local this = self,
     local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
+    local groupName = if internal != false then cluster.global_name + '-internal' else cluster.global_name,
     host:: '%s.%s.%s' % [subdomain, cluster.global_name, ingressDomain],
     local rule = {
       host: this.host,
@@ -144,17 +146,16 @@ k + kubecfg {
       'acm-manager.io/enable': 'true',
     },
 
-
     metadata+: {
       annotations+: {
         # ALB ANNOTATIONS
         'kubernetes.io/ingress.class': 'alb',
-        'alb.ingress.kubernetes.io/group.name': if clusterALB != false then cluster.global_name else this.host, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
+        'alb.ingress.kubernetes.io/group.name': if clusterALB != false then groupName else this.host, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
         'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.fqdn, name, namespace], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
-        'alb.ingress.kubernetes.io/scheme': 'internet-facing',
-        'alb.ingress.kubernetes.io/load-balancer-attributes': 'routing.http.drop_invalid_header_fields.enabled=true,access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s' % [cluster.region, if clusterALB != false then cluster.global_name else this.host], 
+        'alb.ingress.kubernetes.io/scheme': if internal != false then 'internal' else 'internet-facing',
+        'alb.ingress.kubernetes.io/load-balancer-attributes': 'routing.http.drop_invalid_header_fields.enabled=true,access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s' % [cluster.region, if clusterALB != false then groupName else this.host], 
         'alb.ingress.kubernetes.io/success-codes': '200-399',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {})
