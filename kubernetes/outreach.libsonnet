@@ -151,7 +151,7 @@ k + kubecfg {
         # ALB ANNOTATIONS
         'kubernetes.io/ingress.class': 'alb',
         'alb.ingress.kubernetes.io/group.name': if clusterALB != false then groupName else this.host, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
-        'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s,namespace=%s' % [cluster.environment, cluster.fqdn, name, namespace], 
+        'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s' % [cluster.environment, cluster.fqdn], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
         'alb.ingress.kubernetes.io/scheme': if internal != false then 'internal' else 'internet-facing',
