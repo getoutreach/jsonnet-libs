@@ -264,6 +264,13 @@
     stdin: false,
     tty: false,
     assert !self.tty || self.stdin : 'tty=true requires stdin=true',
+    
+    // This will capture the final logs before your container died and 
+    // record them as the reason for termination (visible in kubectl describe pod).
+    // This is a saner default than the normal one, 
+    // which requires your application to write to /dev/termination-log before exiting.
+    // https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/
+    terminationMessagePolicy: 'FallbackToLogsOnError'
   },
 
   Pod(name): $._Object('v1', 'Pod', name) {
