@@ -123,13 +123,6 @@ k + kubecfg {
       http: {
         paths: [ 
           {
-            path: '/*',
-            backend: {
-              serviceName: 'ssl-redirect',
-              servicePort: 'use-annotation',
-            },
-          },
-          {
             backend: {
               serviceName: serviceName,
               servicePort: servicePort,
@@ -152,6 +145,7 @@ k + kubecfg {
       annotations+: {
         # ALB ANNOTATIONS
         'kubernetes.io/ingress.class': 'alb',
+        'alb.ingress.kubernetes.io/ssl-redirect': '443',
         'alb.ingress.kubernetes.io/group.name': groupName, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
         'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s' % [cluster.environment, cluster.fqdn], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
