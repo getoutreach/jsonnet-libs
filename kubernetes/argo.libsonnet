@@ -52,7 +52,7 @@ local argocdNamespace = 'argocd';
           prune: true,
           selfHeal: true,
         },
-        syncOptions: ['ApplyOutOfSyncOnly=true', 'PruneLast=true'],
+        syncOptions: ['ApplyOutOfSyncOnly=false', 'PruneLast=true'],
       },
     },
   },
