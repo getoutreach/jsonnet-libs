@@ -50,6 +50,7 @@ local argocdNamespace = 'argocd';
       syncPolicy: {
         automated: {
           prune: true,
+          selfHeal: true,
         },
         syncOptions: ['ApplyOutOfSyncOnly=true', 'PruneLast=true'],
       },
