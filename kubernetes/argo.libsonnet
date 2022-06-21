@@ -48,8 +48,10 @@ local argocdNamespace = 'argocd';
         },
       },
       syncPolicy: {
-        automated: {},
-        syncOptions: ['CreateNamespace=true', 'ApplyOutOfSyncOnly=true'],
+        automated: {
+          prune: true,
+        },
+        syncOptions: ['ApplyOutOfSyncOnly=true', 'PruneLast=true'],
       },
     },
   },
