@@ -281,7 +281,7 @@ local argocdNamespace = 'argocd';
           syncPolicy: {
             automated: {
               prune: true,
-              selfHeal: true,
+              selfHeal: false,
             },
             syncOptions: [
               'CreateNamespace=true',
