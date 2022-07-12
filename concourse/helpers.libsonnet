@@ -5,29 +5,29 @@
     {
       name: 'staging.us-east-2',
       environment: 'staging',
-      passed: null
+      passed: null,
     },
     {
       name: 'staging.us-west-2',
       environment: 'staging',
-      passed: 'staging.us-east-2'
+      passed: 'staging.us-east-2',
     },
     {
       name: 'production.us-west-2',
       environment: 'production',
-      passed: 'staging.us-west-2'
+      passed: 'staging.us-west-2',
     },
     {
       name: 'production.us-east-1',
       environment: 'production',
-      passed: 'production.us-west-2'
+      passed: 'production.us-west-2',
     },
   ],
   infraClusters():: [
     {
       name: 'ops.us-west-2',
       environment: 'production',
-      passed: null
+      passed: null,
     },
   ],
   stagingBentos():: [
@@ -37,15 +37,7 @@
       channel: 'white',
       environment: 'staging',
       region: 'us-east-2',
-      passed: null
-    },
-    {
-      name: 'staging1c',
-      cluster: 'staging.us-west-2',
-      channel: 'white',
-      environment: 'staging',
-      region: 'us-west-2',
-      passed: 'staging1a'
+      passed: null,
     },
   ],
   appBentos():: [
@@ -56,16 +48,7 @@
       environment: 'staging',
       region: 'us-east-2',
       passed: null,
-      next: 'staging1c'
-    },
-    {
-      name: 'staging1c',
-      cluster: 'staging.us-west-2',
-      channel: 'white',
-      environment: 'staging',
-      region: 'us-west-2',
-      passed: 'staging1a',
-      next: 'app1d'
+      next: 'app1d',
     },
     {
       name: 'app1d',
@@ -73,8 +56,8 @@
       channel: 'orange',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'staging1c',
-      next: 'app1b'
+      passed: 'staging1a',
+      next: 'app1b',
     },
     {
       name: 'app1b',
@@ -83,7 +66,7 @@
       environment: 'production',
       region: 'us-west-2',
       passed: 'app1d',
-      next: 'app1e'
+      next: 'app1e',
     },
     {
       name: 'app1e',
@@ -92,7 +75,7 @@
       environment: 'production',
       region: 'us-west-2',
       passed: 'app1b',
-      next: 'app1a'
+      next: 'app1a',
     },
     {
       name: 'app1a',
@@ -101,7 +84,7 @@
       environment: 'production',
       region: 'us-west-2',
       passed: 'app1e',
-      next: 'app1c'
+      next: 'app1c',
     },
     {
       name: 'app1c',
@@ -110,7 +93,7 @@
       environment: 'production',
       region: 'us-west-2',
       passed: 'app1a',
-      next: 'app1f'
+      next: 'app1f',
     },
     {
       name: 'app1f',
@@ -119,7 +102,7 @@
       environment: 'production',
       region: 'us-west-2',
       passed: 'app1a',
-      next: 'app2a'
+      next: 'app2a',
     },
     {
       name: 'app2a',
@@ -128,7 +111,7 @@
       environment: 'production',
       region: 'us-east-1',
       passed: 'app1b',
-      next: 'app2b'
+      next: 'app2b',
     },
     {
       name: 'app2b',
@@ -137,7 +120,7 @@
       environment: 'production',
       region: 'us-east-1',
       passed: 'app2a',
-      next: 'app2c'
+      next: 'app2c',
     },
     {
       name: 'app2c',
@@ -146,7 +129,7 @@
       environment: 'production',
       region: 'us-east-1',
       passed: 'app2b',
-      next: 'app2d'
+      next: 'app2d',
     },
     {
       name: 'app2d',
@@ -155,7 +138,7 @@
       environment: 'production',
       region: 'us-east-1',
       passed: 'app2c',
-      next: null
+      next: null,
     },
   ],
 }
