@@ -48,6 +48,9 @@ local argocdNamespace = 'argocd';
         },
       },
       syncPolicy: {
+        automated: {
+          prune: true,
+        },
         syncOptions: ['ApplyOutOfSyncOnly=false', 'PruneLast=true'],
       },
     },
