@@ -124,6 +124,16 @@
         password: $.gcr_registry_password,
       },
     },
+    helm_deploy: {
+      name: 'helm_deploy',
+      type: 'registry-image',
+      source: {
+        repository: 'gcr.io/outreach-docker/concourse/helm-deploy-resource',
+        tag: 'latest',
+        username: $.gcr_registry_username,
+        password: $.gcr_registry_password,
+      },
+    },
   },
 
   // Basic resources

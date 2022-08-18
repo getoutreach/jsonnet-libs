@@ -2,7 +2,7 @@
 
 {
   // Create Job
-  newJob(name, group = null, serial_groups = null)::
+  newJob(name, group=null, serial_groups=null)::
     {
       name: name,
       group:: group,
@@ -15,16 +15,16 @@
     },
 
   // Get semver resource
-  getSemver(trigger = false, passed = null, params = null)::
+  getSemver(trigger=false, passed=null, params=null)::
     {
       get: 'version',
       [if trigger then 'trigger']: trigger,
       [if passed != null then 'passed']: passed,
-      [if params != null then 'params']: params
+      [if params != null then 'params']: params,
     },
 
   // Get source from github
-  getGitRepo(trigger = null, passed = null, pr = false)::
+  getGitRepo(trigger=null, passed=null, pr=false)::
     local source = if pr then 'source_pr' else 'source';
     {
       get: source,
@@ -34,19 +34,19 @@
 
   // Template for running tasks from repo
   newTask(
-    name = 'test',
-    path = 'ci/tasks/test.yaml',
-    pr = false,
-    passed = null,
-    trigger = true,
-    image = null,
-    semver = null,
-    params = null,
-    attempts = null,
-    update = true,
-    privileged = null,
-    context = 'status',
-    timeout = null,
+    name='test',
+    path='ci/tasks/test.yaml',
+    pr=false,
+    passed=null,
+    trigger=true,
+    image=null,
+    semver=null,
+    params=null,
+    attempts=null,
+    update=true,
+    privileged=null,
+    context='status',
+    timeout=null,
   )::
     local source = if pr then 'source_pr' else 'source';
     local custom_params = {
@@ -55,7 +55,7 @@
     std.prune([
       $.getGitRepo(trigger, passed, pr),
       if image != null then { get: image },
-      if semver != null then $.getSemver(params = semver),
+      if semver != null then $.getSemver(params=semver),
       if pr && update then {
         put: source,
         params: {
@@ -87,15 +87,15 @@
   // Template for running tasks inline
   newInlineTask(
     name,
-    inputs = [],
-    args = [],
-    outputs = [],
+    inputs=[],
+    args=[],
+    outputs=[],
   )::
     {
       task: name,
       config: {
         platform: 'linux',
-        image_resource: $.basicResources.task_image + { name:: null },
+        image_resource: $.basicResources.task_image { name:: null },
         inputs: inputs,
         outputs: outputs,
         run: {
@@ -107,18 +107,18 @@
 
   // Update Github
   updateGithub(
-    name = 'Step',
-    state = 'success',
-    pr = false,
-    desc = null,
-    context = 'status',
-    comment = null,
+    name='Step',
+    state='success',
+    pr=false,
+    desc=null,
+    context='status',
+    comment=null,
   )::
     local source = if pr then 'source_pr' else 'source';
     local description = if desc != null then desc
-                        else if state == 'success' then 'Concourse CI ' + name + ' succeeded...'
-                        else if state == 'failure' then 'Concourse CI ' + name + ' failed...'
-                        else null;
+    else if state == 'success' then 'Concourse CI ' + name + ' succeeded...'
+    else if state == 'failure' then 'Concourse CI ' + name + ' failed...'
+    else null;
     [
       if pr then {
         put: source,
@@ -141,12 +141,12 @@
 
   // Docker image resource
   dockerImage(
-    name = null,
-    repo = 'registry.outreach.cloud/outreach/' + name,
-    tag = 'latest',
-    username = null,
-    password = null,
-    pr = false,
+    name=null,
+    repo='registry.outreach.cloud/outreach/' + name,
+    tag='latest',
+    username=null,
+    password=null,
+    pr=false,
   )::
     {
       require_name:: if name == null then error '`name` parameter is required!',
@@ -162,12 +162,12 @@
 
   // Docker image configuration for GCR
   gcrImage(
-    name = null,
-    repo = 'gcr.io/outreach-docker/' + name,
-    tag = 'latest',
-    username = null,
-    password = null,
-    pr = false,
+    name=null,
+    repo='gcr.io/outreach-docker/' + name,
+    tag='latest',
+    username=null,
+    password=null,
+    pr=false,
   )::
     {
       require_name:: if name == null then error '`name` parameter is required!',
@@ -183,13 +183,13 @@
 
   // Build and push docker images with specified tags
   imageBuildPush(
-    name        = $.name,
-    source      = 'source',
-    tag_file    = 'version/version',
-    extra_tags  = [],
-    # https://github.com/vito/oci-build-task#params
-    params      = {},
-    build_args  = {},
+    name=$.name,
+    source='source',
+    tag_file='version/version',
+    extra_tags=[],
+    // https://github.com/vito/oci-build-task#params
+    params={},
+    build_args={},
   )::
     local build_args_rendered = std.map(
       function(k) '--build-arg ' + k + '="${' + k + '}"', std.objectFields(build_args)
@@ -202,7 +202,7 @@
         privileged: true,
         config: {
           platform: 'linux',
-          image_resource: $.basicResourceTypes.builder_task + { name:: null },
+          image_resource: $.basicResourceTypes.builder_task { name:: null },
           params: {
             CONTEXT: source,
             REPOSITORY_USER: $.gcr_registry_username,
@@ -211,8 +211,8 @@
             OUTPUT: 'image',
             BUILD_ARGS: std.join(' ', build_args_rendered),
           } + params + build_args,
-          inputs: [{name: source}, {name: 'version', optional: true}],
-          outputs: [{name: 'image'}],
+          inputs: [{ name: source }, { name: 'version', optional: true }],
+          outputs: [{ name: 'image' }],
           run: {
             path: '/bin/bash',
             args: [
@@ -246,15 +246,15 @@
 
   // Build docker image
   buildDockerImage(
-    name = $.name,
-    source = 'source',
-    tag_file = 'version/version',
-    additional_tags_file = null,
-    latest = true,
-    semver = { bump: 'patch' },
-    build_args = {},
-    pr = false,
-    repo = null,
+    name=$.name,
+    source='source',
+    tag_file='version/version',
+    additional_tags_file=null,
+    latest=true,
+    semver={ bump: 'patch' },
+    build_args={},
+    pr=false,
+    repo=null,
   )::
     local pr_suffix = if pr then '-pr' else '';
     local real_name = name + pr_suffix;
@@ -269,7 +269,7 @@
     );
 
     std.prune([
-      if semver != null then $.getSemver(params = semver),
+      if semver != null then $.getSemver(params=semver),
       {
         task: builder_name,
         privileged: true,
@@ -292,9 +292,9 @@
             CONTEXT: source,
             BUILD_ARGS: std.join(' ', build_args_rendered),
           } + build_args,
-          inputs: [{name: source}, {name: 'version', optional: true}],
-          outputs: [{name: output}],
-          caches: [{path: 'cache'}],
+          inputs: [{ name: source }, { name: 'version', optional: true }],
+          outputs: [{ name: output }],
+          caches: [{ path: 'cache' }],
           run: {
             path: 'bash',
             args: [
@@ -342,10 +342,10 @@
 
   // Deprecated method
   slackInput(
-    name = null,
-    title = null,
-    text = null,
-    short = true,
+    name=null,
+    title=null,
+    text=null,
+    short=true,
   )::
     {
       name:: name,
@@ -362,35 +362,35 @@
 
   // Slack Message
   slackMessage(
-    type = 'success',
-    title = 'Untitled',
-    text = null,
-    channel = '#botland',
-    color = null,
-    inputs = [], // Deprecated
-    fields = [],
-    resources = [],
+    type='success',
+    title='Untitled',
+    text=null,
+    channel='#botland',
+    color=null,
+    inputs=[],  // Deprecated
+    fields=[],
+    resources=[],
   )::
     local status_color = if color != null then color
-      else if type == 'success' then 'good'
-      else if type == 'failure' then 'danger'
-      else "#439FE0";
-    local deprecated_inputs = std.prune(std.map(function(i) if i.name != null then { name: i.name, optional: true}, inputs));
-    local custom_inputs = std.prune(std.map(function(resource) { name: resource, optional: true}, resources) + deprecated_inputs);
+    else if type == 'success' then 'good'
+    else if type == 'failure' then 'danger'
+    else '#439FE0';
+    local deprecated_inputs = std.prune(std.map(function(i) if i.name != null then { name: i.name, optional: true }, inputs));
+    local custom_inputs = std.prune(std.map(function(resource) { name: resource, optional: true }, resources) + deprecated_inputs);
     local deprecated_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, inputs);
     local custom_fields = std.filter(function(i) if i.title != null && i.value != null then true else false, fields) + deprecated_fields + [
       {
         title: 'Project',
         value: '${SLACK_BUILD_PIPELINE_NAME}',
         short: true,
-      }
+      },
     ];
     [
       {
         task: type + '_payload',
         config: {
           platform: 'linux',
-          image_resource: $.basicResources.task_image + { name:: null },
+          image_resource: $.basicResources.task_image { name:: null },
           params: {
             STATUS_TITLE: title,
             [if text != null then 'STATUS_TEXT']: text,
@@ -446,24 +446,63 @@
         },
       },
     ],
-
+  // Deploy manifest to kuberentes using Helm
+  helmDeploy(
+    cluster_name=null,
+    namespace=null,
+    create_namespace=true,
+    chart=null,
+    version=null,
+    values_file=null,
+    override_values=[],
+    debug=false,
+    atomic=true,
+    put_name='helm_deploy',
+    params={},
+    show_diff=true,
+    timeout='5m0s',
+  )::
+    std.prune([
+      if cluster_name == null then error '`cluster_name` parameter is required!',
+      if namespace == null then error '`namespace` parameter is required!',
+      if chart == null then error '`chart` parameter is required!',
+      if version == null then error '`version` parameter is required!',
+      { get: 'kubeconfig', attempts: 3 },
+      {
+        put: put_name,
+        params: {
+          chart: chart,
+          version: version,
+          override_values: override_values,
+          namespace: namespace,
+          create_namespace: create_namespace,
+          debug: debug,
+          kubeconfig_path: 'kubeconfig/config',
+          kubecontext: cluster_name,
+          atomic: atomic,
+          timeout: timeout,
+          show_diff: show_diff,
+          release: std.strReplace(chart, '/', '-'),
+        } + params,
+      },
+    ]),
   // Deploy manifest to kuberentes
   k8sDeploy(
-    cluster_name = null,
-    namespace = null,
-    vault_secrets = null,
-    vault_configs = null,
-    source = 'source',
-    manifests = [],
-    kubecfg_vars = {},
-    semver = null,
-    debug = false,
-    params = {},
-    validation_retries = null,
-    job_validation_retries = null,
-    put_name = 'k8s_deploy',
-    on_success = null,
-    on_failure = null,
+    cluster_name=null,
+    namespace=null,
+    vault_secrets=null,
+    vault_configs=null,
+    source='source',
+    manifests=[],
+    kubecfg_vars={},
+    semver=null,
+    debug=false,
+    params={},
+    validation_retries=null,
+    job_validation_retries=null,
+    put_name='k8s_deploy',
+    on_success=null,
+    on_failure=null,
   )::
     local vault = if vault_secrets != null || vault_configs != null then true else false;
     local secret_array = if std.isArray(vault_secrets) then vault_secrets else [vault_secrets];
@@ -473,7 +512,7 @@
       if namespace == null then error '`namespace` parameter is required!',
 
       { get: 'kubeconfig', attempts: 3 },
-      if semver != null then ($.getSemver(params = semver) + { attempts: 3 }),
+      if semver != null then ($.getSemver(params=semver) + { attempts: 3 }),
       if vault then { get: 'vault', attempts: 3 },
       if source != null then { get: source, attempts: 3 },
       {
@@ -498,37 +537,37 @@
         } + params,
       },
     ]),
-  deploymentStartSlackMessage(name, target = null, slackChannel = '#deployments')::
+  deploymentStartSlackMessage(name, target=null, slackChannel='#deployments')::
     local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
-      channel = slackChannel,
-      type = 'notice',
-      title = ':airplane_departure: %s deployment%s is starting...' % [name, targetMessage],
-      inputs = [
-        $.slackInput(title = 'Deployment', text = name),
+      channel=slackChannel,
+      type='notice',
+      title=':airplane_departure: %s deployment%s is starting...' % [name, targetMessage],
+      inputs=[
+        $.slackInput(title='Deployment', text=name),
       ],
     ),
-  deploymentSuccessfulSlackMessage(name, target = null, slackChannel = '#deployments')::
+  deploymentSuccessfulSlackMessage(name, target=null, slackChannel='#deployments')::
     local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
-      channel = slackChannel,
-      type = 'success',
-      title = ':airplane_arriving: %s deployment%s succeeded! :successkid:' % [name, targetMessage],
-      inputs = [
-        $.slackInput(title = 'Deployment', text = name),
+      channel=slackChannel,
+      type='success',
+      title=':airplane_arriving: %s deployment%s succeeded! :successkid:' % [name, targetMessage],
+      inputs=[
+        $.slackInput(title='Deployment', text=name),
       ],
     ),
-  deploymentFailedSlackMessage(name, target = null, slackChannel = '#deployments')::
+  deploymentFailedSlackMessage(name, target=null, slackChannel='#deployments')::
     local targetMessage = if target != null then ' to %s' % [target] else '';
     $.slackMessage(
-      channel = slackChannel,
-      type = 'failure',
-      title = ":boom: %s deployment%s failed..." % [name, targetMessage],
-      inputs = [
-        $.slackInput(title = 'Deployment', text = name),
+      channel=slackChannel,
+      type='failure',
+      title=':boom: %s deployment%s failed...' % [name, targetMessage],
+      inputs=[
+        $.slackInput(title='Deployment', text=name),
       ],
     ),
-  maestroResource(name, deploy_name, resource)::{
+  maestroResource(name, deploy_name, resource):: {
     name: 'maestro-%s-%s' % [deploy_name, resource],
     type: 'maestrov3',
     source: {
@@ -538,69 +577,81 @@
       resource: resource,
     },
   },
+  helmResource(name, repo_url):: {
+    name: 'helm_deploy',
+    type: 'helm_deploy',
+    source: {
+      repos: [
+        {
+          name: name,
+          url: repo_url,
+        },
+      ],
+    },
+  },
   maestroActionableVersion(name, deploy_name):: $.maestroResource(name, deploy_name, 'actionable_version'),
   maestroDeployedVersion(name, deploy_name):: $.maestroResource(name, deploy_name, 'deployed_version'),
   checkoutMaestroVersion(maestro_resource_name):: $.newInlineTask(
-    "Checkout Maestro Version",
-    [{name: 'source'}, {name: maestro_resource_name}],
+    'Checkout Maestro Version',
+    [{ name: 'source' }, { name: maestro_resource_name }],
     [
       |||
         set -euf -o pipefail
         maestro_version=$(cat ./%s/version)
         cd source
         git checkout $maestro_version
-      ||| % [maestro_resource_name]
+      ||| % [maestro_resource_name],
     ],
-    [{name: 'source'}],
+    [{ name: 'source' }],
   ),
 
   // Sends OpsLevel Deployment Updates
-  deploymentSuccessfulOpsLevelMessage(service, bento = null, env = null)::
-  {
-    task: "Send OpsLevel Deploy Message",
-    config: {
-      platform: 'linux',
-      image_resource: $.basicResources.task_image + { name:: null },
-      inputs: [{ name: 'metadata' }, { name: 'source' }],
-      outputs: [],
-      run: {
-        path: '/bin/bash',
-        args: [
-          '-c',
-          |||
-            set -euf -o pipefail
-            SERVICE=%s
-            BENTO=%s
-            ENV=%s
-            OPSLEVEL_DEPLOY=/tmp/opslevel_deploy.json
-            ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
-            BUILD_TEAM_NAME=$(cat metadata/build_team_name)
-            BUILD_PIPELINE_NAME=$(cat metadata/build_pipeline_name)
-            BUILD_JOB_NAME=$(cat metadata/build_job_name)
-            BUILD_ID=$(cat metadata/build_id)
-            BUILD_NAME=$(cat metadata/build_name)
-            cat <<EOF > $OPSLEVEL_DEPLOY
-            {
-              "dedup_id": "$BUILD_ID",
-              "service": "$SERVICE",
-              "deployer": {
-                "email": "$BUILD_TEAM_NAME@outreach.io"
-              },
-              "deployed_at": "$(date -u '+%%FT%%TZ')",
-              "environment": "$ENV-$BENTO",
-              "description": "Deployed by Concourse: $BUILD_PIPELINE_NAME#$BUILD_NAME",
-              "deploy_url": "$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME",
-              "deploy_number": "$BUILD_ID"
-            }
-            EOF
-            echo "OpsLevel Payload:"
-            cat $OPSLEVEL_DEPLOY
-            curl -X POST https://app.opslevel.com/integrations/deploy/6a9c1f3e-d708-4f00-99d8-c4831ee03f49 \
-              -H 'content-type: application/json' \
-              --data-binary @$OPSLEVEL_DEPLOY
-          ||| % [service, bento, env],
-        ],
+  deploymentSuccessfulOpsLevelMessage(service, bento=null, env=null)::
+    {
+      task: 'Send OpsLevel Deploy Message',
+      config: {
+        platform: 'linux',
+        image_resource: $.basicResources.task_image { name:: null },
+        inputs: [{ name: 'metadata' }, { name: 'source' }],
+        outputs: [],
+        run: {
+          path: '/bin/bash',
+          args: [
+            '-c',
+            |||
+              set -euf -o pipefail
+              SERVICE=%s
+              BENTO=%s
+              ENV=%s
+              OPSLEVEL_DEPLOY=/tmp/opslevel_deploy.json
+              ATC_EXTERNAL_URL=$(cat metadata/atc_external_url)
+              BUILD_TEAM_NAME=$(cat metadata/build_team_name)
+              BUILD_PIPELINE_NAME=$(cat metadata/build_pipeline_name)
+              BUILD_JOB_NAME=$(cat metadata/build_job_name)
+              BUILD_ID=$(cat metadata/build_id)
+              BUILD_NAME=$(cat metadata/build_name)
+              cat <<EOF > $OPSLEVEL_DEPLOY
+              {
+                "dedup_id": "$BUILD_ID",
+                "service": "$SERVICE",
+                "deployer": {
+                  "email": "$BUILD_TEAM_NAME@outreach.io"
+                },
+                "deployed_at": "$(date -u '+%%FT%%TZ')",
+                "environment": "$ENV-$BENTO",
+                "description": "Deployed by Concourse: $BUILD_PIPELINE_NAME#$BUILD_NAME",
+                "deploy_url": "$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME",
+                "deploy_number": "$BUILD_ID"
+              }
+              EOF
+              echo "OpsLevel Payload:"
+              cat $OPSLEVEL_DEPLOY
+              curl -X POST https://app.opslevel.com/integrations/deploy/6a9c1f3e-d708-4f00-99d8-c4831ee03f49 \
+                -H 'content-type: application/json' \
+                --data-binary @$OPSLEVEL_DEPLOY
+            ||| % [service, bento, env],
+          ],
+        },
       },
     },
-  },
 }
