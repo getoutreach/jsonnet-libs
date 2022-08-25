@@ -166,6 +166,7 @@
         uri: 'git@github.com:' + $.source_repo + '.git',
         branch: $.branch,
         private_key: $.github_key,
+        fetch_tags: true,
       },
       webhook_token: $.webhook_token,
     },
