@@ -602,6 +602,7 @@
         set -euf -o pipefail
         maestro_version=$(cat ./%s/version)
         cd source
+        git fetch origin
         git checkout $maestro_version
       ||| % [maestro_resource_name],
     ],
