@@ -148,14 +148,5 @@
       passed: 'app2b',
       next: 'app2d'
     },
-    {
-      name: 'app2d',
-      cluster: 'production.us-east-1',
-      channel: 'green',
-      environment: 'production',
-      region: 'us-east-1',
-      passed: 'app2c',
-      next: null
-    },
   ],
 }
