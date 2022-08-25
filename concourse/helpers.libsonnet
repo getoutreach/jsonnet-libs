@@ -146,7 +146,7 @@
       environment: 'production',
       region: 'us-east-1',
       passed: 'app2b',
-      next: 'app2d'
+      next: null
     },
   ],
 }
