@@ -602,6 +602,7 @@
         set -euf -o pipefail
         maestro_version=$(cat ./%s/version)
         cd source
+        mkdir -p "$HOME/.ssh"
         ssh-keyscan github.com >> "$HOME/.ssh/known_hosts"
         git fetch origin
         git checkout $maestro_version
