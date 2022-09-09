@@ -8,47 +8,48 @@ local resources = import 'resources.libsonnet';
     spec: {
       username: this.username,
       grants: this.grants,
-      vault: this.vault,
+      vault: std.get(this, 'vault', null),
+      iamauth: std.get(this, 'iamauth', false),
     },
   },
-  Grant(privileges, pattern): { 
-    assert std.length(privileges) > 0: 'privileges(array of string) is required',
-    assert  pattern != "": 'pattern is required',
+  Grant(privileges, pattern): {
+    assert std.length(privileges) > 0 : 'privileges(array of string) is required',
+    assert pattern != '' : 'pattern is required',
     privileges: privileges,
     pattern: pattern,
   },
-  PostgresqlDatabaseCluster(database_cluster_name, app, namespace, environment=''):  k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
+  PostgresqlDatabaseCluster(database_cluster_name, app, namespace, environment=''): k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
     local this = self,
     // You can find instance class description here:
     // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
     local defaultStagingInstanceClass = 'db.t4g.medium',
-    local defaultProductionInstanceClass ='db.t4g.medium',
+    local defaultProductionInstanceClass = 'db.t4g.medium',
     // instance_class unused in devenv
     local defaultDevInstanceClass = '',
     local isDev = environment == 'development' || environment == 'local_development',
     local isProd = environment == 'production',
     local isStaging = environment == 'staging',
 
-    provisioner::  if isDev then 'SharedDevenv' else 'AuroraRDS',
+    provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
     team:: error 'team is required',
     tier:: error 'tier is required',
-    personal_information:: "",
-    full_name:: "",
+    personal_information:: '',
+    full_name:: '',
     temp_builtin_users:: false,
     engine:: {
-      version: error "engine.version is required",
-      parameter_group_family: error "engine.parameter_group_family is requied",
+      version: error 'engine.version is required',
+      parameter_group_family: error 'engine.parameter_group_family is requied',
     },
     instance_classes:: {
-      default: if isDev 
-        then defaultDevInstanceClass
-        else if isProd 
-          then defaultProductionInstanceClass 
-          else if isStaging
-            then defaultStagingInstanceClass
-            else error 'missing instance_classes.default or one of the supported environment values',
+      default: if isDev
+      then defaultDevInstanceClass
+      else if isProd
+      then defaultProductionInstanceClass
+      else if isStaging
+      then defaultStagingInstanceClass
+      else error 'missing instance_classes.default or one of the supported environment values',
     },
     cluster_parameters:: {
       default: [],
@@ -74,9 +75,9 @@ local resources = import 'resources.libsonnet';
       tier: this.tier,
       personal_information: this.personal_information,
       temp_builtin_users: this.temp_builtin_users,
-      instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes['default'],
-      cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters['default'],
-      instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters['default'],
+      instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+      cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
+      instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
     },
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
