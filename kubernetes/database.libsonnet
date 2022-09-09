@@ -4,12 +4,14 @@ local resources = import 'resources.libsonnet';
 {
   DatabaseCredential(name, app, namespace): k._Object('databases.outreach.io/v1', 'DatabaseCredential', name, app=app, namespace=namespace) {
     username:: error 'username is required',
+    vault:: null,
+    iamauth:: false,
     local this = self,
     spec: {
       username: this.username,
       grants: this.grants,
-      vault: if std.objectHas(this, 'vault') then this.vault else null,
-      iamauth: if std.objectHas(this, 'iamauth') then this.iamauth else false,
+      vault: this.vault,
+      iamauth: this.iamauth,
     },
   },
   Grant(privileges, pattern): {
