@@ -8,8 +8,8 @@ local resources = import 'resources.libsonnet';
     spec: {
       username: this.username,
       grants: this.grants,
-      vault: std.get(this, 'vault', null),
-      iamauth: std.get(this, 'iamauth', false),
+      vault: if std.objectHas(this, 'vault') then this.vault else null,
+      iamauth: if std.objectHas(this, 'iamauth') then this.iamauth else false,
     },
   },
   Grant(privileges, pattern): {
