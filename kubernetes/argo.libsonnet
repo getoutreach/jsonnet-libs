@@ -4,6 +4,7 @@ local ok = import 'outreach.libsonnet';
 local argocdNamespace = 'argocd';
 
 {
+  // DEPRECATED: Use ArgoCDApplication instead.
   Application(name, appProject='default'): ok._Object('argoproj.io/v1alpha1', 'Application', name, namespace=argocdNamespace) {
     local this = self,
     namespace_:: error 'namespace_ is required',
@@ -52,6 +53,80 @@ local argocdNamespace = 'argocd';
           prune: true,
         },
         syncOptions: ['ApplyOutOfSyncOnly=false', 'PruneLast=true'],
+      },
+    },
+  },
+  ArgoCDApplication(app, createdBy): ok._Object('argoproj.io/v1alpha1', 'Application', app.name, namespace=argocdNamespace) {
+    local this = self,
+    namespace_:: '%(name)s--%(bento)s' % app,
+    path_:: 'deployments/%(name)s/%(name)s.jsonnet' % app,
+    repo_:: 'git@github.com:getoutreach/%(name)s' % app,
+    version_:: '',
+    project_:: 'default',
+    repo_name_:: std.split(this.repo_, '/')[std.length(std.split(this.repo_, '/')) - 1],
+    source_path_:: std.join('/', std.slice(std.split(this.path_, '/'), 0, std.length(std.split(this.path_, '/')) - 1, 1)),
+    env_:: {},
+    report_maestro_:: true,
+    report_opslevel_:: true,
+    slack_:: '',
+    metadata+: {
+      annotations+: {
+        [if this.report_maestro_ then 'notifications.argoproj.io/subscribe.on-deployed.maestro']: '',
+        [if this.report_opslevel_ then 'notifications.argoproj.io/subscribe.on-deployed.opslevel']: '',
+      } + if this.slack_ != '' then {
+        'notifications.argoproj.io/subscribe.on-deployed.slack': this.slack_,
+        'notifications.argoproj.io/subscribe.on-sync-succeeded.slack': this.slack_,
+        'notifications.argoproj.io/subscribe.on-health-degraded.slack': this.slack_,
+        'notifications.argoproj.io/subscribe.on-sync-failed.slack': this.slack_,
+        'notifications.argoproj.io/subscribe.on-sync-status-unknown.slack': this.slack_,
+      } else {},
+      labels+: {
+        'app.kubernetes.io/managed-by': 'deploymentcontroller',
+        'app.kubernetes.io/created-by': createdBy,
+      },
+    },
+    spec: {
+      destination: {
+        namespace: this.namespace_,
+        server: 'https://kubernetes.default.svc',
+      },
+      project: this.project_,
+      source: {
+        path: this.source_path_,
+        repoURL: this.repo_,
+        [if this.version_ != '' then 'targetRevision']: this.version_,
+        plugin: {
+          name: 'kubecfg',
+          env: [
+            { name: 'BENTO', value: app.bento },
+            { name: 'CHANNEL', value: app.channel },
+            { name: 'CLUSTER', value: app.cluster },
+            { name: 'ENVIRONMENT', value: app.environment },
+            { name: 'REGION', value: app.region },
+            { name: 'VERSION', value: this.version_ },
+            { name: 'NAMESPACE', value: this.namespace_ },
+            { name: 'MANIFESTPATH', value: '/tmp/git@github.com_getoutreach_%s/%s' % [this.repo_name_, this.path_] },
+          ] + ok.envList(this.env_),
+        },
+      },
+      info: [
+        {
+          name: 'dash.url',
+          value: 'https://dash.outreach.cloud/#/apps/%(name)s' % app,
+        },
+        {
+          name: 'opslevel.url',
+          value: 'https://app.opslevel.com/services/%(name)s' % app,
+        },
+      ],
+      syncPolicy: {
+        automated: {
+          prune: true,
+        },
+        syncOptions: [
+          'ApplyOutOfSyncOnly=false',
+          'PruneLast=true',
+        ],
       },
     },
   },
