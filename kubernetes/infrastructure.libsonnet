@@ -8,7 +8,7 @@
         tier:: error 'tier is required',
         pii:: 'no',
         dataClassification:: 'none',    
-        [
+        tags: [
             {
                 key: 'Name',
                 value: this.name,
