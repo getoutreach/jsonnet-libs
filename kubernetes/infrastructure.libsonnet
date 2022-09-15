@@ -45,6 +45,6 @@
                 key: 'outreach-personal-information',
                 value: this.pii,
             },
-    },
+        ],
     },
 }
