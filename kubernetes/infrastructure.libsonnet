@@ -8,7 +8,7 @@
         tier:: error 'tier is required',
         pii:: 'no',
         dataClassification:: 'none',    
-        [
+        test:  [
             {
                 key: 'Name',
                 value: this.name,
@@ -45,6 +45,6 @@
                 key: 'outreach-personal-information',
                 value: this.pii,
             },
-      ],
+        ],
     },
 },
