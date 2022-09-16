@@ -5,13 +5,13 @@ local resources = import 'resources.libsonnet';
   DatabaseCredential(name, app, namespace): k._Object('databases.outreach.io/v1', 'DatabaseCredential', name, app=app, namespace=namespace) {
     username:: error 'username is required',
     vault:: null,
-    iamauth:: false,
+    auth:: 'mysql',
     local this = self,
     spec: {
       username: this.username,
       grants: this.grants,
       vault: this.vault,
-      iamauth: this.iamauth,
+      auth: this.iamauth,
     },
   },
   Grant(privileges, pattern): {
