@@ -1,4 +1,3 @@
-
 {
     RequiredInfrastructureTags(app): {
         local this = self,
