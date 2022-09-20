@@ -11,7 +11,7 @@ local resources = import 'resources.libsonnet';
       username: this.username,
       grants: this.grants,
       vault: this.vault,
-      auth: this.iamauth,
+      auth: this.auth,
     },
   },
   Grant(privileges, pattern): {
