@@ -44,7 +44,7 @@ local argocdNamespace = 'argocd';
           env: ok.envList(this.env_) + [
             { name: 'VERSION', value: this.initial_revision_ },
             { name: 'NAMESPACE', value: this.namespace_ },
-            { name: 'MANIFESTPATH', value: std.lstripChars(std.lstripChars(this.path_, this.source_path_), '/') },
+            { name: 'MANIFESTPATH', value: std.strReplace(this.path_, this.source_path_ + '/', '') },
           ],
         },
       },
