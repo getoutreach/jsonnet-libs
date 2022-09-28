@@ -44,7 +44,7 @@ local argocdNamespace = 'argocd';
           env: ok.envList(this.env_) + [
             { name: 'VERSION', value: this.initial_revision_ },
             { name: 'NAMESPACE', value: this.namespace_ },
-            { name: 'MANIFESTPATH', value: '/tmp/git@github.com_getoutreach_%(name)s/%(path)s' % { name: this.repo_name_, path: this.path_ } },
+            { name: 'MANIFESTPATH', value: std.strReplace(this.path_, this.source_path_ + '/', '') },
           ],
         },
       },
