@@ -50,7 +50,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec:{
+    spec+:{
       forProvider+:{
         attributeDefinitions: this.attributeDefinitions,
         keySchema: this.keySchema,
@@ -74,7 +74,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider:{
         assumeRolePolicyDocument+: this.assumeRolePolicyDocument,
       },
@@ -96,7 +96,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         name: name,
         policy: this.policy,
@@ -116,7 +116,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
 
       },
@@ -138,7 +138,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-     spec: {
+     spec+: {
       forProvider+:{
         locationConstraint: this.locationConstraint,
       },
@@ -157,7 +157,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-     spec: {
+     spec+: {
       forProvider+:{
         name: name,
       },
@@ -177,7 +177,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-     spec: {
+     spec+: {
       forProvider+:{
         type: this.type,
       },
@@ -198,7 +198,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-     spec: {
+     spec+: {
       forProvider+:{
         name: this.name,
         region: this.region,
@@ -220,7 +220,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
         },
       },
 
-      spec: {
+      spec+: {
         forProvider+:{
           region: this.region,
         },
@@ -242,7 +242,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-     spec: {
+     spec+: {
       forProvider+:{
         cidrBlock: this.cidrBlock,
       },
@@ -264,7 +264,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         cidrBlock: this.cidrBlock,
       },
@@ -287,7 +287,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         description: this.description,
         groupName: this.groupName,
@@ -309,7 +309,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         description: this.description,
         region: this.region,
@@ -334,7 +334,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         description: this.description,
         cacheParameterGroupFamily: this.cacheParameterGroupFamily,
@@ -361,7 +361,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         description: this.description,
         cacheNodeType: this.cacheNodeType,
@@ -386,7 +386,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         name: name,
         region: this.region,
@@ -412,7 +412,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       },
     },
 
-    spec: {
+    spec+: {
       forProvider+:{
         alarmName: this.alarmName,
         comparisonOperator: this.comparisonOperator,
