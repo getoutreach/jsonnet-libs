@@ -60,7 +60,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
   },
 
   // Ref: https://doc.crds.dev/github.com/crossplane/provider-aws/iam.aws.crossplane.io/Role/v1beta1@v0.31.0
-  awsIAMRole(name, app): ok._Object('iam.aws.crossplane.io/v1beta1', 'Role', name=name, app=app.name, namespace=app.namespace){
+  awsIAMRole(name, app): ok._Object('iam.aws.jet.crossplane.io/v1alpha2', 'Role', name=name, app=app.name, namespace=app.namespace){
     local this = self,
 
     team:: error 'team is required',
@@ -82,7 +82,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
   },
 
   // REF: https://doc.crds.dev/github.com/crossplane/provider-aws/iot.aws.crossplane.io/Policy/v1alpha1@v0.31.0
-  awsIAMPolicy(name, app): ok._Object('iam.aws.crossplane.io/v1beta1', 'Policy', name=name, app=app.name, namespace=app.namespace){
+  awsIAMPolicy(name, app): ok._Object('iam.aws.jet.crossplane.io/v1alpha2', 'Policy', name=name, app=app.name, namespace=app.namespace){
     local this = self,
 
     policy:: error 'policy is required',
@@ -105,7 +105,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
   },
 
  # REF: https://doc.crds.dev/github.com/crossplane/provider-aws/iam.aws.crossplane.io/UserPolicyAttachment/v1beta1@v0.31.0
-  awsIAMUserPolicyAttatchment(name, app): ok._Object('iam.aws.crossplane.io/v1beta1', 'RolePolicyAttachment', name=name, app=app.name, namespace=app.namespace){
+  awsIAMUserPolicyAttatchment(name, app): ok._Object('iam.aws.jet.crossplane.io/v1alpha2', 'RolePolicyAttachment', name=name, app=app.name, namespace=app.namespace){
     local this = self,
 
     importFrom:: '',
