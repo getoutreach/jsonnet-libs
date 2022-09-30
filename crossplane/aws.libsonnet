@@ -65,7 +65,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
 
     team:: error 'team is required',
     tier:: error 'tier is required',
-    assumeRolePolicyDocument:: error 'assumeRolePolicyDocument is required',
+    assumeRolePolicy:: error 'assumeRolePolicy is required',
     importFrom:: '',
 
     metadata+: {
@@ -76,7 +76,7 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
 
     spec+: {
       forProvider:{
-        assumeRolePolicyDocument+: this.assumeRolePolicyDocument,
+        assumeRolePolicy: this.assumeRolePolicy,
       },
     },
   },
