@@ -24,11 +24,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
         attributes: [],
         globalSecondaryIndexes: [],
       },
-      tags+: infra.RequiredInfrastructureTags(app){
-        name: tableName,
-        team:: this.team,
-        tier:: this.tier,
-      },
       compositionSelector+: {
         matchLabels: {
           provider: cluster.cloud_provider,
@@ -60,11 +55,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
         attributeDefinitions: this.attributeDefinitions,
         keySchema: this.keySchema,
         region: this.region,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: dynamoDBName,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -87,11 +77,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
     spec: {
       forProvider:{
         assumeRolePolicyDocument+: this.assumeRolePolicyDocument,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -115,10 +100,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       forProvider+:{
         name: name,
         policy: this.policy,
-        tags: infra.RequiredInfrastructureTags(app){
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -160,11 +141,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
      spec: {
       forProvider+:{
         locationConstraint: this.locationConstraint,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -269,11 +245,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
      spec: {
       forProvider+:{
         cidrBlock: this.cidrBlock,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -296,11 +267,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
     spec: {
       forProvider+:{
         cidrBlock: this.cidrBlock,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -325,11 +291,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       forProvider+:{
         description: this.description,
         groupName: this.groupName,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -378,11 +339,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
         description: this.description,
         cacheParameterGroupFamily: this.cacheParameterGroupFamily,
         region: this.region,
-        tags: infra.RequiredInfrastructureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -411,11 +367,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
         cacheNodeType: this.cacheNodeType,
         engine: this.engine,
         replicationGroupDescription: this.replicationGroupDescription,
-        tags: infra.structureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -439,11 +390,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
       forProvider+:{
         name: name,
         region: this.region,
-        tags: infra.structureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
@@ -472,11 +418,6 @@ local infra = import '../kubernetes/infrastructure.libsonnet';
         comparisonOperator: this.comparisonOperator,
         evaluationPeriods: this.evaluationPeriods,
         region: this.region,
-        tags: infra.structureTags(app){
-          name:: name,
-          team:: this.team,
-          tier:: this.tier,
-        },
       },
     },
   },
