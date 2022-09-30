@@ -1,6 +1,6 @@
 local cluster = import '../kubernetes/cluster.libsonnet';
 local ok = import '../kubernetes/outreach.libsonnet';
-local infra = import '../kubernetes/outreach.libsonnet';
+local infra = import '../kubernetes/infrastructure.libsonnet';
 
 {
   NoSqlTable(tableName, app): ok._Object('databases.outreach.io/v1alpha1', 'NoSqlTable', name=tableName, app=app.name, namespace=app.namespace) {
