@@ -657,4 +657,37 @@
         },
       },
     },
+
+  // Sends GQL changes of subgraph to schema registry
+  GQLRegistryUpdate(service, schema_path, service_url, bento, env)::
+    $.newInlineTask(
+    'Send GQL subgraph changes to registry',
+    [{ name: 'source' }],
+    [
+      |||
+        set -euf -o pipefail
+
+        SERVICE=%s
+        GQL_PATH=%s
+        SERVICE_URL=%s
+        BENTO=%s
+        ENV=%s
+
+        # TOKEN=$(cat /tmp/registry_token)
+
+        cd source
+        # git checkout $maestro_version
+
+        curl -sSL https://rover.apollo.dev/nix/latest | sh
+        chmod +x ./rover
+
+        APOLLO_KEY=service:Outreach-Graph:$TOKEN \
+          rover subgraph publish Outreach-Graph@$BENTO \
+          --schema $GQL_PATH \
+          --name $SERVICE \
+          --routing-url $SERVICE_URL
+      ||| % [service, schema_path, service_url, bento, env],
+    ],
+    [{ name: 'source' }],
+  ),
 }
