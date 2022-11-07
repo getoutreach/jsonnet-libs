@@ -668,7 +668,7 @@
         set -euf -o pipefail
 
         SERVICE=%s
-        GQL_PATH=%s
+        SCHEMA_PATH=%s
         SERVICE_URL=%s
         BENTO=%s
         ENV=%s
@@ -683,7 +683,7 @@
 
         APOLLO_KEY=service:Outreach-Graph:$TOKEN \
           rover subgraph publish Outreach-Graph@$BENTO \
-          --schema $GQL_PATH \
+          --schema $SCHEMA_PATH \
           --name $SERVICE \
           --routing-url $SERVICE_URL
       ||| % [service, schema_path, service_url, bento, env],
