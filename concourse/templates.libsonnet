@@ -659,6 +659,7 @@
     },
 
   // Sends GQL changes of subgraph to schema registry
+  // Need to include { get: 'vault', params: { paths: [ 'deploy/graphql/schema-registry' ] } } step in pipeline
   GQLRegistryUpdate(service, schema_path, service_url, bento, env)::
     $.newInlineTask(
     'Send GQL subgraph changes to registry',
