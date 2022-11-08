@@ -662,7 +662,7 @@
   GQLRegistryUpdate(service, schema_path, service_url, bento, env)::
     $.newInlineTask(
     'Send GQL subgraph changes to registry',
-    [{ name: 'vault' },],
+    [{ name: 'vault' }],
     [
       |||
         set -euf -o pipefail
