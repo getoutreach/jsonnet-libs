@@ -680,7 +680,7 @@
         curl -sSL https://rover.apollo.dev/nix/latest | sh
 
         APOLLO_KEY=service:$SCHEMA_NAME:$TOKEN \
-          rover subgraph publish $SCHEMA_NAME@$BENTO \
+          /root/.rover/bin/rover subgraph publish $SCHEMA_NAME@$BENTO \
           --schema $SCHEMA_PATH \
           --name $SERVICE \
           --routing-url $SERVICE_URL
