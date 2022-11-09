@@ -657,4 +657,35 @@
         },
       },
     },
+
+  // Sends GQL changes of subgraph to schema registry
+  // Need to include { get: 'vault', params: { paths: [ 'deploy/graphql/schema-registry' ] } } step in pipeline
+  GQLRegistryUpdate(service, schema_path, service_url, bento, env)::
+    $.newInlineTask(
+    'Send GQL subgraph changes to registry',
+    [{ name: 'source' }, { name: 'vault' }],
+    [
+      |||
+        set -euf -o pipefail
+
+        export TOKEN=$(jq -r '.data.token' vault/deploy/graphql/schema-registry.json)
+        export SCHEMA_NAME=$(jq -r '.data.name' vault/deploy/graphql/schema-registry.json)
+
+        SERVICE=%s
+        SCHEMA_PATH=%s
+        SERVICE_URL=%s
+        BENTO=%s
+        ENV=%s
+
+        curl -sSL https://rover.apollo.dev/nix/latest | sh
+
+        APOLLO_KEY=service:$SCHEMA_NAME:$TOKEN \
+          rover subgraph publish $SCHEMA_NAME@$BENTO \
+          --schema $SCHEMA_PATH \
+          --name $SERVICE \
+          --routing-url $SERVICE_URL
+      ||| % [service, schema_path, service_url, bento, env],
+    ],
+    [],
+  ),
 }
