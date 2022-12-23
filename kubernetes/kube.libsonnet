@@ -103,6 +103,11 @@
         name: name,
         [if app != null then 'app']: app,
         [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
+        // avoid label duplicates as in https://github.com/DataDog/datadog-agent/issues/2671
+        // this line below ensures kube-state-metrics does not have 'app' label, but 'k8s-app' instead
+        // if left with 'app' it will collide with labels gathered from kubernetes_state DD integration
+        // COR-5785
+        [if app != null && name == 'kube-state-metrics' then 'k8s-app']: app, 
       },
       name: name,
       [if namespace != null then 'namespace']: namespace,
