@@ -6,9 +6,9 @@ local ok = import 'kubernetes/kube.libsonnet';
   // The container listens on port 8080 and proxies to the service on the
   // provided servicePort.
   Container(
-    // service is a corev1.Service that the oauth2-proxy should proxy to.
-    // This is required.
-    service=error 'service must be set',
+    // serviceName is the name of the service that the oauth2-proxy
+    // is proxying. This is used for the cookie name. This is required.
+    serviceName=error 'serviceName must be set',
 
     // servicePort is the port on the service that the oauth2-proxy.
     // This is required.
@@ -41,7 +41,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     args: [
       '--upstream=http://localhost:%d/' % servicePort,
       '--provider=oidc',
-      '--cookie-name=%s_oauth2_proxy' % service.metadata.name,
+      '--cookie-name=%s_oauth2_proxy' % serviceName,
       '--cookie-secure=true',
       '--cookie-expire=168h0m',
       '--cookie-refresh=8h',
