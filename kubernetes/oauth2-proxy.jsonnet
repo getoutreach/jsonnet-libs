@@ -19,9 +19,11 @@ local ok = import 'kubernetes/kube.libsonnet';
     servicePort=error 'servicePort must be set',
 
     // secret is a corev1.Secret that contains the oauth2-proxy
-    // cookie secret. This is required and must contain a key named
-    // 'OAUTH2_PROXY_COOKIE_SECRET'. For generating this secret, see:
-    // https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview#generating-a-cookie-secret
+    // cookie secret. This is required and must contain the following keys:
+    //
+    // - OAUTH2_PROXY_COOKIE_SECRET: https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview#generating-a-cookie-secret
+    // - OAUTH2_PROXY_CLIENT_ID: Client ID of your IT provided Okta ODIC app
+    // - OAUTH2_PROXY_CLIENT_SECRET: Client Secret of your IT provided Okta ODIC app
     secret=error 'secret must be set',
 
     // domain is the fully qualified domain name that the oauth2-proxy
