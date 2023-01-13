@@ -36,6 +36,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     // oidceIssuerURL is the URL of the OIDC issuer.
     oidcIssuerURL='https://outreach.okta.com'
   ):: ok.Container('oauth2-proxy') {
+    local this = self,
     // Map to listen_port so we can easily access this in other functions
     listen_port:: listenPort,
 
@@ -48,7 +49,7 @@ local ok = import 'kubernetes/kube.libsonnet';
       '--cookie-expire=168h0m',
       '--cookie-refresh=8h',
       '--cookie-domain=' + domain,
-      '--http-address=0.0.0.0:%d' % $.listen_port,
+      '--http-address=0.0.0.0:%d' % this.listen_port,
       '--oidc-issuer-url=%s' % oidcIssuerURL,
       '--redirect-url=https://%s/oauth2/callback' % domain,
       '--email-domain=outreach.io',
