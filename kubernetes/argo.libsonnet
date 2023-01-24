@@ -371,10 +371,16 @@ local argocdNamespace = 'argocd';
     deploymentRef:: error 'deploymentRef required',
     previewService:: error 'previewService required',
     stableService:: error 'stableService required',
+    ingress:: error 'ingress requried',
     steps:: error 'steps requried',
-    ingress:: {},
     servicePort:: 8080,
     backgroundAnalysis:: {},
+
+    // validate inputs
+    assert std.length(this.steps) > 0 : 'must have at least one step',
+    assert std.get(this.ingress.metadata.annotations, 'kubernetes.io/ingress.class') == 'alb': 'must be alb ingress class',
+    assert this.previewService.spec.type == 'NodePort' : 'must be NodePort type',
+    assert this.stableService.spec.type == 'NodePort' : 'must be NodePort type',
 
     spec+: {
       revisionHistoryLimit: 3,
@@ -391,7 +397,7 @@ local argocdNamespace = 'argocd';
           stableService: this.stableService.metadata.name,
           [if std.isObject(this.backgroundAnalysis) then 'analysis']: this.backgroundAnalysis,
           steps: this.steps,
-          [if std.isObject(this.ingress) then 'trafficRouting']: {
+          trafficRouting: {
             alb: {
               ingress: this.ingress.metadata.name,
               servicePort: this.servicePort,
