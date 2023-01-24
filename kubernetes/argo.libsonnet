@@ -459,11 +459,14 @@ local argocdNamespace = 'argocd';
   },
 
   // AnalysisMetricJob is a AnalysisTemplate metric with job provider
-  AnalysisMetricJob(name): $.AnalysisMetric(name) {
+  AnalysisMetricJob(name): {
     local this = self,
     job:: error 'job required',
+    name: name,
     provider: {
-      job: this.job,
+      job: {
+        spec: this.job.spec,
+      },
     },
   },
 }
