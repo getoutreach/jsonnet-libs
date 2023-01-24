@@ -365,4 +365,105 @@ local argocdNamespace = 'argocd';
       },
     },
   },
+  // CanaryDeployment is Argo Rollout with canary strategy and template spec from a given deployment object
+  CanaryDeployment(name, version, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
+    local this = self,
+    deploymentRef:: error 'deploymentRef required',
+    previewService:: error 'previewService required',
+    stableService:: error 'stableService required',
+    steps:: error 'steps requried',
+    ingress:: {},
+    servicePort:: 8080,
+    backgroundAnalysis:: {},
+
+    spec+: {
+      revisionHistoryLimit: 3,
+      selector: {
+        matchLabels: {
+          [if app != null then 'app']: app,
+          [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
+        },
+      },
+      workloadRef: ok.CrossVersionObjectReference(this.deploymentRef),
+      strategy: {
+        canary: {
+          canaryService: this.previewService.metadata.name,
+          stableService: this.stableService.metadata.name,
+          [if std.isObject(this.backgroundAnalysis) then 'analysis']: this.backgroundAnalysis,
+          steps: this.steps,
+          [if std.isObject(this.ingress) then 'trafficRouting']: {
+            alb: {
+              ingress: this.ingress.metadata.name,
+              servicePort: this.servicePort,
+            },
+          },
+        },
+      },
+    },
+  },
+
+  // AnalysisTemplate is Argo Rollout analysis based template with default arguments, app name, version and bento
+  AnalysisTemplate(name, app): ok._Object('argoproj.io/v1alpha1', 'AnalysisTemplate', name, app=app.name, namespace=app.namespace) {
+    local this = self,
+    metrics:: error 'metrics required',
+    spec: {
+      args: [
+        { name: 'app', value: app.name },
+        { name: 'version', value: app.version },
+        { name: 'bento', value: app.bento },
+      ],
+      metrics: this.metrics,
+    },
+  },
+
+  // AnalysisTemplateRef references Analysis Template in Argo Rollouts
+  AnalysisTemplateRef(analysisTemplate): {
+    assert std.isObject(analysisTemplate) : 'analysisTemplate cannot be empty',
+    templateName: analysisTemplate.metadata.name,
+  },
+
+  // AnalysisMetric is metric based template for AnalysisTemplate
+  AnalysisMetric(name): {
+    local this = self,
+    name: name,
+    consecutiveErrorLimit: 2,
+    failureLimit: 3,
+    interval: "5m",
+    successCondition: error 'successCondition required',
+  },
+
+  // AnalysisMetricDatadog is a AnalysisTemplate metric with datadog provider
+  AnalysisMetricDatadog(name): $.AnalysisMetric(name) {
+    local this = self,
+    query:: error 'query required',
+    
+    provider: {
+      datadog: {
+        query: this.query,
+      },
+    },
+  },
+
+  // AnalysisMetricWeb is a AnalysisTemplate metric with web provider
+  AnalysisMetricWeb(name): $.AnalysisMetric(name) {
+    local this = self,
+    url:: error 'url required',
+    jsonPath:: error 'jsonPath required',
+
+    provider: {
+      web: {
+        url: this.url,
+        jsonPath: this.jsonPath,
+      },
+    },
+  },
+
+  // AnalysisMetricJob is a AnalysisTemplate metric with job provider
+  AnalysisMetricJob(name): $.AnalysisMetric(name) {
+    local this = self,
+    job:: error 'job required',
+    provider: {
+      job: this.job,
+    },
+  },
 }
