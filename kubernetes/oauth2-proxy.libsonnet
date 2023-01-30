@@ -24,7 +24,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     // - OAUTH2_PROXY_COOKIE_SECRET: https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview#generating-a-cookie-secret
     // - OAUTH2_PROXY_CLIENT_ID: Client ID of your IT provided Okta ODIC app
     // - OAUTH2_PROXY_CLIENT_SECRET: Client Secret of your IT provided Okta ODIC app
-    secret=error 'secret must be set',
+    secretName=error 'secret must be set',
 
     // domain is the fully qualified domain name that the oauth2-proxy
     // should use for the cookie domain. This is required.
@@ -59,7 +59,7 @@ local ok = import 'kubernetes/kube.libsonnet';
       '--silence-ping-logging=true',
     ],
     envFrom: [
-      { secretRef: { name: secret.metadata.name } },
+      { secretRef: { name: secretName } },
     ],
     ports_:: {
       'http-oauth2-proxy': { containerPort: 8080 },
