@@ -38,7 +38,7 @@
       channel: 'green',
       environment: 'production',
       region: 'us-west-2',
-      passed: 'app1e',
+      passed: null,
       next: 'app1c'
     },
     {
@@ -56,7 +56,7 @@
       channel: 'green',
       environment: 'production',
       region: 'us-east-1',
-      passed: 'app1b',
+      passed: 'app1a',
       next: 'app2b'
     },
     {
