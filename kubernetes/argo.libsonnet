@@ -369,8 +369,9 @@ local argocdNamespace = 'argocd';
   CanaryDeployment(name, version, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
     local this = self,
     deploymentRef:: error 'deploymentRef required',
-    previewService:: error 'previewService required',
+    canaryService:: error 'canaryService required',
     stableService:: error 'stableService required',
+    rootService:: {},
     ingress:: error 'ingress requried',
     steps:: error 'steps requried',
     servicePort:: 8080,
@@ -379,7 +380,7 @@ local argocdNamespace = 'argocd';
     // validate inputs
     assert std.length(this.steps) > 0 : 'must have at least one step',
     assert std.get(this.ingress.metadata.annotations, 'kubernetes.io/ingress.class') == 'alb': 'must be alb ingress class',
-    assert this.previewService.spec.type == 'NodePort' : 'must be NodePort type',
+    assert this.canaryService.spec.type == 'NodePort' : 'must be NodePort type',
     assert this.stableService.spec.type == 'NodePort' : 'must be NodePort type',
 
     spec+: {
@@ -393,7 +394,7 @@ local argocdNamespace = 'argocd';
       workloadRef: ok.CrossVersionObjectReference(this.deploymentRef),
       strategy: {
         canary: {
-          canaryService: this.previewService.metadata.name,
+          canaryService: this.canaryService.metadata.name,
           stableService: this.stableService.metadata.name,
           [if std.isObject(this.backgroundAnalysis) then 'analysis']: this.backgroundAnalysis,
           steps: this.steps,
@@ -401,6 +402,17 @@ local argocdNamespace = 'argocd';
             alb: {
               ingress: this.ingress.metadata.name,
               servicePort: this.servicePort,
+              [if std.objectHas(this.rootService, 'metadata') then 'rootService']: this.rootService.metadata.name,
+            },
+          },
+          canaryMetadata: {
+            labels: {
+              'role': 'canary',
+            },
+          },
+          stableMetadata: {
+            labels: {
+              'role': 'stable',
             },
           },
         },
