@@ -366,4 +366,126 @@ local argocdNamespace = 'argocd';
       },
     },
   },
+  // CanaryDeployment is Argo Rollout with canary strategy and template spec from a given deployment object
+  CanaryDeployment(name, version, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
+    local this = self,
+    deploymentRef:: error 'deploymentRef required',
+    canaryService:: error 'canaryService required',
+    stableService:: error 'stableService required',
+    rootService:: {},
+    ingress:: error 'ingress requried',
+    steps:: error 'steps requried',
+    servicePort:: 8080,
+    backgroundAnalysis:: {},
+
+    // validate inputs
+    assert std.length(this.steps) > 0 : 'must have at least one step',
+    assert std.get(this.ingress.metadata.annotations, 'kubernetes.io/ingress.class') == 'alb': 'must be alb ingress class',
+    assert this.canaryService.spec.type == 'NodePort' : 'must be NodePort type',
+    assert this.stableService.spec.type == 'NodePort' : 'must be NodePort type',
+
+    spec+: {
+      revisionHistoryLimit: 3,
+      selector: {
+        matchLabels: {
+          [if app != null then 'app']: app,
+          [if app != null && namespace == 'kube-system' then 'k8s-app']: app,
+        },
+      },
+      workloadRef: ok.CrossVersionObjectReference(this.deploymentRef),
+      strategy: {
+        canary: {
+          canaryService: this.canaryService.metadata.name,
+          stableService: this.stableService.metadata.name,
+          [if std.isObject(this.backgroundAnalysis) then 'analysis']: this.backgroundAnalysis,
+          steps: this.steps,
+          trafficRouting: {
+            alb: {
+              ingress: this.ingress.metadata.name,
+              servicePort: this.servicePort,
+              [if std.objectHas(this.rootService, 'metadata') then 'rootService']: this.rootService.metadata.name,
+            },
+          },
+          canaryMetadata: {
+            labels: {
+              'role': 'canary',
+            },
+          },
+          stableMetadata: {
+            labels: {
+              'role': 'stable',
+            },
+          },
+        },
+      },
+    },
+  },
+
+  // AnalysisTemplate is Argo Rollout analysis based template with default arguments, app name, version and bento
+  AnalysisTemplate(name, app): ok._Object('argoproj.io/v1alpha1', 'AnalysisTemplate', name, app=app.name, namespace=app.namespace) {
+    local this = self,
+    metrics:: error 'metrics required',
+    spec: {
+      args: [
+        { name: 'app', value: app.name },
+        { name: 'version', value: app.version },
+        { name: 'bento', value: app.bento },
+      ],
+      metrics: this.metrics,
+    },
+  },
+
+  // AnalysisTemplateRef references Analysis Template in Argo Rollouts
+  AnalysisTemplateRef(analysisTemplate): {
+    assert std.isObject(analysisTemplate) : 'analysisTemplate cannot be empty',
+    templateName: analysisTemplate.metadata.name,
+  },
+
+  // AnalysisMetric is metric based template for AnalysisTemplate
+  AnalysisMetric(name): {
+    local this = self,
+    name: name,
+    consecutiveErrorLimit: 2,
+    failureLimit: 3,
+    interval: "5m",
+    successCondition: error 'successCondition required',
+  },
+
+  // AnalysisMetricDatadog is a AnalysisTemplate metric with datadog provider
+  AnalysisMetricDatadog(name): $.AnalysisMetric(name) {
+    local this = self,
+    query:: error 'query required',
+    
+    provider: {
+      datadog: {
+        query: this.query,
+      },
+    },
+  },
+
+  // AnalysisMetricWeb is a AnalysisTemplate metric with web provider
+  AnalysisMetricWeb(name): $.AnalysisMetric(name) {
+    local this = self,
+    url:: error 'url required',
+    jsonPath:: error 'jsonPath required',
+
+    provider: {
+      web: {
+        url: this.url,
+        jsonPath: this.jsonPath,
+      },
+    },
+  },
+
+  // AnalysisMetricJob is a AnalysisTemplate metric with job provider
+  AnalysisMetricJob(name): {
+    local this = self,
+    job:: error 'job required',
+    name: name,
+    provider: {
+      job: {
+        spec: this.job.spec,
+      },
+    },
+  },
 }
