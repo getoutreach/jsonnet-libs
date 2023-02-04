@@ -39,16 +39,7 @@
       environment: 'production',
       region: 'us-west-2',
       passed: null,
-      next: 'app1c'
-    },
-    {
-      name: 'app1c',
-      cluster: 'production.us-west-2',
-      channel: 'green',
-      environment: 'production',
-      region: 'us-west-2',
-      passed: 'app1a',
-      next: 'app1f'
+      next: 'app2a'
     },
     {
       name: 'app2a',
