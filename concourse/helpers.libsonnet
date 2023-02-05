@@ -33,21 +33,12 @@
   stagingBentos():: [],
   appBentos():: [
     {
-      name: 'app1a',
-      cluster: 'production.us-west-2',
-      channel: 'green',
-      environment: 'production',
-      region: 'us-west-2',
-      passed: null,
-      next: 'app2a'
-    },
-    {
       name: 'app2a',
       cluster: 'production.us-east-1',
       channel: 'green',
       environment: 'production',
       region: 'us-east-1',
-      passed: 'app1a',
+      passed: null,
       next: 'app2b'
     },
     {
