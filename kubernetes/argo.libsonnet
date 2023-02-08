@@ -377,6 +377,8 @@ local argocdNamespace = 'argocd';
     steps:: error 'steps requried',
     servicePort:: 8080,
     backgroundAnalysis:: {},
+    notification_success:: '',
+    notification_failure:: '',
 
     // validate inputs
     assert std.length(this.steps) > 0 : 'must have at least one step',
@@ -384,6 +386,14 @@ local argocdNamespace = 'argocd';
     assert this.canaryService.spec.type == 'NodePort' : 'must be NodePort type',
     assert this.stableService.spec.type == 'NodePort' : 'must be NodePort type',
 
+    metadata+: {
+      annotations+: {
+        [if this.notification_success != '' then 'notifications.argoproj.io/subscribe.on-rollout-completed.slack']: this.notification_success,
+        [if this.notification_failure != '' then 'notifications.argoproj.io/subscribe.on-rollout-aborted.slack']: this.notification_failure,
+        [if this.notification_failure != '' then 'notifications.argoproj.io/subscribe.on-analysis-run-error.slack']: this.notification_failure,
+        [if this.notification_failure != '' then 'notifications.argoproj.io/subscribe.on-analysis-run-failed.slack']: this.notification_failure,
+      },
+    },
     spec+: {
       revisionHistoryLimit: 3,
       selector: {
