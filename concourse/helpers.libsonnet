@@ -31,24 +31,5 @@
     },
   ],
   stagingBentos():: [],
-  appBentos():: [
-    {
-      name: 'app2a',
-      cluster: 'production.us-east-1',
-      channel: 'green',
-      environment: 'production',
-      region: 'us-east-1',
-      passed: null,
-      next: 'app2b'
-    },
-    {
-      name: 'app2b',
-      cluster: 'production.us-east-1',
-      channel: 'green',
-      environment: 'production',
-      region: 'us-east-1',
-      passed: 'app2a',
-      next: null
-    },
-  ],
+  appBentos():: [],
 }
