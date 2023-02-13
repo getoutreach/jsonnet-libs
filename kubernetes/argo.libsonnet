@@ -370,8 +370,8 @@ local argocdNamespace = 'argocd';
   CanaryDeployment(name, version, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
     local this = self,
     deploymentRef:: error 'deploymentRef required',
-    canaryService:: error 'canaryService required',
-    stableService:: error 'stableService required',
+    canaryService:: null,
+    stableService:: null,
     rootService:: null,
     ingress:: null,
     steps:: error 'steps requried',
@@ -406,8 +406,8 @@ local argocdNamespace = 'argocd';
       workloadRef: ok.CrossVersionObjectReference(this.deploymentRef),
       strategy: {
         canary: {
-          canaryService: this.canaryService.metadata.name,
-          stableService: this.stableService.metadata.name,
+          [if this.canaryService != null then 'canaryService']: this.canaryService.metadata.name,
+          [if this.stableService != null then 'stableService']: this.stableService.metadata.name,
           [if this.backgroundAnalysis != null then 'analysis']: this.backgroundAnalysis,
           steps: this.steps,
           [if this.ingress != null then 'trafficRouting']: {
