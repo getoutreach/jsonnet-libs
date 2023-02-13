@@ -370,21 +370,22 @@ local argocdNamespace = 'argocd';
   CanaryDeployment(name, version, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
     local this = self,
     deploymentRef:: error 'deploymentRef required',
-    canaryService:: error 'canaryService required',
-    stableService:: error 'stableService required',
-    rootService:: {},
-    ingress:: error 'ingress requried',
+    canaryService:: null,
+    stableService:: null,
+    rootService:: null,
+    ingress:: null,
     steps:: error 'steps requried',
     servicePort:: 8080,
-    backgroundAnalysis:: {},
+    backgroundAnalysis:: null,
     notification_success:: '',
     notification_failure:: '',
 
     // validate inputs
     assert std.length(this.steps) > 0 : 'must have at least one step',
-    assert std.get(this.ingress.metadata.annotations, 'kubernetes.io/ingress.class') == 'alb': 'must be alb ingress class',
-    assert this.canaryService.spec.type == 'NodePort' : 'must be NodePort type',
-    assert this.stableService.spec.type == 'NodePort' : 'must be NodePort type',
+    assert this.ingress == null || std.get(this.ingress.metadata.annotations, 'kubernetes.io/ingress.class') == 'alb': 'ingress must be alb class',
+    assert this.ingress == null || this.canaryService.spec.type == 'NodePort' : 'canaryService must be NodePort type',
+    assert this.ingress == null || this.stableService.spec.type == 'NodePort' : 'stableService must be NodePort type',
+    assert this.ingress == null || this.rootService == null || this.rootService.spec.type == 'NodePort' : 'rootService must be NodePort type',
 
     metadata+: {
       annotations+: {
@@ -405,15 +406,15 @@ local argocdNamespace = 'argocd';
       workloadRef: ok.CrossVersionObjectReference(this.deploymentRef),
       strategy: {
         canary: {
-          canaryService: this.canaryService.metadata.name,
-          stableService: this.stableService.metadata.name,
-          [if std.isObject(this.backgroundAnalysis) then 'analysis']: this.backgroundAnalysis,
+          [if this.canaryService != null then 'canaryService']: this.canaryService.metadata.name,
+          [if this.stableService != null then 'stableService']: this.stableService.metadata.name,
+          [if this.backgroundAnalysis != null then 'analysis']: this.backgroundAnalysis,
           steps: this.steps,
-          trafficRouting: {
+          [if this.ingress != null then 'trafficRouting']: {
             alb: {
               ingress: this.ingress.metadata.name,
               servicePort: this.servicePort,
-              [if std.objectHas(this.rootService, 'metadata') then 'rootService']: this.rootService.metadata.name,
+              [if this.rootService != null then 'rootService']: this.rootService.metadata.name,
             },
           },
           canaryMetadata: {
