@@ -174,6 +174,7 @@ k + kubecfg {
     ingressDomain='outreach.cloud',  // which domain to write dns to
     serviceName=name,
     servicePort='http',
+    path='/',
     pathType='ImplementationSpecific',
     createTls=false,
     internal=false,
@@ -192,6 +193,7 @@ k + kubecfg {
       http: {
         paths: [ 
           {
+            path: path,
             pathType: pathType,
             backend: {
               service: {
