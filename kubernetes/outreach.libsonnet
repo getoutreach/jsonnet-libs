@@ -192,8 +192,12 @@ k + kubecfg {
         paths: [ 
           {
             backend: {
-              serviceName: serviceName,
-              servicePort: servicePort,
+              service: {
+                name: serviceName,
+                port: {
+                  name: servicePort
+                },
+              },
             },
           },
         ],
