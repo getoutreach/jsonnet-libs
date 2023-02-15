@@ -657,6 +657,11 @@
     $._Object('networking.k8s.io/v1beta1', 'Ingress', name, app=app, namespace=namespace) {
       spec: {},
     },
+  
+  IngressV1(name, namespace, app=name):
+    $._Object('networking.k8s.io/v1', 'Ingress', name, app=app, namespace=namespace) {
+      spec: {},
+    },
 
   ThirdPartyResource(name): $._Object('apps/v1', 'ThirdPartyResource', name) {
     versions_:: [],
@@ -726,6 +731,20 @@
   },
 
   APIService(name, app=name): $._Object('apiregistration.k8s.io/v1beta1', 'APIService', name, app=app) {
+    local api = self,
+    kind: 'APIService',
+    service:: error 'service required',
+    spec+: {
+      group: std.join('.', std.split(name, '.')[1:]),
+      version: std.split(name, '.')[0],
+      service+: {
+        name: api.service.metadata.name,
+        namespace: api.service.metadata.namespace,
+      },
+    },
+  },
+
+  APIServiceV1(name, app=name): $._Object('apiregistration.k8s.io/v1', 'APIService', name, app=app) {
     local api = self,
     kind: 'APIService',
     service:: error 'service required',
