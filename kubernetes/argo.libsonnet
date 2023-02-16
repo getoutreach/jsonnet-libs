@@ -367,7 +367,7 @@ local argocdNamespace = 'argocd';
     },
   },
   // CanaryDeployment is Argo Rollout with canary strategy and template spec from a given deployment object
-  CanaryDeployment(name, version, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
+  CanaryDeployment(name, namespace, app=name): ok._Object('argoproj.io/v1alpha1', 'Rollout', name, app=app, namespace=namespace) {
     local this = self,
     deploymentRef:: error 'deploymentRef required',
     canaryService:: null,
