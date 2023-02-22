@@ -175,7 +175,7 @@ k + kubecfg {
     serviceName=name,
     servicePort='http',
     servicePortNumber=0,
-    path='/',
+    path='',
     pathType='ImplementationSpecific',
     createTls=false,
     internal=false,
