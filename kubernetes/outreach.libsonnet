@@ -193,24 +193,6 @@ k + kubecfg {
       host: this.host,
       http: {
         paths: [ 
-          if path == '' then 
-          {
-            pathType: pathType,
-            backend: {
-              service: {
-                name: serviceName,
-                port: if servicePortNumber != 0 then
-                {
-                  number: servicePortNumber
-                }
-                else
-                {
-                  name: servicePort
-                },
-              },
-            },
-          }
-          else
           {
             path: path,
             pathType: pathType,
