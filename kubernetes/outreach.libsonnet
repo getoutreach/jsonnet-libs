@@ -205,7 +205,7 @@ k + kubecfg {
                 }
                 else
                 {
-                  name: servicePort
+                  name: if std.isString(servicePort) then servicePort else error "servicePort cannot be a string, use servicePortNumber instead"
                 },
               },
             },
