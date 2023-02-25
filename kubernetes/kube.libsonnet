@@ -132,7 +132,7 @@
   ),
 
   // TODO: update CRD to use v1 api once all clusters are 1.16+
-  CRDv1(kind, group):: (
+  CRDv1(kind, group, version):: (
     local names = {
       kind: kind,
       listKind: (kind + 'List'),
@@ -144,7 +144,7 @@
       spec: {
         group: group,
         names: names,
-        versions: error 'versions required',
+        version: version,
       },
     }
   ),
