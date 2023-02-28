@@ -164,8 +164,7 @@
     items: std.filter($.isNotNull, $.objectValues(self.items_)),
   },
 
-  Namespace(name): $._Object('v1', 'Namespace', name) {
-  },
+  Namespace(name): $._Object('v1', 'Namespace', name),
 
   Endpoints(name): $._Object('v1', 'Endpoints', name) {
     Ip(addr):: { ip: addr },
@@ -703,7 +702,8 @@
 
   LimitRange(name, namespace): $._Object('v1', 'LimitRange', name, namespace=namespace),
 
-  PodDisruptionBudget(name, namespace, app=name): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
+  PodDisruptionBudget(name, namespace, app=name, version='policy/v1'): $._Object( version,
+  'PodDisruptionBudget', name, namespace=namespace) {
     spec: {
       maxUnavailable: '50%',
       selector: {
