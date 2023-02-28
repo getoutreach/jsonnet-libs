@@ -702,8 +702,7 @@
 
   LimitRange(name, namespace): $._Object('v1', 'LimitRange', name, namespace=namespace),
 
-  PodDisruptionBudget(name, namespace, app=name, version='policy/v1'): $._Object( version,
-  'PodDisruptionBudget', name, namespace=namespace) {
+  PodDisruptionBudget(name, namespace, app=name): $._Object('policy/v1beta1', 'PodDisruptionBudget', name, namespace=namespace) {
     spec: {
       maxUnavailable: '50%',
       selector: {
