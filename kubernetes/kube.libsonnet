@@ -131,8 +131,7 @@
     }
   ),
 
-  // TODO: update CRD to use v1 api once all clusters are 1.16+
-  CRDv1(kind, group, version):: (
+  CRDv1(kind, group, apiVersion='apiextensions.k8s.io/v1beta', resourceVersion='v1'):: (
     local names = {
       kind: kind,
       listKind: (kind + 'List'),
@@ -140,11 +139,11 @@
       singular: std.asciiLower(kind),
       full:: self.plural + '.' + group,
     };
-    $._Object('apiextensions.k8s.io/v1', 'CustomResourceDefinition', names.full) {
+    $._Object(apiVersion, 'CustomResourceDefinition', names.full) {
       spec: {
         group: group,
         names: names,
-        versions: [version],
+        versions: [resourceVersion],
       },
     }
   ),
