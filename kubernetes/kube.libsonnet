@@ -131,7 +131,7 @@
     }
   ),
 
-  CRDv1(kind, group, apiVersion='apiextensions.k8s.io/v1beta', resourceVersions=['v1']):: (
+  CRDv1(kind, group, apiVersion='apiextensions.k8s.io/v1', resourceVersions=['v1']):: (
     local names = {
       kind: kind,
       listKind: (kind + 'List'),
