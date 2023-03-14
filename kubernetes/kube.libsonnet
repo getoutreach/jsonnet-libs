@@ -227,7 +227,7 @@
   },
 
   StorageClass(name): $._Object('storage.k8s.io/v1', 'StorageClass', name) {
-    provisioner: error 'provisioner required',
+    provisioner: 'ebs.csi.aws.com',
   },
 
   PersistentVolumeClaim(name, namespace, app=name):
