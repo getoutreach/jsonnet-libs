@@ -26,10 +26,12 @@ local resources = import 'resources.libsonnet';
     // https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html
     local defaultStagingInstanceClass = 'db.t4g.medium',
     local defaultProductionInstanceClass = 'db.t4g.medium',
+    local defaultOpsInstanceClass = 'db.t4g.medium',
     // instance_class unused in devenv
     local defaultDevInstanceClass = '',
     local isDev = environment == 'development' || environment == 'local_development',
     local isProd = environment == 'production',
+    local isOps = environment == 'ops'
     local isStaging = environment == 'staging',
 
     provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
@@ -47,6 +49,8 @@ local resources = import 'resources.libsonnet';
     instance_classes:: {
       default: if isDev
       then defaultDevInstanceClass
+      else if isOps
+      then defaultOpsInstanceClass
       else if isProd
       then defaultProductionInstanceClass
       else if isStaging
