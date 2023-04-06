@@ -31,7 +31,7 @@ local resources = import 'resources.libsonnet';
     local defaultDevInstanceClass = '',
     local isDev = environment == 'development' || environment == 'local_development',
     local isProd = environment == 'production',
-    local isOps = environment == 'ops'
+    local isOps = environment == 'ops',
     local isStaging = environment == 'staging',
 
     provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
