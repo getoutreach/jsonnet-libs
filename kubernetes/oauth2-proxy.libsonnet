@@ -89,7 +89,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     port: port,
     targetPort: container.listen_port,
     protocol: 'TCP',
-    name: 'http-oauth2-proxy',
+    name: 'oauth2-proxy',
   },
 
   // IngressRule returns an entry for the oauth2-proxy container to be
@@ -105,7 +105,29 @@ local ok = import 'kubernetes/kube.libsonnet';
     path: '/*',
     backend: {
       serviceName: serviceName,
-      servicePort: 'http-oauth2-proxy',
+      servicePort: 'oauth2-proxy',
+    },
+  },
+
+  // IngressRuleV1 returns a networking.k8s.io/v1 compatible entry for the oauth2-proxy container to be
+  // used in an Ingress.
+  IngressRuleV1(
+    // container is the oauth2-proxy container created by Container().
+    container=error 'container must be set',
+
+    // serviceName is the name of the Kubernetes service that the oauth2-proxy
+    // is on.
+    serviceName=error 'serviceName must be set',
+  ):: {
+    path: '/',
+    pathType: 'Prefix',
+    backend: {
+      service: {
+        name: serviceName,
+        port: {
+          name: 'oauth2-proxy',
+        },
+      },
     },
   },
 
