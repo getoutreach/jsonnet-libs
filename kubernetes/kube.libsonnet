@@ -319,6 +319,7 @@
       options: [{ name: 'ndots', value: '1' }],
     },
 
+
     assert std.length(self.containers) > 0 : 'must have at least one container',
   },
 
