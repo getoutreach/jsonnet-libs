@@ -534,6 +534,21 @@
     },
   },
 
+  HorizontalPodAutoscalerV2(name, namespace, app=name): $._Object('autoscaling/v2', 'HorizontalPodAutoscaler', name, app=app, namespace=namespace) {
+    local hpa = self,
+
+    target:: error 'target required',
+
+    spec: {
+      scaleTargetRef: $.CrossVersionObjectReference(hpa.target),
+
+      minReplicas: hpa.target.spec.replicas,
+      maxReplicas: error 'maxReplicas required',
+
+      assert self.maxReplicas >= self.minReplicas,
+    },
+  },
+
   VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta2', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
     local vpa = self,
     target:: error 'target required',
