@@ -44,7 +44,11 @@ local resources = import 'resources.libsonnet';
     temp_builtin_users:: false,
     engine:: {
       version: error 'engine.version is required',
-      parameter_group_family: error 'engine.parameter_group_family is requied',
+      parameter_group_family: error 'engine.parameter_group_family is required',
+    },
+    serverless_scaling_config:: {
+      min_acus: 2,
+      max_acus: 4,
     },
     instance_classes:: {
       default: if isDev
@@ -77,6 +81,7 @@ local resources = import 'resources.libsonnet';
       name: database_cluster_name,
       database_name: this.database_name,
       engine: this.engine,
+      serverless_scaling_config: this.serverless_scaling_config,
       team: this.team,
       tier: this.tier,
       personal_information: this.personal_information,
