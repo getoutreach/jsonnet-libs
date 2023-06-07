@@ -3,6 +3,7 @@
 #### Generic catch-all if no specific rules are applied #####
 * @getoutreach/fnd-cors
 
-/kubernetes                 @getoutreach/fnd-cors
-/kubernetes/argo.libsonnet  @getoutreach/fnd-dt @getoutreach/fnd-cors
-/concourse                  @getoutreach/fnd-dt
+/kubernetes                    @getoutreach/fnd-cors
+/kubernetes/argo.libsonnet     @getoutreach/fnd-dt @getoutreach/fnd-cors
+/kubernetes/database.libsonnet @getoutreach/fnd-qss
+/concourse                     @getoutreach/fnd-dt
