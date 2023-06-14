@@ -61,6 +61,8 @@ local resources = import 'resources.libsonnet';
       then defaultStagingInstanceClass
       else error 'missing instance_classes.default or one of the supported environment values',
     },
+    local instanceClass() = if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+
     cluster_parameters:: {
       default: [],
     },
@@ -85,10 +87,10 @@ local resources = import 'resources.libsonnet';
       tier: this.tier,
       personal_information: this.personal_information,
       temp_builtin_users: this.temp_builtin_users,
-      instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+      instance_class: this.instanceClass(),
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
-    } + if isServerless(this.spec.instance_class) then { 
+    } + if this.isServerless(this.instanceClass()) then { 
       serverless_scaling_config: this.serverless_scaling_config,
     } else {}
   },
