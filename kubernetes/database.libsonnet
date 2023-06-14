@@ -33,7 +33,7 @@ local resources = import 'resources.libsonnet';
     local isProd = environment == 'production',
     local isOps = environment == 'ops',
     local isStaging = environment == 'staging',
-    local isServerless(class) = class == 'db.serverless';
+    local isServerless(class) = class == 'db.serverless',
     provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
@@ -90,7 +90,7 @@ local resources = import 'resources.libsonnet';
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
     } + if isServerless(this.spec.instance_class) then { 
       serverless_scaling_config: this.serverless_scaling_config,
-    } else {},
+    } else {}
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
     task: 'Wait for database to deploy',
