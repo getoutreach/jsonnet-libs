@@ -33,7 +33,7 @@ local resources = import 'resources.libsonnet';
     local isProd = environment == 'production',
     local isOps = environment == 'ops',
     local isStaging = environment == 'staging',
-
+    local isServerless(class) = class == 'db.serverless',
     provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
@@ -61,6 +61,8 @@ local resources = import 'resources.libsonnet';
       then defaultStagingInstanceClass
       else error 'missing instance_classes.default or one of the supported environment values',
     },
+    local instanceClass() = if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+
     cluster_parameters:: {
       default: [],
     },
@@ -81,15 +83,16 @@ local resources = import 'resources.libsonnet';
       name: database_cluster_name,
       database_name: this.database_name,
       engine: this.engine,
-      serverless_scaling_config: this.serverless_scaling_config,
       team: this.team,
       tier: this.tier,
       personal_information: this.personal_information,
       temp_builtin_users: this.temp_builtin_users,
-      instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+      instance_class: this.instanceClass(),
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
-    },
+    } + if this.isServerless(this.instanceClass()) then { 
+      serverless_scaling_config: this.serverless_scaling_config,
+    } else {}
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
     task: 'Wait for database to deploy',
