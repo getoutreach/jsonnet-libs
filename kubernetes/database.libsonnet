@@ -33,7 +33,6 @@ local resources = import 'resources.libsonnet';
     local isProd = environment == 'production',
     local isOps = environment == 'ops',
     local isStaging = environment == 'staging',
-    local isServerless(class) = class == 'db.serverless',
     provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
@@ -46,10 +45,6 @@ local resources = import 'resources.libsonnet';
       version: error 'engine.version is required',
       parameter_group_family: error 'engine.parameter_group_family is required',
     },
-    serverless_scaling_config:: {
-      min_acus: 2,
-      max_acus: 4,
-    },
     instance_classes:: {
       default: if isDev
       then defaultDevInstanceClass
@@ -61,8 +56,6 @@ local resources = import 'resources.libsonnet';
       then defaultStagingInstanceClass
       else error 'missing instance_classes.default or one of the supported environment values',
     },
-    local instanceClass() = if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
-
     cluster_parameters:: {
       default: [],
     },
@@ -87,12 +80,10 @@ local resources = import 'resources.libsonnet';
       tier: this.tier,
       personal_information: this.personal_information,
       temp_builtin_users: this.temp_builtin_users,
-      instance_class: this.instanceClass(),
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
-    } + if this.isServerless(this.instanceClass()) then { 
-      serverless_scaling_config: this.serverless_scaling_config,
-    } else {}
+      instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+    },
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
     task: 'Wait for database to deploy',
