@@ -163,7 +163,13 @@
     items: std.filter($.isNotNull, $.objectValues(self.items_)),
   },
 
-  Namespace(name): $._Object('v1', 'Namespace', name),
+  Namespace(name): $._Object('v1', 'Namespace', name) {
+    metadata+: {
+      annotations+: {
+        'argocd.argoproj.io/sync-wave': '-10',
+      },
+    },
+  },
 
   Endpoints(name): $._Object('v1', 'Endpoints', name) {
     Ip(addr):: { ip: addr },
