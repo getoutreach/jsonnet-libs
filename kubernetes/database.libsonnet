@@ -33,6 +33,7 @@ local resources = import 'resources.libsonnet';
     local isProd = environment == 'production',
     local isOps = environment == 'ops',
     local isStaging = environment == 'staging',
+    local isServerless = false,
     provisioner:: if isDev then 'SharedDevenv' else 'AuroraRDS',
     bento:: error 'bento is required',
     database_name:: error 'database_name is required',
@@ -62,6 +63,13 @@ local resources = import 'resources.libsonnet';
     instance_parameters:: {
       default: [],
     },
+    // set only for AuroraRDS cluster
+    serverless_scaling_config:: 
+      if this.provisioner == 'AuroraRDS'
+      then {
+        min_acus: 2,
+        max_acus: 4,
+      } else {},
     metadata+: {
       annotations+: {
         // DPO CR must be created before vault-secret-operator (which has sync wave-value of -5)
@@ -83,6 +91,7 @@ local resources = import 'resources.libsonnet';
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
+      serverless_scaling_config: this.serverless_scaling_config,
     },
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
