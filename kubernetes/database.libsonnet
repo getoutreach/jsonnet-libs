@@ -62,6 +62,11 @@ local resources = import 'resources.libsonnet';
     instance_parameters:: {
       default: [],
     },
+    // default for all clusters, applied only if instance type is `db.serverless`
+    serverless_scaling_config:: {
+        min_acus: 2,
+        max_acus: 4,
+      },
     metadata+: {
       annotations+: {
         // DPO CR must be created before vault-secret-operator (which has sync wave-value of -5)
