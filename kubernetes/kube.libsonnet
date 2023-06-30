@@ -639,7 +639,7 @@
     },
   },
 
-  CronJob(name, namespace, app=name): $._Object('batch/v1beta1', 'CronJob', name, app=app, namespace=namespace) {
+  CronJob(name, namespace, app=name): $._Object('batch/v1', 'CronJob', name, app=app, namespace=namespace) {
     spec: {
       jobTemplate: $.Job(name, namespace, app) {
         apiVersion:: null,
@@ -722,7 +722,7 @@
 
   LimitRange(name, namespace): $._Object('v1', 'LimitRange', name, namespace=namespace),
 
-  PodDisruptionBudget(name, namespace, app=name): $._Object('policy/v1beta1', 'PodDisruptionBudget', name, namespace=namespace) {
+  PodDisruptionBudget(name, namespace, app=name): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
     spec: {
       maxUnavailable: '50%',
       selector: {
