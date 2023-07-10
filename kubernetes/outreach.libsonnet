@@ -229,7 +229,7 @@ k + kubecfg {
         'kubernetes.io/ingress.class': 'alb',
         'alb.ingress.kubernetes.io/ssl-redirect': '443',
         'alb.ingress.kubernetes.io/group.name': groupName, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
-        'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s' % [cluster.environment, cluster.fqdn], 
+        'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s,outreach:application=%s' % [cluster.environment, cluster.fqdn, name], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
         'alb.ingress.kubernetes.io/ssl-policy': 'ELBSecurityPolicy-TLS-1-2-Ext-2018-06',
