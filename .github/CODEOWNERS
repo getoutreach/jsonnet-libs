@@ -4,6 +4,8 @@
 * @getoutreach/fnd-cors
 
 /kubernetes                    @getoutreach/fnd-cors
+/kubernetes/app.libsonnet      @getoutreach/fnd-dt
 /kubernetes/argo.libsonnet     @getoutreach/fnd-dt @getoutreach/fnd-cors
 /kubernetes/database.libsonnet @getoutreach/fnd-qss
+
 /concourse                     @getoutreach/fnd-dt
