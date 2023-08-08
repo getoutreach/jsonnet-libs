@@ -62,7 +62,7 @@ local ok = import 'kubernetes/kube.libsonnet';
       { secretRef: { name: secret.metadata.name } },
     ],
     ports_:: {
-      'http-o2p': { containerPort: 8080 },
+      'http-o2p': { containerPort: this.listenPort },
     },
     resources: {
       limits: self.requests {
