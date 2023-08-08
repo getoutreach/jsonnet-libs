@@ -89,7 +89,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     port: port,
     targetPort: container.listen_port,
     protocol: 'TCP',
-    name: 'oauth2-proxy',
+    name: 'http-o2p',
   },
 
   // IngressRule returns an entry for the oauth2-proxy container to be
@@ -105,7 +105,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     path: '/*',
     backend: {
       serviceName: serviceName,
-      servicePort: 'oauth2-proxy',
+      servicePort: 'http-o2p',
     },
   },
 
@@ -125,7 +125,7 @@ local ok = import 'kubernetes/kube.libsonnet';
       service: {
         name: serviceName,
         port: {
-          name: 'oauth2-proxy',
+          name: 'http-o2p',
         },
       },
     },
