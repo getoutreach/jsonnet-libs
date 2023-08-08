@@ -1,5 +1,4 @@
 local k = import 'kubernetes/kube.libsonnet';
-local resources = import 'resources.libsonnet';
 
 {
   DatabaseCredential(name, app, namespace): k._Object('databases.outreach.io/v1', 'DatabaseCredential', name, app=app, namespace=namespace) {
@@ -62,13 +61,14 @@ local resources = import 'resources.libsonnet';
     instance_parameters:: {
       default: [],
     },
+    io_optimized_storage:: null,
     metadata+: {
       annotations+: {
         // DPO CR must be created before vault-secret-operator (which has sync wave-value of -5)
         'argocd.argoproj.io/sync-wave': '-6',
       },
     },
-    spec: {
+    spec: std.prune({
       provisioner: this.provisioner,
       bento: this.bento,
       app_name: app,
@@ -80,6 +80,7 @@ local resources = import 'resources.libsonnet';
       tier: this.tier,
       personal_information: this.personal_information,
       temp_builtin_users: this.temp_builtin_users,
+      io_optimized_storage: if std.objectHas(this, 'io_optimized_storage') then this.io_optimized_storage else null,
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
