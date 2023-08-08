@@ -84,7 +84,7 @@ local k = import 'kubernetes/kube.libsonnet';
       cluster_parameters: if std.objectHas(this.cluster_parameters, namespace) then this.cluster_parameters[namespace] else this.cluster_parameters.default,
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
-    },
+    }),
   },
   WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
     task: 'Wait for database to deploy',
