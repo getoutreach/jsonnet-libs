@@ -192,7 +192,7 @@ k + kubecfg {
       environment: std.extVar("cluster_environment"),
       cloud_provider:std.extVar("cluster_cloud_provider"),
       fqdn:std.extVar("cluster_cloud_provider"),
-    };
+    },
     local scheme = if internal then 'internal' else 'internet-facing',
     local groupName = if groupBy != null then groupBy else if clusterALB != false && internal == false then cluster.global_name else if internal != false && clusterALB != false then cluster.global_name + '-internal' else this.host,
     host:: '%s.%s.%s' % [subdomain, cluster.global_name, ingressDomain],
