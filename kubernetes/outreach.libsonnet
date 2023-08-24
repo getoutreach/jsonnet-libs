@@ -153,6 +153,7 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
         'alb.ingress.kubernetes.io/ssl-policy': 'ELBSecurityPolicy-TLS-1-2-Ext-2018-06',
         'alb.ingress.kubernetes.io/scheme': scheme,
+        'alb.ingress.kubernetes.io/load-balancer-attributes': 'routing.http.drop_invalid_header_fields.enabled=true,access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,idle_timeout.timeout_seconds=%s' % [cluster.region, groupName, idleTimeoutSeconds], 
         'alb.ingress.kubernetes.io/success-codes': '200-399',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {})
@@ -184,7 +185,14 @@ k + kubecfg {
     idleTimeoutSeconds="60"
   ): self.IngressV1(name, namespace, app=app) {
     local this = self,
-    local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
+    local cluster = {
+      name: std.extVar("cluster_name"),
+      region: std.extVar("cluster_region"),
+      dns_zone: std.extVar("cluster_dns_zone"),
+      environment: std.extVar("cluster_environment"),
+      cloud_provider:std.extVar("cluster_cloud_provider"),
+      fqdn:std.extVar("cluster_cloud_provider"),
+    };
     local scheme = if internal then 'internal' else 'internet-facing',
     local groupName = if groupBy != null then groupBy else if clusterALB != false && internal == false then cluster.global_name else if internal != false && clusterALB != false then cluster.global_name + '-internal' else this.host,
     host:: '%s.%s.%s' % [subdomain, cluster.global_name, ingressDomain],
@@ -228,10 +236,12 @@ k + kubecfg {
         'kubernetes.io/ingress.class': 'alb',
         'alb.ingress.kubernetes.io/ssl-redirect': '443',
         'alb.ingress.kubernetes.io/group.name': groupName, // IngressGroup feature enables you to group multiple Ingress resources together and use a single ALB
+        'alb.ingress.kubernetes.io/tags': 'cost=ingress_alb,outreach:environment=%s,kubernetesCluster=%s' % [cluster.environment, cluster.fqdn], 
         'alb.ingress.kubernetes.io/listen-ports': '[{"HTTP":80},{"HTTPS":443}]',
         'alb.ingress.kubernetes.io/actions.ssl-redirect': '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}', // Redirect http to https
         'alb.ingress.kubernetes.io/ssl-policy': 'ELBSecurityPolicy-TLS-1-2-Ext-2018-06',
         'alb.ingress.kubernetes.io/scheme': scheme,
+        'alb.ingress.kubernetes.io/load-balancer-attributes': 'routing.http.drop_invalid_header_fields.enabled=true,access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,idle_timeout.timeout_seconds=%s' % [cluster.region, groupName, idleTimeoutSeconds], 
         'alb.ingress.kubernetes.io/success-codes': '200-399',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {})
