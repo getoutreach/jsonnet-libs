@@ -3,6 +3,9 @@ local kubecfg = import 'kubecfg.libsonnet';
 
 local tls13 = [
   'staging2b.us-east-2.aws.outreach.cloud',
+  'staging1a.us-east-2.aws.outreach.cloud',
+  'ngb-ss2-us-east-2.us-east-2.aws.outreach.cloud',
+  'ngb-gs-us-east-2.us-east-2.aws.outreach.cloud',
 ];
 
 k + kubecfg {
