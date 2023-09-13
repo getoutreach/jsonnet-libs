@@ -7,6 +7,7 @@ local tls13 = [
   'ngb-ss2-us-east-2.us-east-2.aws.outreach.cloud',
   'ngb-gs-us-east-2.us-east-2.aws.outreach.cloud',
   'app1d.us-west-2.aws.outreach.cloud',
+  'app1b.us-west-2.aws.outreach.cloud',
 ];
 
 k + kubecfg {
