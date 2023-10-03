@@ -107,7 +107,7 @@
         // this line below ensures kube-state-metrics does not have 'app' label, but 'k8s-app' instead
         // if left with 'app' it will collide with labels gathered from kubernetes_state DD integration
         // COR-5785
-        [if app != null && name == 'kube-state-metrics' then 'k8s-app']: app, 
+        [if app != null && name == 'kube-state-metrics' then 'k8s-app']: app,
       },
       name: name,
       [if namespace != null then 'namespace']: namespace,
@@ -273,13 +273,13 @@
     stdin: false,
     tty: false,
     assert !self.tty || self.stdin : 'tty=true requires stdin=true',
-    
-    // This will capture the final logs before your container died and 
+
+    // This will capture the final logs before your container died and
     // record them as the reason for termination (visible in kubectl describe pod).
-    // This is a saner default than the normal one, 
+    // This is a saner default than the normal one,
     // which requires your application to write to /dev/termination-log before exiting.
     // https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/
-    terminationMessagePolicy: 'FallbackToLogsOnError'
+    terminationMessagePolicy: 'FallbackToLogsOnError',
   },
 
   Pod(name): $._Object('v1', 'Pod', name) {
@@ -676,7 +676,7 @@
     $._Object('networking.k8s.io/v1beta1', 'Ingress', name, app=app, namespace=namespace) {
       spec: {},
     },
-  
+
   IngressV1(name, namespace, app=name):
     $._Object('networking.k8s.io/v1', 'Ingress', name, app=app, namespace=namespace) {
       spec: {},
@@ -722,15 +722,14 @@
 
   LimitRange(name, namespace): $._Object('v1', 'LimitRange', name, namespace=namespace),
 
-  PodDisruptionBudget(name, namespace, app=name): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
+  PodDisruptionBudget(name, namespace, app=name, specPartial={ maxUnavailable: '50%' }): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
     spec: {
-      maxUnavailable: '50%',
       selector: {
         matchLabels: {
           app: app,
         },
       },
-    },
+    } + specPartial,
   },
 
   PodPreset(name, namespace, app=name): $._Object('settings.k8s.io/v1alpha1', 'PodPreset', name, app=app, namespace=namespace) {
