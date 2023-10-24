@@ -40,7 +40,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     // Map to listen_port so we can easily access this in other functions
     listen_port:: listenPort,
 
-    image: 'gcr.io/outreach-docker/quay.io/oauth2-proxy/oauth2-proxy:v7.3.0',
+    image: 'gcr.io/outreach-docker/quay.io/oauth2-proxy/oauth2-proxy:v7.5.1',
     args: [
       '--upstream=http://localhost:%d/' % servicePort,
       '--provider=oidc',
@@ -54,6 +54,7 @@ local ok = import 'kubernetes/kube.libsonnet';
       '--redirect-url=https://%s/oauth2/callback' % domain,
       '--email-domain=outreach.io',
       '--pass-access-token=true',
+      '--pass-user-headers=true',
       '--skip-provider-button=true',
       '--request-logging=false',
       '--silence-ping-logging=true',
