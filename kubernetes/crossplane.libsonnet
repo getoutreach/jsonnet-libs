@@ -16,12 +16,12 @@ local crossplaneNamespace = 'crossplane-system';
 		spec+: {
 			claimNames: {
 				kind: uppername,
-				plural: name + "s",
+				plural: "%ss" + name,
 			},
 			group: group,
 			names: {
 				kind: "x%s" % uppername,
-				plural: "x"+ name + "s",
+				plural: "x%ss" % name,
 			},
 			versions: [
       {
