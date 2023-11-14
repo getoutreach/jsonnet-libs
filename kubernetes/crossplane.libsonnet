@@ -7,7 +7,7 @@ local crossplaneNamespace = 'crossplane-system';
   // DEPRECATED: Use crossplaneApplication instead.
   CompositeResourceDefinition(name, group='outreach.io', apiversion='v1'): ok._Object('apiextensions.crossplane.io/v1', 'CompositeResourceDefinition', 'x%s.%s' % [name, group] ) {
     local this = self,
-		local uppername = std.asciiUpper(name),
+		local uppername = name,
 		local fullname = "%s.%s" % [name, group],
     // Copyright 2023 Outreach Corporation. All Rights Reserved.
     metadata+: {
