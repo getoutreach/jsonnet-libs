@@ -5,10 +5,10 @@ local crossplaneNamespace = 'crossplane-system';
 
 {
   // DEPRECATED: Use crossplaneApplication instead.
-  CompositeResourceDefinition(name, group='outreach.io', apiversion='v1'): ok._Object('apiextensions.crossplane.io/v1', 'CompositeResourceDefinition', 'x%s.%s' % (name, group)) {
+  CompositeResourceDefinition(name, group='outreach.io', apiversion='v1'): ok._Object('apiextensions.crossplane.io/v1', 'CompositeResourceDefinition', 'x%s.%s' % [name, group] ) {
     local this = self,
 		local uppername = std.asciiUpper(name),
-		local fullname = "%s.%.s" % (name, group),
+		local fullname = "%s.%s" % [name, group],
     // Copyright 2023 Outreach Corporation. All Rights Reserved.
     metadata+: {
   		name: fullname,
@@ -30,10 +30,10 @@ local crossplaneNamespace = 'crossplane-system';
         referenceable: true,
         schema: {
           openAPIV3Schema: {
-            description: "%s is the Schema for the %ss API" % (uppername, name),
+            description: "%s is the Schema for the %ss API" % [uppername, name],
             properties: {
               spec: {
-                description: "%s Spec defines the desired state of %s" % (uppername, uppername),
+                description: "%s Spec defines the desired state of %s" % [uppername, uppername],
                 properties: {
                   "awsAccountID": {
                     "type": "string"
