@@ -201,6 +201,8 @@
         servicePort: service.spec.ports[0].port,
       },
 
+      // TODO(kaldorn): Update this for K8s 1.27 to `service.kubernetes.io/topology-mode: auto`
+      // Source: https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing
       metadata+: {
         annotations+: {
           'service.kubernetes.io/topology-aware-hints': 'auto',
