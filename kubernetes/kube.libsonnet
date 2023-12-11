@@ -205,7 +205,7 @@
       // Source: https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing
       metadata+: {
         annotations+: {
-          'service.kubernetes.io/topology-aware-hints': 'auto',
+          'service.kubernetes.io/topology-aware-hints': 'Auto',
         },
       },
 
