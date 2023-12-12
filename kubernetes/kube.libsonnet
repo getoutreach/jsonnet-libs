@@ -107,7 +107,7 @@
         // this line below ensures kube-state-metrics does not have 'app' label, but 'k8s-app' instead
         // if left with 'app' it will collide with labels gathered from kubernetes_state DD integration
         // COR-5785
-        [if app != null && name == 'kube-state-metrics' then 'k8s-app']: app, 
+        [if app != null && name == 'kube-state-metrics' then 'k8s-app']: app,
       },
       name: name,
       [if namespace != null then 'namespace']: namespace,
@@ -201,6 +201,14 @@
         servicePort: service.spec.ports[0].port,
       },
 
+      // TODO(kaldorn): Update this for K8s 1.27 to `service.kubernetes.io/topology-mode: auto`
+      // Source: https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing
+      metadata+: {
+        annotations+: {
+          'service.kubernetes.io/topology-aware-hints': 'Auto',
+        },
+      },
+
       spec: {
         selector: service.target_pod.metadata.labels,
         ports: [
@@ -273,13 +281,13 @@
     stdin: false,
     tty: false,
     assert !self.tty || self.stdin : 'tty=true requires stdin=true',
-    
-    // This will capture the final logs before your container died and 
+
+    // This will capture the final logs before your container died and
     // record them as the reason for termination (visible in kubectl describe pod).
-    // This is a saner default than the normal one, 
+    // This is a saner default than the normal one,
     // which requires your application to write to /dev/termination-log before exiting.
     // https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/
-    terminationMessagePolicy: 'FallbackToLogsOnError'
+    terminationMessagePolicy: 'FallbackToLogsOnError',
   },
 
   Pod(name): $._Object('v1', 'Pod', name) {
@@ -676,7 +684,7 @@
     $._Object('networking.k8s.io/v1beta1', 'Ingress', name, app=app, namespace=namespace) {
       spec: {},
     },
-  
+
   IngressV1(name, namespace, app=name):
     $._Object('networking.k8s.io/v1', 'Ingress', name, app=app, namespace=namespace) {
       spec: {},
