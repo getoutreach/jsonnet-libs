@@ -859,4 +859,13 @@
 
   // GoSecretData adds a helper for creating the go-outreach/gobox secretData struct
   GoSecretData(path): { Path: path },
+
+  DatadogMetric(name, namespace, app=name): $._Object('datadoghq.com/v1alpha1', 'DatadogMetric', name, namespace=namespace, app=app) {
+    local metric = self,
+
+    query_:: error 'query is required',
+    spec: {
+      query: metric.query_,
+    },
+  },
 }
