@@ -203,11 +203,11 @@
 
       // TODO(kaldorn): Update this for K8s 1.27 to `service.kubernetes.io/topology-mode: auto`
       // Source: https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing
-      metadata+: {
-        annotations+: {
-          'service.kubernetes.io/topology-aware-hints': 'Auto',
-        },
-      },
+      // metadata+: {
+      //   annotations+: {
+      //     'service.kubernetes.io/topology-aware-hints': 'Auto',
+      //   },
+      // },
 
       spec: {
         selector: service.target_pod.metadata.labels,
