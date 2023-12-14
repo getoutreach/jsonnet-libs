@@ -488,7 +488,7 @@
                   podAffinityTerm(k)
                   for k in [
                     'kubernetes.io/hostname',
-                    'failure-domain.beta.kubernetes.io/zone',
+                    'topology.kubernetes.io/zone',
                   ]
                 ],
               },
@@ -599,7 +599,7 @@
                         },
                       ],
                     },
-                    topologyKey: 'failure-domain.beta.kubernetes.io/zone',
+                    topologyKey: 'topology.kubernetes.io/zone',
                   },
                   weight: 100,
                 }],
