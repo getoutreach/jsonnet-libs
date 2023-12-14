@@ -2,10 +2,12 @@ local ok = import 'outreach.libsonnet';
 
 // namespace for crossplane
 local crossplaneNamespace = 'crossplane-system';
+local defaultGroup = 'outreach.io';
+local defaultAPIversion = 'v1';
 
 {
   // DEPRECATED: Use crossplaneApplication instead.
-  CompositeResourceDefinition(name, customFields={}, customRequired=[], customStatus={}, group='outreach.io', apiversion='v1' ): ok._Object('apiextensions.crossplane.io/v1', 'CompositeResourceDefinition', 'x%s.%s' % [name, group] ) {
+  CompositeResourceDefinition(name, customFields={}, customRequired=[], customStatus={}, group=defaultGroup, apiversion=defaultAPIversion ): ok._Object('apiextensions.crossplane.io/v1', 'CompositeResourceDefinition', 'x%s.%s' % [name, group] ) {
     local this = self,
 		local uppername = name,
 		local fullname = "%s.%s" % [name, group],
@@ -100,4 +102,68 @@ local crossplaneNamespace = 'crossplane-system';
 			],
 		},
   },
+
+	////
+	composition(name, resources, group=defaultGroup, apiversion=defaultAPIversion): ok._Object('apiextensions.crossplane.io/v1', 'Composition', '%s.%s' % [name, group] ) {
+		local this = self,
+		local uppername = name,
+		local fullname = "%s.%s" % [name, group],
+
+		local resorcesWrap = std.map(function(key_name) {
+				name: key_name,
+				base: {
+					apiVersion: resources[key_name].apiVersion,
+					kind: resources[key_name].kind,
+					spec: resources[key_name].spec,
+				},
+				patches: resources[key_name].patches + 
+				if resources[key_name].patchCommonFields then [
+					{
+						"type": "PatchSet",
+						"patchSetName": "common-fields"
+					}
+				] 
+				else [],
+			}, std.objectFields(resources)),
+
+		spec+: {
+			"compositeTypeRef": {
+				"apiVersion": "%s/%s" % [group, apiversion],
+				"kind": "X%s" % uppername,
+			},
+			"environment": {
+				"environmentConfigs": [
+					{
+						"type": "Reference",
+						"ref": {
+							"name": "cluster"
+						}
+					}
+				]
+			},
+			"patchSets": [
+				{
+					"name": "common-fields",
+					"patches": [
+						{
+							"type": "FromCompositeFieldPath",
+							"fromFieldPath": "spec.resourceConfig.providerConfigName",
+							"toFieldPath": "spec.providerConfigRef.name"
+						},
+						{
+							"type": "FromCompositeFieldPath",
+							"fromFieldPath": "spec.resourceConfig.deletionPolicy",
+							"toFieldPath": "spec.deletionPolicy"
+						},
+						{
+							"type": "FromCompositeFieldPath",
+							"fromFieldPath": "spec.resourceConfig.region",
+							"toFieldPath": "spec.forProvider.region"
+						}
+					]
+				}
+			],
+			resources: resorcesWrap
+		}
+	}
 }
