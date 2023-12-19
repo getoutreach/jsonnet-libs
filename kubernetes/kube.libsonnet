@@ -203,11 +203,11 @@
 
       // TODO(kaldorn): Update this for K8s 1.27 to `service.kubernetes.io/topology-mode: auto`
       // Source: https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing
-      // metadata+: {
-      //   annotations+: {
-      //     'service.kubernetes.io/topology-aware-hints': 'Auto',
-      //   },
-      // },
+      metadata+: {
+        annotations+: {
+          'service.kubernetes.io/topology-aware-hints': 'Auto',
+        },
+      },
 
       spec: {
         selector: service.target_pod.metadata.labels,
@@ -488,11 +488,33 @@
                   podAffinityTerm(k)
                   for k in [
                     'kubernetes.io/hostname',
-                    'failure-domain.beta.kubernetes.io/zone',
+                    'topology.kubernetes.io/zone',
                   ]
                 ],
               },
             },
+            topologySpreadConstraints: [
+              {
+                maxSkew: 2,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+                labelSelector: {
+                  matchLabels: {
+                    app: app,
+                  },
+                },
+              },
+              {
+                maxSkew: 1,
+                topologyKey: 'kubernetes.io/hostname',
+                whenUnsatisfiable: 'ScheduleAnyway',
+                labelSelector: {
+                  matchLabels: {
+                    app: app,
+                  },
+                },
+              },
+            ],
           },
           metadata: {
             labels: deployment.metadata.labels,
@@ -599,7 +621,7 @@
                         },
                       ],
                     },
-                    topologyKey: 'failure-domain.beta.kubernetes.io/zone',
+                    topologyKey: 'topology.kubernetes.io/zone',
                   },
                   weight: 100,
                 }],
