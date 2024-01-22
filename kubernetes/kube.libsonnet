@@ -73,6 +73,7 @@
     for x in std.objectFields(map)
   ],
 
+
   // Convert from SI unit suffixes to regular number
   siToNum(n):: (
     local convert =
@@ -458,10 +459,10 @@
     $.Deployment(name + '-' + version, namespace, app) {
       metadata+: { labels+: { version: version } },
     },
-
   local topologySpreadConstraintsCluster = [
-  'staging1a.us-east-2.aws.outreach.cloud',
-];
+    'staging1a.us-east-2.aws.outreach.cloud',
+  ],
+
   Deployment(name, namespace, app=name):
     $._Object('apps/v1', 'Deployment', name, app=app, namespace=namespace) {
       local deployment = self,
@@ -474,9 +475,8 @@
           },
         },
         template: {
-          spec: $.PodSpec {
+          spec: if std.member(topologySpreadConstraintsCluster, cluster.fqdn) then $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
-            if std.member(topologySpreadConstraintsCluster, cluster.fqdn) then
             topologySpreadConstraints: [
               {
                 maxSkew: 1,
@@ -499,8 +499,14 @@
                 },
               },
             ],
-          },
-          else
+            metadata: {
+              labels: deployment.metadata.labels,
+              annotations: {
+                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
+              },
+            },
+          }
+          else $.PodSpec {
             affinity: {
               podAntiAffinity: {
                 local podAffinityTerm(topologyKey, weight=100) = {
@@ -520,14 +526,15 @@
                   ]
                 ],
               },
-          metadata: {
-            labels: deployment.metadata.labels,
-            annotations: {
-              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
+            },
+            metadata: {
+              labels: deployment.metadata.labels,
+              annotations: {
+                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
+              },
             },
           },
         },
-
         strategy: {
           type: 'RollingUpdate',
 
@@ -552,7 +559,6 @@
         },
       },
     },
-
   CrossVersionObjectReference(target): {
     apiVersion: target.apiVersion,
     kind: target.kind,
