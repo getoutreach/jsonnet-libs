@@ -52,6 +52,10 @@
 // reference them.  In addition, jsonnet validation is more useful
 // (client-side, and gives better line information).
 
+// These are passed in as part of the pipeline
+local cluster = {
+  name: std.extVar("cluster_name"),
+};
 {
   // Returns array of values from given object.  Does not include hidden fields.
   objectValues(o):: [o[field] for field in std.objectFields(o)],
@@ -475,7 +479,7 @@
           },
         },
         template: {
-          spec: if std.member(topologySpreadConstraintsCluster, cluster.fqdn) then $.PodSpec {
+          spec: if std.member(topologySpreadConstraintsCluster, cluster.name) then $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
             topologySpreadConstraints: [
               {
