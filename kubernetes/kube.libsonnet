@@ -473,26 +473,28 @@
         template: {
           spec: $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
-            affinity: {
-              podAntiAffinity: {
-                local podAffinityTerm(topologyKey, weight=100) = {
-                  podAffinityTerm: {
-                    labelSelector: {
-                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
-                    },
-                    topologyKey: topologyKey,
+            topologySpreadConstraints: [
+              {
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+                labelSelector: {
+                  matchLabels: {
+                    app: app,
                   },
-                  weight: weight,
                 },
-                preferredDuringSchedulingIgnoredDuringExecution: [
-                  podAffinityTerm(k)
-                  for k in [
-                    'kubernetes.io/hostname',
-                    'failure-domain.beta.kubernetes.io/zone',
-                  ]
-                ],
               },
-            },
+              {
+                maxSkew: 1,
+                topologyKey: 'kubernetes.io/hostname',
+                whenUnsatisfiable: 'ScheduleAnyway',
+                labelSelector: {
+                  matchLabels: {
+                    app: app,
+                  },
+                },
+              },
+            ],
           },
           metadata: {
             labels: deployment.metadata.labels,
