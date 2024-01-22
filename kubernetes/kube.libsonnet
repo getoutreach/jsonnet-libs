@@ -459,6 +459,9 @@
       metadata+: { labels+: { version: version } },
     },
 
+  local topologySpreadConstraintsCluster = [
+  'staging1a.us-east-2.aws.outreach.cloud',
+];
   Deployment(name, namespace, app=name):
     $._Object('apps/v1', 'Deployment', name, app=app, namespace=namespace) {
       local deployment = self,
@@ -473,6 +476,7 @@
         template: {
           spec: $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
+            if std.member(topologySpreadConstraintsCluster, cluster.fqdn) then
             topologySpreadConstraints: [
               {
                 maxSkew: 1,
@@ -496,6 +500,26 @@
               },
             ],
           },
+          else
+            affinity: {
+              podAntiAffinity: {
+                local podAffinityTerm(topologyKey, weight=100) = {
+                  podAffinityTerm: {
+                    labelSelector: {
+                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
+                    },
+                    topologyKey: topologyKey,
+                  },
+                  weight: weight,
+                },
+                preferredDuringSchedulingIgnoredDuringExecution: [
+                  podAffinityTerm(k)
+                  for k in [
+                    'kubernetes.io/hostname',
+                    'failure-domain.beta.kubernetes.io/zone',
+                  ]
+                ],
+              },
           metadata: {
             labels: deployment.metadata.labels,
             annotations: {
