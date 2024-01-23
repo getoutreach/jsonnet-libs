@@ -52,6 +52,8 @@
 // reference them.  In addition, jsonnet validation is more useful
 // (client-side, and gives better line information).
 
+// These are passed in as part of the pipeline
+local bento = std.extVar('bento');
 {
   // Returns array of values from given object.  Does not include hidden fields.
   objectValues(o):: [o[field] for field in std.objectFields(o)],
@@ -72,6 +74,7 @@
     if std.type(map[x]) == 'object' then { name: x, valueFrom: map[x] } else { name: x, value: map[x] }
     for x in std.objectFields(map)
   ],
+
 
   // Convert from SI unit suffixes to regular number
   siToNum(n):: (
@@ -458,6 +461,9 @@
     $.Deployment(name + '-' + version, namespace, app) {
       metadata+: { labels+: { version: version } },
     },
+  local topologySpreadConstraintsCluster = [
+    'staging1a',
+  ],
 
   Deployment(name, namespace, app=name):
     $._Object('apps/v1', 'Deployment', name, app=app, namespace=namespace) {
@@ -471,8 +477,38 @@
           },
         },
         template: {
-          spec: $.PodSpec {
+          spec: if std.member(topologySpreadConstraintsCluster, bento) then $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
+            topologySpreadConstraints: [
+              {
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+                labelSelector: {
+                  matchLabels: {
+                    app: app,
+                  },
+                },
+              },
+              {
+                maxSkew: 1,
+                topologyKey: 'kubernetes.io/hostname',
+                whenUnsatisfiable: 'ScheduleAnyway',
+                labelSelector: {
+                  matchLabels: {
+                    app: app,
+                  },
+                },
+              },
+            ],
+            metadata: {
+              labels: deployment.metadata.labels,
+              annotations: {
+                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
+              },
+            },
+          }
+          else $.PodSpec {
             affinity: {
               podAntiAffinity: {
                 local podAffinityTerm(topologyKey, weight=100) = {
@@ -493,15 +529,14 @@
                 ],
               },
             },
-          },
-          metadata: {
-            labels: deployment.metadata.labels,
-            annotations: {
-              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
+            metadata: {
+              labels: deployment.metadata.labels,
+              annotations: {
+                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
+              },
             },
           },
         },
-
         strategy: {
           type: 'RollingUpdate',
 
@@ -526,7 +561,6 @@
         },
       },
     },
-
   CrossVersionObjectReference(target): {
     apiVersion: target.apiVersion,
     kind: target.kind,
