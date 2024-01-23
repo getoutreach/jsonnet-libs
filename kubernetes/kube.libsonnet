@@ -501,13 +501,7 @@ local bento = std.extVar('bento');
                 },
               },
             ],
-          },
-            metadata: {
-              labels: deployment.metadata.labels,
-              annotations: {
-                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-              },
-            },
+          }
           else $.PodSpec {
             affinity: {
               podAntiAffinity: {
@@ -530,12 +524,12 @@ local bento = std.extVar('bento');
               },
             },
           },
-            metadata: {
-              labels: deployment.metadata.labels,
-              annotations: {
-                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-              },
+          metadata: {
+            labels: deployment.metadata.labels,
+            annotations: {
+              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
             },
+          },
         },
         strategy: {
           type: 'RollingUpdate',
