@@ -236,7 +236,7 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/scheme': scheme,
         'alb.ingress.kubernetes.io/load-balancer-attributes': 'routing.http.drop_invalid_header_fields.enabled=true,access_logs.s3.enabled=true,access_logs.s3.bucket=outreach-aws-lb-controller-logs-%s,access_logs.s3.prefix=%s,idle_timeout.timeout_seconds=%s' % [cluster.region, groupName, idleTimeoutSeconds],
         'alb.ingress.kubernetes.io/success-codes': '200-399',
-        'alb.ingress.kubernetes.io/target-type': 'ip',
+        [if cluster.environment == 'staging' then 'alb.ingress.kubernetes.io/target-type']: 'ip',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {}),
     },
