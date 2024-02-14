@@ -183,7 +183,8 @@ k + kubecfg {
     groupBy=null,
     cluster_info=null,
     idleTimeoutSeconds="60",
-    targetTypeIP=false
+    targetTypeIP=false,
+    stickySessions=false // requeried targetTypeIP=true 
   ): self.IngressV1(name, namespace, app=app) {
     local this = self,
     local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
@@ -243,7 +244,7 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/success-codes': '200-399',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {})
-        + (if targetTypeIP != false then targetGroupAnnotations else {})
+        + (if targetTypeIP != false && cluster.environment == 'staging' then targetGroupAnnotations else {})
     },
     spec+: {
       rules: [
