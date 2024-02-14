@@ -182,7 +182,8 @@ k + kubecfg {
     clusterALB=false,
     groupBy=null,
     cluster_info=null,
-    idleTimeoutSeconds="60"
+    idleTimeoutSeconds="60",
+    targetType=''
   ): self.IngressV1(name, namespace, app=app) {
     local this = self,
     local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
@@ -223,6 +224,10 @@ k + kubecfg {
       'acm-manager.io/enable': 'true',
     },
 
+    local targetGroupAnnotations = {
+      'alb.ingress.kubernetes.io/target-type': 'ip',
+    },
+
     metadata+: {
       annotations+: {
         # ALB ANNOTATIONS
@@ -238,6 +243,7 @@ k + kubecfg {
         'alb.ingress.kubernetes.io/success-codes': '200-399',
         'external-dns.alpha.kubernetes.io/hostname': this.host,
       } + (if createTls != false then tlsAnnotations else {})
+        + (if targetType == 'IP' then targetGroupAnnotations else {})
     },
     spec+: {
       rules: [
