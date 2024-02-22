@@ -483,7 +483,7 @@ local environment = std.extVar('environment');
                 whenUnsatisfiable: 'DoNotSchedule',
                 labelSelector: {
                   matchLabels: {
-                    app: app,
+                    name: name,
                   },
                 },
               },
@@ -493,7 +493,7 @@ local environment = std.extVar('environment');
                 whenUnsatisfiable: 'ScheduleAnyway',
                 labelSelector: {
                   matchLabels: {
-                    app: app,
+                    name: name,
                   },
                 },
               },
