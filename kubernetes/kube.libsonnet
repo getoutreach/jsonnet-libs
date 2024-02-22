@@ -53,7 +53,7 @@
 // (client-side, and gives better line information).
 
 // These are passed in as part of the pipeline
-local bento = std.extVar('bento');
+local environment = std.extVar('environment');
 {
   // Returns array of values from given object.  Does not include hidden fields.
   objectValues(o):: [o[field] for field in std.objectFields(o)],
@@ -461,9 +461,6 @@ local bento = std.extVar('bento');
     $.Deployment(name + '-' + version, namespace, app) {
       metadata+: { labels+: { version: version } },
     },
-  local topologySpreadConstraintsCluster = [
-    'staging1a',
-  ],
 
   Deployment(name, namespace, app=name):
     $._Object('apps/v1', 'Deployment', name, app=app, namespace=namespace) {
@@ -477,7 +474,7 @@ local bento = std.extVar('bento');
           },
         },
         template: {
-          spec: if std.member(topologySpreadConstraintsCluster, bento) then $.PodSpec {
+          spec: if environment == 'staging' then $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
             topologySpreadConstraints: [
               {
