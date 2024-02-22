@@ -52,6 +52,8 @@
 // reference them.  In addition, jsonnet validation is more useful
 // (client-side, and gives better line information).
 
+// These are passed in as part of the pipeline
+local environment = std.extVar('environment');
 {
   // Returns array of values from given object.  Does not include hidden fields.
   objectValues(o):: [o[field] for field in std.objectFields(o)],
@@ -471,8 +473,32 @@
           },
         },
         template: {
-          spec: $.PodSpec {
+          spec: if environment == 'staging' then $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
+            topologySpreadConstraints: [
+              {
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+                labelSelector: {
+                  matchLabels: {
+                    name: name,
+                  },
+                },
+              },
+              {
+                maxSkew: 1,
+                topologyKey: 'kubernetes.io/hostname',
+                whenUnsatisfiable: 'ScheduleAnyway',
+                labelSelector: {
+                  matchLabels: {
+                    name: name,
+                  },
+                },
+              },
+            ],
+          }
+          else $.PodSpec {
             affinity: {
               podAntiAffinity: {
                 local podAffinityTerm(topologyKey, weight=100) = {
@@ -501,7 +527,6 @@
             },
           },
         },
-
         strategy: {
           type: 'RollingUpdate',
 
@@ -526,7 +551,6 @@
         },
       },
     },
-
   CrossVersionObjectReference(target): {
     apiVersion: target.apiVersion,
     kind: target.kind,
