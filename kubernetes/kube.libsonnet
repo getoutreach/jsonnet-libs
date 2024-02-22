@@ -75,7 +75,6 @@ local environment = std.extVar('environment');
     for x in std.objectFields(map)
   ],
 
-
   // Convert from SI unit suffixes to regular number
   siToNum(n):: (
     local convert =
