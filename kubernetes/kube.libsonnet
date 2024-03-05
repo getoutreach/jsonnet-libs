@@ -487,7 +487,7 @@ local environment = std.extVar('environment');
                 },
               },
               {
-                maxSkew: 1,
+                maxSkew: 2,
                 topologyKey: 'kubernetes.io/hostname',
                 whenUnsatisfiable: 'ScheduleAnyway',
                 labelSelector: {
