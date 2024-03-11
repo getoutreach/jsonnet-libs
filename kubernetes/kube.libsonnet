@@ -473,7 +473,7 @@ local environment = std.extVar('environment');
           },
         },
         template: {
-          spec: if environment == 'staging' then $.PodSpec {
+          spec: {
             // Set anti-affinity to help AZ distributiuon
             topologySpreadConstraints: [
               {
@@ -497,28 +497,6 @@ local environment = std.extVar('environment');
                 },
               },
             ],
-          }
-          else $.PodSpec {
-            affinity: {
-              podAntiAffinity: {
-                local podAffinityTerm(topologyKey, weight=100) = {
-                  podAffinityTerm: {
-                    labelSelector: {
-                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
-                    },
-                    topologyKey: topologyKey,
-                  },
-                  weight: weight,
-                },
-                preferredDuringSchedulingIgnoredDuringExecution: [
-                  podAffinityTerm(k)
-                  for k in [
-                    'kubernetes.io/hostname',
-                    'failure-domain.beta.kubernetes.io/zone',
-                  ]
-                ],
-              },
-            },
           },
           metadata: {
             labels: deployment.metadata.labels,
