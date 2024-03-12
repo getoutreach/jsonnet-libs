@@ -478,7 +478,7 @@ local environment = std.extVar('environment');
             topologySpreadConstraints: [
               {
                 maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
+                topologyKey: if environment == 'development' then 'failure-domain.beta.kubernetes.io/zone' else 'topology.kubernetes.io/zone',
                 whenUnsatisfiable: 'DoNotSchedule',
                 labelSelector: {
                   matchLabels: {
