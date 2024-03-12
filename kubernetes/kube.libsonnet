@@ -473,7 +473,7 @@ local environment = std.extVar('environment');
           },
         },
         template: {
-          spec: {
+          spec: $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
             topologySpreadConstraints: [
               {
