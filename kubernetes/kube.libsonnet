@@ -498,37 +498,37 @@ local environment = std.extVar('environment');
               },
             ],
           },
-            metadata: {
-              labels: deployment.metadata.labels,
-              annotations: {
-                'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-              },
+          metadata: {
+            labels: deployment.metadata.labels,
+            annotations: {
+              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
             },
           },
-          strategy: {
-            type: 'RollingUpdate',
+        },
+        strategy: {
+          type: 'RollingUpdate',
 
-            //local pvcs = [
-            //  v
-            //  for v in deployment.spec.template.spec.volumes
-            //  if std.objectHas(v, 'persistentVolumeClaim')
-            //],
-            //local is_stateless = std.length(pvcs) == 0,
+          //local pvcs = [
+          //  v
+          //  for v in deployment.spec.template.spec.volumes
+          //  if std.objectHas(v, 'persistentVolumeClaim')
+          //],
+          //local is_stateless = std.length(pvcs) == 0,
 
-            // Apps trying to maintain a majority quorum or similar will
-            // want to tune these carefully.
-            // NB: Upstream default is surge=1 unavail=1
-            //rollingUpdate: if is_stateless then {
-            //  maxSurge: '25%',  // rounds up
-            //  maxUnavailable: '25%',  // rounds down
-            //} else {
-            //  // Poor-man's StatelessSet.  Useful mostly with replicas=1.
-            //  maxSurge: 0,
-            //  maxUnavailable: 1,
-            //},
-          },
+          // Apps trying to maintain a majority quorum or similar will
+          // want to tune these carefully.
+          // NB: Upstream default is surge=1 unavail=1
+          //rollingUpdate: if is_stateless then {
+          //  maxSurge: '25%',  // rounds up
+          //  maxUnavailable: '25%',  // rounds down
+          //} else {
+          //  // Poor-man's StatelessSet.  Useful mostly with replicas=1.
+          //  maxSurge: 0,
+          //  maxUnavailable: 1,
+          //},
         },
       },
+    },
   CrossVersionObjectReference(target): {
     apiVersion: target.apiVersion,
     kind: target.kind,
