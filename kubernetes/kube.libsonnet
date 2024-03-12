@@ -473,8 +473,30 @@ local environment = std.extVar('environment');
           },
         },
         template: {
-          spec: $.PodSpec {
+          spec: if environment == 'development' then $.PodSpec {
             // Set anti-affinity to help AZ distributiuon
+            affinity: {
+              podAntiAffinity: {
+                local podAffinityTerm(topologyKey, weight=100) = {
+                  podAffinityTerm: {
+                    labelSelector: {
+                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
+                    },
+                    topologyKey: topologyKey,
+                  },
+                  weight: weight,
+                },
+                preferredDuringSchedulingIgnoredDuringExecution: [
+                  podAffinityTerm(k)
+                  for k in [
+                    'kubernetes.io/hostname',
+                    'failure-domain.beta.kubernetes.io/zone',
+                  ]
+                ],
+              },
+            },
+          }
+          else $.PodSpec {
             topologySpreadConstraints: [
               {
                 maxSkew: 1,
