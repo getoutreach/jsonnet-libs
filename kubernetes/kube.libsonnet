@@ -497,6 +497,7 @@ local environment = std.extVar('environment');
                 },
               },
             ],
+          },
             metadata: {
               labels: deployment.metadata.labels,
               annotations: {
@@ -528,7 +529,6 @@ local environment = std.extVar('environment');
           },
         },
       },
-    },
   CrossVersionObjectReference(target): {
     apiVersion: target.apiVersion,
     kind: target.kind,
