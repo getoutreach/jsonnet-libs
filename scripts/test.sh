@@ -27,6 +27,7 @@ for test in "$TEST_DIR"/*.jsonnet; do
 done
 
 if (( ${#failed_tests[@]} )); then
-    >&2 echo "snapshots did not match and were updated: ${failed_tests[*]}"
+    failed_tests_csv="$(IFS=,; echo "${failed_tests[*]}")"
+    >&2 echo "snapshots did not match and were updated: $failed_tests_csv"
     exit 1
 fi
