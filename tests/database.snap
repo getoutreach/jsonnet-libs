@@ -1,0 +1,19 @@
+---
+apiVersion: databases.outreach.io/v1
+kind: PostgresqlClusterServiceAssignment
+metadata:
+  annotations: {}
+  labels:
+    app: my-app
+    name: custom-resource-instance-name
+  name: custom-resource-instance-name
+  namespace: my-app--bento1a
+spec:
+  application_name: my-app
+  bento: bento1a
+  personal_information: "yes"
+  postgresql_database_cluster:
+    namespace: shared-databases--bento1a
+    resource_name: my-shared-database
+  team: fnd-qss
+  tier: tier-2
