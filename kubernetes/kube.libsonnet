@@ -508,17 +508,26 @@ local environment = std.extVar('environment');
                   },
                 },
               },
-              {
-                maxSkew: 2,
-                topologyKey: 'kubernetes.io/hostname',
-                whenUnsatisfiable: 'ScheduleAnyway',
-                labelSelector: {
-                  matchLabels: {
-                    name: name,
-                  },
-                },
-              },
             ],
+            affinity: {
+              podAntiAffinity: {
+                local podAffinityTerm(topologyKey, weight=100) = {
+                  podAffinityTerm: {
+                    labelSelector: {
+                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
+                    },
+                    topologyKey: topologyKey,
+                  },
+                  weight: weight,
+                },
+                preferredDuringSchedulingIgnoredDuringExecution: [
+                  podAffinityTerm(k)
+                  for k in [
+                    'kubernetes.io/hostname',
+                  ]
+                ],
+              },
+            },
           },
           metadata: {
             labels: deployment.metadata.labels,
