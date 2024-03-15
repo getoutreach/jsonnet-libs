@@ -495,6 +495,19 @@ local environment = std.extVar('environment');
                 ],
               },
             },
+          } else if environment == 'staging' then $.PodSpec {
+            topologySpreadConstraints: [
+              {
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+                labelSelector: {
+                  matchLabels: {
+                    name: name,
+                  },
+                },
+              },
+            ],
           }
           else $.PodSpec {
             topologySpreadConstraints: [
