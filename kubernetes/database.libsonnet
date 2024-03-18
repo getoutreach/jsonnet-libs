@@ -19,6 +19,45 @@ local k = import 'kubernetes/kube.libsonnet';
     privileges: privileges,
     pattern: pattern,
   },
+  // PostgresqlClusterServiceAssignment is used to provision the resources for a service to be able to connect to a database cluster.
+  PostgresqlClusterServiceAssignment(
+    // name is the name of this k8s resource
+    name,
+    // app is the name of the application which needs to access the database cluster
+    app,
+    // namespace is the k8s namespace where this PostgresqlClusterServiceAssignment should be declared
+    namespace,
+  ): k._Object(
+    'databases.outreach.io/v1',
+    'PostgresqlClusterServiceAssignment',
+    name,
+    app=app,
+    namespace=namespace,
+  ) {
+    local this = self,
+    // bento is the bento which contains the database cluster and application
+    bento:: error 'bento is required',
+      // database_cluster_name is the k8s resource name of the PostgresqlDatabaseCluster
+    database_cluster_name:: error 'database_cluster_name is required',
+    // database_cluster_namespace is the k8s namespace where the PostgresqlDatabaseCluster is declared.
+    database_cluster_namespace:: error 'database_cluster_namespace is required',
+    // resource attribution tags (team, tier, personal_information)
+    // https://outreach-io.atlassian.net/wiki/spaces/COR/pages/2173993240/Resource+Tagging+Standards+COR
+    team:: error 'team is required',
+    tier:: error 'tier is required',
+    personal_information:: error 'personal_information is required',
+    spec: std.prune({
+      application_name: app,
+      postgresql_database_cluster: {
+        namespace: this.database_cluster_namespace,
+        resource_name: this.database_cluster_name,
+      },
+      bento: this.bento,
+      team: this.team,
+      tier: this.tier,
+      personal_information: this.personal_information,
+    }),
+  },
   PostgresqlDatabaseCluster(database_cluster_name, app, namespace, environment=''): k._Object('databases.outreach.io/v1', 'PostgresqlDatabaseCluster', name=database_cluster_name, app=app, namespace=namespace) {
     local this = self,
     // You can find instance class description here:

@@ -50,3 +50,10 @@ https://github.com/getoutreach/concourse-example/blob/master/ci/pipeline.jsonnet
 git clone git@github.com:getoutreach/jsonnet-libs.git /tmp/jsonnet-libs
 jsonnet -J /tmp/jsonnet-libs -y pipeline.jsonnet
 ```
+
+### Testing
+jsonnet files created under the `./tests` directory can be used to test libsonnet functions. The files will be rendered to identically named `.snap` files in the same directory.
+Snapshots are regenerated each time the tests are run.
+```sh
+make test
+```
