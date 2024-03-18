@@ -495,7 +495,7 @@ local environment = std.extVar('environment');
                 ],
               },
             },
-          } else if environment == 'staging' then $.PodSpec {
+          } else $.PodSpec {
             topologySpreadConstraints: [
               {
                 maxSkew: 1,
@@ -508,39 +508,6 @@ local environment = std.extVar('environment');
                 },
               },
             ],
-          }
-          else $.PodSpec {
-            topologySpreadConstraints: [
-              {
-                maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
-                whenUnsatisfiable: 'DoNotSchedule',
-                labelSelector: {
-                  matchLabels: {
-                    name: name,
-                  },
-                },
-              },
-            ],
-            affinity: {
-              podAntiAffinity: {
-                local podAffinityTerm(topologyKey, weight=100) = {
-                  podAffinityTerm: {
-                    labelSelector: {
-                      matchExpressions: [{ key: 'name', operator: 'In', values: [name] }],
-                    },
-                    topologyKey: topologyKey,
-                  },
-                  weight: weight,
-                },
-                preferredDuringSchedulingIgnoredDuringExecution: [
-                  podAffinityTerm(k)
-                  for k in [
-                    'kubernetes.io/hostname',
-                  ]
-                ],
-              },
-            },
           },
           metadata: {
             labels: deployment.metadata.labels,
