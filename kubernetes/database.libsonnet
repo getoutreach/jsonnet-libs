@@ -37,7 +37,7 @@ local k = import 'kubernetes/kube.libsonnet';
     local this = self,
     // bento is the bento which contains the database cluster and application
     bento:: error 'bento is required',
-    // database_name is the name of the application database to create within the cluster
+    // database_name is the name of the database to create within the postgresql cluster. Schemas for the application will be created in the provided datatabase. See https://www.postgresql.org/docs/current/ddl-schemas.html
     database_name:: error 'database_name is required',
       // database_cluster_name is the k8s resource name of the PostgresqlDatabaseCluster
     database_cluster_name:: error 'database_cluster_name is required',
