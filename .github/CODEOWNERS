@@ -8,5 +8,6 @@
 /kubernetes/oauth2-proxy.libsonnet @getoutreach/fnd-dt
 /kubernetes/argo.libsonnet     @getoutreach/fnd-dt @getoutreach/fnd-cors
 /kubernetes/database.libsonnet @getoutreach/fnd-qss
+/tests/database.*              @getoutreach/fnd-qss
 
 /concourse                     @getoutreach/fnd-dt
