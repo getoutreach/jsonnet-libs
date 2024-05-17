@@ -46,6 +46,20 @@ local database = import 'kubernetes/database.libsonnet';
     database_name: 'mydpotestservice',
     database_cluster_namespace: 'dpotestresource--ngb-ss2-us-east-2',
     database_cluster_name: 'dpotestresource',
+    resource_name: 'myresource',
+    team: 'fnd-qss',
+    tier: 'tier-2',
+  },
+  assignment2: database.PostgresqlClusterServiceAssignment(
+    'mydpotestservice2',
+    app='mydpotestservice',
+    namespace='mydpotestservice--ngb-ss2-us-east-2'
+  ) {
+    bento: 'ngb-ss2-us-east-2',
+    personal_information: 'yes',
+    database_name: 'mydpotestservice',
+    database_cluster_namespace: 'dpotestresource--ngb-ss2-us-east-2',
+    database_cluster_name: 'dpotestresource',
     team: 'fnd-qss',
     tier: 'tier-2',
   },
