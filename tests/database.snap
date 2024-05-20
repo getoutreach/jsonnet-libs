@@ -16,6 +16,28 @@ spec:
   postgresql_database_cluster:
     namespace: dpotestresource--ngb-ss2-us-east-2
     resource_name: dpotestresource
+  resource_name: myresource
+  team: fnd-qss
+  tier: tier-2
+---
+apiVersion: databases.outreach.io/v1
+kind: PostgresqlClusterServiceAssignment
+metadata:
+  annotations: {}
+  labels:
+    app: mydpotestservice
+    name: mydpotestservice2
+  name: mydpotestservice2
+  namespace: mydpotestservice--ngb-ss2-us-east-2
+spec:
+  application_name: mydpotestservice
+  bento: ngb-ss2-us-east-2
+  database_name: mydpotestservice
+  personal_information: "yes"
+  postgresql_database_cluster:
+    namespace: dpotestresource--ngb-ss2-us-east-2
+    resource_name: dpotestresource
+  resource_name: mydpotestservice
   team: fnd-qss
   tier: tier-2
 ---

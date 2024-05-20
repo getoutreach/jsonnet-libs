@@ -43,6 +43,8 @@ local k = import 'kubernetes/kube.libsonnet';
     database_cluster_name:: error 'database_cluster_name is required',
     // database_cluster_namespace is the k8s namespace where the PostgresqlDatabaseCluster is declared.
     database_cluster_namespace:: error 'database_cluster_namespace is required',
+    // resource_name is the name for the resource declared by the service
+    resource_name:: this.database_name,
     // resource attribution tags (team, tier, personal_information)
     // https://outreach-io.atlassian.net/wiki/spaces/COR/pages/2173993240/Resource+Tagging+Standards+COR
     team:: error 'team is required',
@@ -55,6 +57,7 @@ local k = import 'kubernetes/kube.libsonnet';
         resource_name: this.database_cluster_name,
       },
       database_name: this.database_name,
+      resource_name: this.resource_name,
       bento: this.bento,
       team: this.team,
       tier: this.tier,
