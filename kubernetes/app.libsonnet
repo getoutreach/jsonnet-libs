@@ -36,7 +36,7 @@ local stdfields = {
   ts: '1690825986',
 
   // clusterType is the cluster type of the bento this application is being deployed to (legacy, ngb and shared-service)
-  clusterType: if std.objectHas(cluster, 'type') then cluster.type else 'legacy',
+  clusterType: if std.objectHas(cluster, 'type') then cluster.type else 'ngb',
 };
 
 
