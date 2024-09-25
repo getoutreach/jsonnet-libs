@@ -18,6 +18,7 @@ local argocdNamespace = 'argocd';
     report_opslevel_:: true,
     notification_success_:: '',
     notification_failure_:: '',
+    notification_failure_delayed_:: '',
     metadata+: {
       annotations+: {
         [if this.report_maestro_ then 'notifications.argoproj.io/subscribe.on-deployed.maestro']: '',
@@ -27,6 +28,9 @@ local argocdNamespace = 'argocd';
         [if this.notification_failure_ != '' then 'notifications.argoproj.io/subscribe.on-health-degraded.slack']: this.notification_failure_,
         [if this.notification_failure_ != '' then 'notifications.argoproj.io/subscribe.on-sync-failed.slack']: this.notification_failure_,
         [if this.notification_failure_ != '' then 'notifications.argoproj.io/subscribe.on-sync-status-unknown.slack']: this.notification_failure_,
+        [if this.notification_failure_delayed_ != '' then 'notifications.argoproj.io/subscribe.delayed-health-degraded.slack']: this.notification_failure_delayed_,
+        [if this.notification_failure_delayed_ != '' then 'notifications.argoproj.io/subscribe.delayed-on-sync-failed.slack']: this.notification_failure_delayed_,
+        [if this.notification_failure_delayed_ != '' then 'notifications.argoproj.io/subscribe.delayed-on-sync-status-unknown.slack']: this.notification_failure_delayed_,
       },
     },
     spec: {
