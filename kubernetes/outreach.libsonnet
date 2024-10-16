@@ -182,7 +182,8 @@ k + kubecfg {
     clusterALB=false,
     groupBy=null,
     cluster_info=null,
-    idleTimeoutSeconds="60"
+    idleTimeoutSeconds="60",
+    ingressClassName='alb'
   ): self.IngressV1(name, namespace, app=app) {
     local this = self,
     local cluster = if cluster_info == null then import 'cluster.libsonnet' else cluster_info,
@@ -240,6 +241,7 @@ k + kubecfg {
       } + (if createTls != false then tlsAnnotations else {})
     },
     spec+: {
+      ingressClassName: ingressClassName,
       rules: [
         rule
       ],
