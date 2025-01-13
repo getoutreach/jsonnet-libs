@@ -873,6 +873,43 @@ local environment = std.extVar('environment');
   // GoSecretData adds a helper for creating the go-outreach/gobox secretData struct
   GoSecretData(path): { Path: path },
 
+  /*
+  * addEnvFromSecret adds a secret to the environment of a container. It
+  * expects to be added to an object whose values are the kubernetes resources
+  * to be defined. The secret is injected into the environment of the specified
+  * container using the kubernetes envFrom field.
+  *
+  * It expects the value at the field to have the structure
+  * { spec: { template: { spec: { containers_:: { [container_name]: { ... } } } } } }
+  *
+  * Parameters:
+  *
+  * 	secretName     : the name of the secret to add to the container
+  * 	key            : the field of the object (e.g.; deployment) to add the secret to
+  * 	container_name : the name of the container to add the secret to
+  *
+  * return value: an object that to mixin to the top-level kubernetes resource
+  * object with the object composition operator +.
+  */
+  addEnvFromSecret(secretName, key='deployment', container_name='default'): {
+    [key]+: {
+      spec+: {
+        template+: {
+          spec+: {
+            containers_+:: {
+              [container_name]+: {
+                envFrom+: [
+                  { secretRef: { name: secretName } },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+
+
   DatadogMetric(name, namespace, app=name): $._Object('datadoghq.com/v1alpha1', 'DatadogMetric', name, namespace=namespace, app=app) {
     local metric = self,
 
