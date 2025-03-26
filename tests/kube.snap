@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations: {}
+  labels:
+    app: test
+    name: test
+  name: test
+  namespace: test
+spec:
+  selector:
+    matchLabels:
+      app: test
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: test
+        name: test
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: name
+                  operator: In
+                  values:
+                  - test
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: name
+                  operator: In
+                  values:
+                  - test
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 100
+      containers:
+      - name: default
+      - envFrom:
+        - configMapRef:
+            name: test
+        - secretRef:
+            name: secret
+        image: test
+        name: test
+        ports:
+        - containerPort: 80
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "1"
+      imagePullSecrets: []
+      initContainers: []
+      terminationGracePeriodSeconds: 30
+      volumes: []
