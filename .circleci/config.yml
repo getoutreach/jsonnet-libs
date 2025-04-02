@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Test
           command: make test
-    
+
 workflows:
   build_and_test:
     jobs:
