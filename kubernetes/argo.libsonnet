@@ -1,5 +1,6 @@
 local ok = import 'outreach.libsonnet';
 
+local appImageRegistry = std.extVar('appImageRegistry');
 // namespace for argocd
 local argocdNamespace = 'argocd';
 
@@ -206,7 +207,7 @@ local argocdNamespace = 'argocd';
         spec: {
           containers: [
             ok.Container('gateway-client') {
-              image: 'gcr.io/outreach-docker/argo/outreach-gateway-client:v0.12.1',
+              image: '%s/argo/outreach-gateway-client:v0.12.1' % appImageRegistry,
               command: ['/bin/gateway-client'],
               resources: {
                 limits: { memory: '100Mi' },
@@ -214,7 +215,7 @@ local argocdNamespace = 'argocd';
               },
             },
             ok.Container('%s-events' % this.gatewayType) {
-              image: 'gcr.io/outreach-docker/argo/outreach-%s-gateway:v0.12.1' % this.gatewayType,
+              image: '%s/argo/outreach-%s-gateway:v0.12.1' % [appImageRegistry, this.gatewayType],
               command: ['/bin/%s-gateway' % this.gatewayType],
               resources: {
                 limits: { memory: '100Mi' },
@@ -249,7 +250,7 @@ local argocdNamespace = 'argocd';
         spec: {
           containers: [
             ok.Container('sensor') {
-              image: 'gcr.io/outreach-docker/argo/outreach-sensor:v0.12.1',
+              image: '%s/argo/outreach-sensor:v0.12.1' % appImageRegistry,
               resources: {
                 limits: { memory: '100Mi' },
                 requests: { cpu: '10m' },
@@ -294,7 +295,7 @@ local argocdNamespace = 'argocd';
     bash_script:: error 'script required',
     name: name,
     script: {
-      image: 'gcr.io/outreach-docker/alpine/scripts:1.0',
+      image: '%s/alpine/scripts:1.0' % appImageRegistry,
       command: ['bash'],
       source: this.bash_script,
     },
@@ -470,7 +471,7 @@ local argocdNamespace = 'argocd';
   AnalysisMetricDatadog(name): $.AnalysisMetric(name) {
     local this = self,
     query:: error 'query required',
-    
+
     provider: {
       datadog: {
         query: this.query,
