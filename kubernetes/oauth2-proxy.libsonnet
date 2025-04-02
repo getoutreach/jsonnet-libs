@@ -1,6 +1,6 @@
 // This file contains a helper for creating oauth2-proxy instances.
 local ok = import 'kubernetes/kube.libsonnet';
-local appImageRegistry = std.extVar('appImageRegistry')
+local appImageRegistry = std.extVar('appImageRegistry');
 
 {
   // Container returns an oauth2-proxy corev1.Container (see kube.libsonnet).
