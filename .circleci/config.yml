@@ -1,15 +1,10 @@
 version: 2.1
-
-gcr_auth: &gcr_auth
-  auth:
-    username: _json_key
-    password: $GCLOUD_SERVICE_ACCOUNT
+orbs:
+  shared: getoutreach/shared@dev:first
 
 jobs:
   test:
-    docker:
-      - image: gcr.io/outreach-docker/bootstrap/ci-slim:stable
-        <<: *gcr_auth
+    executor: shared/testbed-docker-aws
     steps:
       - checkout
       - run:
@@ -21,4 +16,5 @@ workflows:
     jobs:
       - test:
           context:
+            - aws-credentials
             - docker-registry
