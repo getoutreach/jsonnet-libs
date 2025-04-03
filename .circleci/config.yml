@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  shared: getoutreach/shared@dev:first
+  shared: getoutreach/shared@dev:2.31.0-rc.1
 
 jobs:
   test:
