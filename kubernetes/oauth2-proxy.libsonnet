@@ -1,5 +1,6 @@
 // This file contains a helper for creating oauth2-proxy instances.
 local ok = import 'kubernetes/kube.libsonnet';
+local appImageRegistry = std.extVar('appImageRegistry');
 
 {
   // Container returns an oauth2-proxy corev1.Container (see kube.libsonnet).
@@ -40,7 +41,7 @@ local ok = import 'kubernetes/kube.libsonnet';
     // Map to listen_port so we can easily access this in other functions
     listen_port:: listenPort,
 
-    image: 'gcr.io/outreach-docker/quay.io/oauth2-proxy/oauth2-proxy:v7.5.1',
+    image: '%s/quay.io/oauth2-proxy/oauth2-proxy:v7.5.1' % appImageRegistry,
     args: [
       '--upstream=http://localhost:%d/' % servicePort,
       '--provider=oidc',
