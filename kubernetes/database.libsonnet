@@ -39,7 +39,7 @@ local k = import 'kubernetes/kube.libsonnet';
     bento:: error 'bento is required',
     // database_name is the name of the database to create within the postgresql cluster. Schemas for the application will be created in the provided datatabase. See https://www.postgresql.org/docs/current/ddl-schemas.html
     database_name:: error 'database_name is required',
-      // database_cluster_name is the k8s resource name of the PostgresqlDatabaseCluster
+    // database_cluster_name is the k8s resource name of the PostgresqlDatabaseCluster
     database_cluster_name:: error 'database_cluster_name is required',
     // database_cluster_namespace is the k8s namespace where the PostgresqlDatabaseCluster is declared.
     database_cluster_namespace:: error 'database_cluster_namespace is required',
@@ -130,42 +130,5 @@ local k = import 'kubernetes/kube.libsonnet';
       instance_parameters: if std.objectHas(this.instance_parameters, namespace) then this.instance_parameters[namespace] else this.instance_parameters.default,
       instance_class: if std.objectHas(this.instance_classes, namespace) then this.instance_classes[namespace] else this.instance_classes.default,
     }),
-  },
-  WaitForDatabaseProvisioning(database_cluster_name, app, namespace):: {
-    task: 'Wait for database to deploy',
-    local this = self,
-    kubernetes_cluster_name:: error 'k8 cluster name is required',
-    gcr_registry_username:: '((gcr-service-account-username))',
-    gcr_registry_password:: '((gcr-service-account-password))',
-
-    config: {
-      platform: 'linux',
-      image_resource: {
-        name: 'kubectl_task_image',
-        type: 'registry-image',
-        source: {
-          repository: 'gcr.io/outreach-docker/alpine/tools',
-          tag: 'latest',
-          username: this.gcr_registry_username,
-          password: this.gcr_registry_password,
-        },
-      },
-      inputs: [{ name: 'metadata' }, { name: 'source' }, { name: 'kubeconfig' }],
-      outputs: [],
-      run: {
-        path: '/bin/bash',
-        args: [
-          '-c',
-          |||
-            set -euf -o pipefail
-            DATABASECLUSTERNAME=%s
-            K8SCLUSTER=%s
-            NAMESPACE=%s
-            echo kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
-            kubectl --kubeconfig ./kubeconfig/config --context $K8SCLUSTER wait -n $NAMESPACE postgresqldatabaseclusters.databases.outreach.io/$DATABASECLUSTERNAME --for=condition=Ready --timeout=1800s
-          ||| % [database_cluster_name, this.kubernetes_cluster_name, namespace],
-        ],
-      },
-    },
   },
 }
