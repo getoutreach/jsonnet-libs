@@ -165,7 +165,7 @@ local environment = std.extVar('environment');
     items: std.filter($.isNotNull, $.objectValues(self.items_)),
   },
 
-  Namespace(name, istioAmbientMesh=true): $._Object('v1', 'Namespace', name,) {
+  Namespace(name, istioAmbientMesh=false): $._Object('v1', 'Namespace', name,) {
     metadata+: {
       annotations+: {
         'argocd.argoproj.io/sync-wave': '-10',
