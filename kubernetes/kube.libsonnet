@@ -169,6 +169,8 @@ local environment = std.extVar('environment');
     metadata+: {
       annotations+: {
         'argocd.argoproj.io/sync-wave': '-10',
+      },
+      labels+: {
         [if istioAmbientMesh then 'istio.io/dataplane-mode']: 'ambient',
       },
     },
