@@ -898,6 +898,7 @@ local environment = std.extVar('environment');
         # override in case you want 'all', 'workload' or 'none' to disable
         'istio.io/waypoint-for': 'service',
       },
+    },
     spec: {
       gatewayClassName: 'istio-waypoint',
       listeners: [{
@@ -906,5 +907,5 @@ local environment = std.extVar('environment');
         protocol: 'HBONE',
     },],
   },
-}
+},
 }
