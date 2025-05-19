@@ -757,22 +757,6 @@ local environment = std.extVar('environment');
     },
   },
 
-  PodPreset(name, namespace, app=name): $._Object('settings.k8s.io/v1alpha1', 'PodPreset', name, app=app, namespace=namespace) {
-    spec: {
-
-      selector: error 'selector required',
-
-      env: $.envList(self.env_),
-      env_:: {},
-
-      volumeMounts: $.mapToNamedList(self.volumeMounts_),
-      volumeMounts_:: {},
-
-      volumes: $.mapToNamedList(self.volumes_),
-      volumes_:: {},
-    },
-  },
-
   APIService(name, app=name): $._Object('apiregistration.k8s.io/v1beta1', 'APIService', name, app=app) {
     local api = self,
     kind: 'APIService',
