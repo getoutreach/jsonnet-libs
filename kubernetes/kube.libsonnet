@@ -909,5 +909,5 @@ local environment = std.extVar('environment');
         protocol: 'HBONE',
     },],
   },
-},
+}
 }
