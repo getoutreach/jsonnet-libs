@@ -773,20 +773,6 @@ local environment = std.extVar('environment');
     },
   },
 
-  APIService(name, app=name): $._Object('apiregistration.k8s.io/v1beta1', 'APIService', name, app=app) {
-    local api = self,
-    kind: 'APIService',
-    service:: error 'service required',
-    spec+: {
-      group: std.join('.', std.split(name, '.')[1:]),
-      version: std.split(name, '.')[0],
-      service+: {
-        name: api.service.metadata.name,
-        namespace: api.service.metadata.namespace,
-      },
-    },
-  },
-
   APIServiceV1(name, app=name): $._Object('apiregistration.k8s.io/v1', 'APIService', name, app=app) {
     local api = self,
     kind: 'APIService',
