@@ -891,4 +891,23 @@ local environment = std.extVar('environment');
       query: metric.query_,
     },
   },
+
+  # Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
+  # Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
+  WaypointProxy(name='waypoint', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+    metadata+: {
+      labels+: {
+        # override in case you want 'all', 'workload' or 'none' to disable
+        'istio.io/waypoint-for': 'service',
+      },
+    },
+    spec: {
+      gatewayClassName: 'istio-waypoint',
+      listeners: [{
+        name: 'mesh',
+        port: 15008,
+        protocol: 'HBONE',
+    },],
+  },
+},
 }
