@@ -892,6 +892,8 @@ local environment = std.extVar('environment');
     },
   },
 
+  # Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
+  # Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
   WaypointProxy(name='waypoint', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
