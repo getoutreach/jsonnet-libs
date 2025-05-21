@@ -84,7 +84,7 @@ local k = import 'kubernetes/kube.libsonnet';
     tier:: error 'tier is required',
     personal_information:: '',
     full_name:: '',
-    temp_builtin_users:: false,
+    temp_builtin_users:: null,
     engine:: {
       version: error 'engine.version is required',
       parameter_group_family: error 'engine.parameter_group_family is required',
