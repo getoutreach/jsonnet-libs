@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   shared: getoutreach/shared@dev:2.31.0-rc.1
   aws-s3: circleci/aws-s3@4.1.0
-
+  aws-cli: circleci/aws-cli@5.1.1
 jobs:
   test:
     executor: shared/testbed-docker-aws
@@ -26,6 +26,7 @@ jobs:
               echo "Not a deploy branch, skipping."
               circleci step halt
             fi
+      - aws-cli/install
       - aws-s3/sync:
           from: .
           to: s3://jsonnet-libs.outreach.io
