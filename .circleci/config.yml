@@ -17,6 +17,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Set AWS region
+          command: echo 'export AWS_REGION=us-west-2' >> $BASH_ENV
+      - run:
           name: Check branch
           command: |
             if [[ "$CIRCLE_BRANCH" != "master" && "$CIRCLE_BRANCH" != rezoan/* ]]; then
