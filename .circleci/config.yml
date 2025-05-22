@@ -42,3 +42,4 @@ workflows:
       - deploy:
           context:
             - aws-credentials
+            - aws-region-us-west-2
