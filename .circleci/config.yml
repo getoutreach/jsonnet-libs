@@ -23,7 +23,7 @@ jobs:
             fi
       - aws-s3/sync:
           from: .
-          to: s3://jsonnet-libs.outreach.cloud
+          to: $AWS_DEPLOY_TARGET
 workflows:
   build_and_test:
     jobs:
