@@ -14,16 +14,9 @@ jobs:
     executor: shared/testbed-docker-aws
     steps:
       - checkout
-      - run:
-          name: Check branch
-          command: |
-            if [[ "$CIRCLE_BRANCH" != "master" && "$CIRCLE_BRANCH" != rezoan/* ]]; then
-              echo "Not a deploy branch, skipping."
-              circleci step halt
-            fi
       - aws-s3/sync:
-          from: .
-          to: $AWS_DEPLOY_TARGET
+          from: kubernetes
+          to: $AWS_DEPLOY_TARGET/kubernetes
 workflows:
   build_and_test:
     jobs:
@@ -31,9 +24,14 @@ workflows:
           context:
             - aws-credentials
             - docker-registry
-  deploy:
-    jobs:
       - deploy:
           context:
             - aws-credentials
             - docker-registry
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+                - /rezoan\/.*/
