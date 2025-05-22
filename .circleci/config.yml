@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   shared: getoutreach/shared@dev:2.31.0-rc.1
+  aws-s3: circleci/aws-s3@4.1.0
 
 jobs:
   test:
@@ -10,7 +11,13 @@ jobs:
       - run:
           name: Test
           command: make test
-
+  deploy:
+    executor: shared/testbed-docker-aws
+    steps:
+      - checkout
+      - aws-s3/sync:
+        from: .
+        to: 's3://jsonnet-libs.outreach.io'
 workflows:
   build_and_test:
     jobs:
@@ -18,3 +25,15 @@ workflows:
           context:
             - aws-credentials
             - docker-registry
+  deploy:
+    requires:
+      - build_and_test
+    filters:
+      branches:
+        only:
+          - master
+          - rezoan/*
+    jobs:
+      - deploy:
+        context:
+          - aws-credentials
