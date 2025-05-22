@@ -40,3 +40,4 @@ workflows:
           context:
             - aws-credentials
             - aws-region-us-west-2
+            - docker-registry
