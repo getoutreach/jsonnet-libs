@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   shared: getoutreach/shared@dev:2.31.0-rc.1
-
+  aws-s3: circleci/aws-s3@4.1.0
 jobs:
   test:
     executor: shared/testbed-docker-aws
@@ -10,7 +10,13 @@ jobs:
       - run:
           name: Test
           command: make test
-
+  deploy:
+    executor: shared/testbed-docker-aws
+    steps:
+      - checkout
+      - aws-s3/sync:
+          from: kubernetes
+          to: $AWS_DEPLOY_TARGET/kubernetes
 workflows:
   build_and_test:
     jobs:
@@ -18,3 +24,13 @@ workflows:
           context:
             - aws-credentials
             - docker-registry
+      - deploy:
+          context:
+            - aws-credentials
+            - docker-registry
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
