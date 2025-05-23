@@ -26,6 +26,16 @@ kubecfg \
 show deployment.jsonnet
 ```
 
+To use jsonnet-libs from a particular branch of this repository, you can use the `--jurl` flag to specify the branch:
+
+```Bash
+export BRANCH=your-branch
+kubecfg \
+--jurl http://k8s-clusters.outreach.cloud/ \
+--jurl https://raw.githubusercontent.com/getoutreach/jsonnet-libs/$BRANCH \
+show deployment.jsonnet
+```
+
 ***
 
 ## Use Jsonnet to create a Concourse pipeline
