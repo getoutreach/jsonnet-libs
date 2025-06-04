@@ -909,10 +909,19 @@ local environment = std.extVar('environment');
         port: 15008,
         protocol: 'HBONE',
       }],
+      infrastructure+: {
+          parametersRef: {
+            group: '',
+            kind: 'ConfigMap',
+            name: 'waypoint-config',
+          },
+        },
+      },
     },
+
   },
 
-  WaypointProxyConfig(name='waypoint', namespace, team): self.ConfigMap(name, namespace, team) {
+  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
         repo: name,
