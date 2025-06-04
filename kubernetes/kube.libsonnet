@@ -916,7 +916,6 @@ local environment = std.extVar('environment');
     metadata+: {
       labels+: {
         repo: name,
-
         reporting_team: team,
       },
     },
