@@ -892,22 +892,53 @@ local environment = std.extVar('environment');
     },
   },
 
-  # Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
-  # Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
-  WaypointProxy(name='waypoint', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+  // Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
+  // Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
+  WaypointProxy(name='waypoint', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
-        # override in case you want 'all', 'workload' or 'none' to disable
-        'istio.io/waypoint-for': 'service',
+        name: name,
+        reporting_team: team,
+        // override in case you want 'all', 'workload' or 'none' to disable
+        'istio.io/waypoint-for': 'all',
       },
     },
-    spec: {
+    spec+: {
       gatewayClassName: 'istio-waypoint',
-      listeners: [{
+      listeners+: [{
         name: 'mesh',
         port: 15008,
         protocol: 'HBONE',
-    },],
+      }],
+      infrastructure+: {
+          parametersRef: {
+            group: '',
+            kind: 'ConfigMap',
+            name: 'waypoint-config',
+          },
+        },
+      },
+    },
+
+  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap('waypoint-config', namespace, team) {
+    metadata+: {
+      labels+: {
+        reporting_team: team,
+      },
+    },
+    data+: {
+      deployment+: std.manifestYamlDoc({
+        spec: {
+          template: {
+            spec: {
+              nodeSelector: {
+                'outreach.io/nodepool': 'ondemand',
+              },
+              priorityClassName: 'system-cluster-critical',
+            },
+          },
+        },
+      }),
+    },
   },
-},
 }
