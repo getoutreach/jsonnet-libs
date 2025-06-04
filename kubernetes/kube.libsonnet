@@ -898,6 +898,7 @@ local environment = std.extVar('environment');
     metadata+: {
       labels+: {
         name: name,
+        reporting_team: team,
         // override in case you want 'all', 'workload' or 'none' to disable
         'istio.io/waypoint-for': 'all',
       },
@@ -919,12 +920,9 @@ local environment = std.extVar('environment');
       },
     },
 
-  },
-
-  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
+  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name='waypoint-config', namespace, team) {
     metadata+: {
       labels+: {
-        repo: name,
         reporting_team: team,
       },
     },
