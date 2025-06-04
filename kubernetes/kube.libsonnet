@@ -934,6 +934,12 @@ local environment = std.extVar('environment');
               nodeSelector: {
                 'outreach.io/nodepool': 'ondemand',
               },
+              tolerations: [{ 
+                operator: 'Equal',
+                key: "dedicated",
+                value: "ondemand",
+                effect: "NoSchedule"
+              }],
               priorityClassName: 'system-cluster-critical',
             },
           },
