@@ -947,4 +947,21 @@ local environment = std.extVar('environment');
       }),
     },
   },
+  GatewayConfig(name='gateway', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+    metadata+: {
+      labels+: {
+        name: name,
+        reporting_team: team,
+      },
+      annotations+: {
+        'cert-manager.io/cluster-issuer': 'letsencrypt-prod',
+        'service.beta.kubernetes.io/aws-load-balancer-type': 'external',
+        'service.beta.kubernetes.io/aws-load-balancer-nlb-target-type': 'ip',
+        'service.beta.kubernetes.io/aws-load-balancer-scheme': 'internet-facing',
+      },
+    },
+    spec+: {
+      gatewayClassName: 'istio',
+    },
+  },
 }
