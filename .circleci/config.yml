@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  shared: getoutreach/shared@dev:2.31.0-rc.1
+  shared: getoutreach/shared@2.32.1
   aws-s3: circleci/aws-s3@4.1.0
 jobs:
   test:
