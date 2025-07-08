@@ -961,7 +961,54 @@ local environment = std.extVar('environment');
       },
     },
     spec+: {
+      listeners+: [{
+        name: 'https',
+        port: 443,
+        protocol: 'HTTPS',
+        tls: {
+          mode: 'Terminate',
+          certificateRefs: [{
+            kind: 'Secret',
+            name: 'tls-certificate',
+          }],
+        },
+        allowedRoutes: {
+          namespaces: {
+            from: 'Same',
+          },
+        },
+      }],
       gatewayClassName: 'istio',
+    },
+  },
+  HttpRoute(name='httproute', namespace, team, gateway, service): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace, gateway=gateway, service=service) {
+    metadata+: {
+      labels+: {
+        name: name,
+        reporting_team: team,
+      },
+    },
+    spec+: {
+      parentRefs+: [{
+        name: gateway,
+        kind: 'Gateway',
+      }],
+      rules+: [{
+        matches: [{
+          path: {
+            type: 'Prefix',
+            value: '/',
+          },
+        }],
+      }],
+      backendRefs+: [{
+        name: service,
+        kind: 'Service',
+        port: {
+          number: 15008,
+        },
+      }],
+      hostnames: ['*'],
     },
   },
 }
