@@ -968,7 +968,7 @@ local environment = std.extVar('environment');
         tls: {
           mode: 'Terminate',
           certificateRefs: [{
-            name: name-"cert",
+            name: name + '-cert',
           }],
         },
         allowedRoutes: {
