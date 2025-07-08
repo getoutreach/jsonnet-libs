@@ -980,7 +980,7 @@ local environment = std.extVar('environment');
       gatewayClassName: 'istio',
     },
   },
-  HttpRoute(name='httproute', namespace, team, gateway, service): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace, gateway=gateway, service=service) {
+  HttpRoute({ name, namespace, team, gateway, service }): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace, gateway=gateway, service=service) {
     metadata+: {
       labels+: {
         name: name,
