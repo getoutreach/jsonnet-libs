@@ -947,7 +947,7 @@ local environment = std.extVar('environment');
       }),
     },
   },
-  GatewayConfig(name='gateway', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace, team=team) {
+  GatewayConfig(name='gateway', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace, team) {
     metadata+: {
       labels+: {
         name: name,
