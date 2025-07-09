@@ -947,7 +947,7 @@ local environment = std.extVar('environment');
       }),
     },
   },
-  GatewayConfig(name='gateway', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+  GatewayConfig(name='gateway', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace, team=team) {
     metadata+: {
       labels+: {
         name: name,
@@ -980,7 +980,7 @@ local environment = std.extVar('environment');
       gatewayClassName: 'istio',
     },
   },
-  HttpRoute({ name, namespace, team, gateway, service }): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace, gateway=gateway, service=service) {
+  HttpRoute(name='httproute',namespace, team, gateway, service): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace, team=team, gateway=gateway, service=service) {
     metadata+: {
       labels+: {
         name: name,
