@@ -957,7 +957,6 @@ local environment = std.extVar('environment');
         'service.beta.kubernetes.io/aws-load-balancer-type': 'external',
         'service.beta.kubernetes.io/aws-load-balancer-nlb-target-type': 'ip',
         'service.beta.kubernetes.io/aws-load-balancer-scheme': 'internet-facing',
-        'service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy': 'ELBSecurityPolicy-TLS13-1-2-Res-2021-06',
       },
     },
     spec+: {    
