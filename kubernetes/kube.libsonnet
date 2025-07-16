@@ -828,7 +828,7 @@ local environment = std.extVar('environment');
     },
   },
 
-  VaultSecret(name, namespace, namePrefix='', nameSuffix=''): $._Object('secrets.outreach.io/v1alpha1', 'VaultSecret', name, namespace=namespace) {
+  VaultSecret(name, namespace, alias=''): $._Object('secrets.outreach.io/v1alpha1', 'VaultSecret', name, namespace=namespace) {
     vaultPath_:: error 'vaultPath_ is required',
     local this = self,
     metadata+: {
@@ -840,8 +840,7 @@ local environment = std.extVar('environment');
     spec: {
       reconciled: false,
       vaultPath: this.vaultPath_,
-      [if namePrefix != '' then 'secretNamePrefix']: namePrefix,
-      [if nameSuffix != '' then 'secretNameSuffix']: nameSuffix,
+      [if alias != '' then 'alias']: alias,
     },
   },
 
