@@ -67,11 +67,12 @@ local appImageRegistry = std.extVar('appImageRegistry');
       'http-o2p': { containerPort: this.listen_port },
     },
     resources: {
-      limits: self.requests {
+      limits: {
+        cpu: '300m',
         memory: '200Mi',
       },
       requests: {
-        cpu: '10m',
+        cpu: '100m',
         memory: '110Mi',
       },
     },
