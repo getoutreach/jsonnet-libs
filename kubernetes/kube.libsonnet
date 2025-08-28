@@ -915,7 +915,7 @@ local environment = std.extVar('environment');
           parametersRef: {
             group: '',
             kind: 'ConfigMap',
-            name: 'waypoint-config',
+            name: name,
           },
         },
       },
