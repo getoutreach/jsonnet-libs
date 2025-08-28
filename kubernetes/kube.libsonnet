@@ -953,7 +953,7 @@ local environment = std.extVar('environment');
       scaleTargetRef: {
         apiVersion: 'apps/v1',
         kind: 'Deployment',
-        name: $.WaypointProxy.name,
+        name: name,
       },
       minReplicas: 1,
       maxReplicas: 3,
@@ -975,7 +975,7 @@ local environment = std.extVar('environment');
       minAvailable: 1,
       selector: {
         matchLabels: {
-          name: self.WaypointProxy.name,
+          name: name,
         },
       },
     },
