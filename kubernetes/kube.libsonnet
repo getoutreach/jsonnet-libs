@@ -928,56 +928,60 @@ local environment = std.extVar('environment');
       },
     },
     data+: {
-      deployment+: std.manifestYamlDoc({
+      deployment: std.manifestYamlDoc({
         spec: {
           template: {
             spec: {
               nodeSelector: {
                 'outreach.io/nodepool': 'ondemand',
               },
-              tolerations: [{ 
-                operator: 'Equal',
-                key: "dedicated",
-                value: "ondemand",
-                effect: "NoSchedule"
-              }],
               priorityClassName: 'system-cluster-critical',
+              tolerations: [{
+                effect: 'NoSchedule',
+                key: 'dedicated',
+                operator: 'Equal',
+                value: 'ondemand',
+              }],
+              topologySpreadConstraints: [{
+                labelSelector: {
+                  matchLabels: {
+                    'gateway.networking.k8s.io/gateway-name': 'scaleops-waypoint',
+                  },
+                },
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+              }],
             },
           },
         },
       }),
-    },
-  },
-  WaypointProxyHpa(name='waypoint-hpa', namespace, team): $._Object('autoscaling/v2', 'HorizontalPodAutoscaler', name, namespace=namespace) {
-    spec+: {
-      scaleTargetRef: {
-        apiVersion: 'apps/v1',
-        kind: 'Deployment',
-        name: name,
-      },
-      minReplicas: 1,
-      maxReplicas: 3,
-      metrics: [{
-        type: 'Resource',
-        resource: {
-          name: 'cpu',
-          target: {
-            type: 'Utilization',
-            averageUtilization: 60,
+      horizontalPodAutoscaler: std.manifestYamlDoc({
+        spec: {
+          minReplicas: 2,
+          maxReplicas: 6,
+          scaleTargetRef: {
+            apiVersion: 'apps/v1',
+            kind: 'Deployment',
+            name: 'scaleops-waypoint',
           },
+          metrics: [{
+            type: 'Resource',
+            resource: {
+              name: 'cpu',
+              target: {
+                type: 'Utilization',
+                averageUtilization: 80,
+              },
+            },
+          }],
         },
-      }],
-    },
-  },
-
-  WaypointProxyPdb(name='waypoint-pdb', namespace, team): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
-    spec+: {
-      minAvailable: 1,
-      selector: {
-        matchLabels: {
-          name: name,
+      }),
+      podDisruptionBudget: std.manifestYamlDoc({
+        spec: {
+          minAvailable: 1,
         },
-      },
+      }),
     },
   },
 
