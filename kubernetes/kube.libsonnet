@@ -948,6 +948,28 @@ local environment = std.extVar('environment');
       }),
     },
   },
+  WaypointProxyHpa(name='waypoint-hpa', namespace, team): $._Object('autoscaling/v2', 'HorizontalPodAutoscaler', name, namespace=namespace) {
+    spec+: {
+      scaleTargetRef: {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: self.WaypointProxy.name,
+      },
+      minReplicas: 1,
+      maxReplicas: 3,
+      metrics: [{
+        type: 'Resource',
+        resource: {
+          name: 'cpu',
+          target: {
+            type: 'Utilization',
+            averageUtilization: 60,
+          },
+        },
+      }],
+    },
+  },
+
   GatewayConfig(name='gateway', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
