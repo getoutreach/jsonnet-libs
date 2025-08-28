@@ -921,7 +921,7 @@ local environment = std.extVar('environment');
       },
     },
 
-  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap('waypoint-config', namespace, team) {
+  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
         reporting_team: team,
