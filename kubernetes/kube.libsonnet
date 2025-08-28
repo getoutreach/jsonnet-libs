@@ -928,7 +928,7 @@ local environment = std.extVar('environment');
       },
     },
     data+: {
-      deployment: std.manifestYamlDoc({
+      deployment+: std.manifestYamlDoc({
         spec: {
           template: {
             spec: {
@@ -956,7 +956,7 @@ local environment = std.extVar('environment');
           },
         },
       }),
-      horizontalPodAutoscaler: std.manifestYamlDoc({
+      horizontalPodAutoscaler+: std.manifestYamlDoc({
         spec: {
           minReplicas: 2,
           maxReplicas: 6,
@@ -977,7 +977,7 @@ local environment = std.extVar('environment');
           }],
         },
       }),
-      podDisruptionBudget: std.manifestYamlDoc({
+      podDisruptionBudget+: std.manifestYamlDoc({
         spec: {
           minAvailable: 1,
         },
