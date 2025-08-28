@@ -970,6 +970,17 @@ local environment = std.extVar('environment');
     },
   },
 
+  WaypointProxyPdb(name='waypoint-hpa', namespace, team): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
+    spec+: {
+      minAvailable: 1,
+      selector: {
+        matchLabels: {
+          name: self.WaypointProxy.name,
+        },
+      },
+    },
+  },
+
   GatewayConfig(name='gateway', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
