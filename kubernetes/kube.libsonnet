@@ -970,7 +970,7 @@ local environment = std.extVar('environment');
     },
   },
 
-  WaypointProxyPdb(name='waypoint-hpa', namespace, team): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
+  WaypointProxyPdb(name='waypoint-pdb', namespace, team): $._Object('policy/v1', 'PodDisruptionBudget', name, namespace=namespace) {
     spec+: {
       minAvailable: 1,
       selector: {
