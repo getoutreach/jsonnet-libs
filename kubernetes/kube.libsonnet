@@ -935,19 +935,56 @@ local environment = std.extVar('environment');
               nodeSelector: {
                 'outreach.io/nodepool': 'ondemand',
               },
-              tolerations: [{ 
-                operator: 'Equal',
-                key: "dedicated",
-                value: "ondemand",
-                effect: "NoSchedule"
-              }],
               priorityClassName: 'system-cluster-critical',
+              tolerations: [{
+                effect: 'NoSchedule',
+                key: 'dedicated',
+                operator: 'Equal',
+                value: 'ondemand',
+              }],
+              topologySpreadConstraints: [{
+                labelSelector: {
+                  matchLabels: {
+                    'gateway.networking.k8s.io/gateway-name': name,
+                  },
+                },
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+              }],
             },
           },
         },
       }),
+      horizontalPodAutoscaler+: std.manifestYamlDoc({
+        spec: {
+          minReplicas: 2,
+          maxReplicas: 6,
+          scaleTargetRef: {
+            apiVersion: 'apps/v1',
+            kind: 'Deployment',
+            name: name,
+          },
+          metrics: [{
+            type: 'Resource',
+            resource: {
+              name: 'cpu',
+              target: {
+                type: 'Utilization',
+                averageUtilization: 80,
+              },
+            },
+          }],
+        },
+      }),
+      podDisruptionBudget+: std.manifestYamlDoc({
+        spec: {
+          minAvailable: 1,
+        },
+      }),
     },
   },
+
   GatewayConfig(name='gateway', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
