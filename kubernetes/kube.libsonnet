@@ -945,7 +945,7 @@ local environment = std.extVar('environment');
               topologySpreadConstraints: [{
                 labelSelector: {
                   matchLabels: {
-                    'gateway.networking.k8s.io/gateway-name': 'scaleops-waypoint',
+                    'gateway.networking.k8s.io/gateway-name': name,
                   },
                 },
                 maxSkew: 1,
@@ -963,7 +963,7 @@ local environment = std.extVar('environment');
           scaleTargetRef: {
             apiVersion: 'apps/v1',
             kind: 'Deployment',
-            name: 'scaleops-waypoint',
+            name: name,
           },
           metrics: [{
             type: 'Resource',
