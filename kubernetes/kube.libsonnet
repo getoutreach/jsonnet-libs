@@ -953,6 +953,17 @@ local environment = std.extVar('environment');
                 whenUnsatisfiable: 'DoNotSchedule',
               }],
             },
+            containers: [{
+              resources: {
+                requests: {
+                  cpu: '500m',
+                  memory: '200Mi',
+                },
+                limits: {
+                  memory: '150Mi',
+                },
+              },
+            }],
           },
         },
       }),
