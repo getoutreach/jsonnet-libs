@@ -952,18 +952,19 @@ local environment = std.extVar('environment');
                 topologyKey: 'topology.kubernetes.io/zone',
                 whenUnsatisfiable: 'DoNotSchedule',
               }],
-            },
-            containers: [{
-              resources: {
-                requests: {
-                  cpu: '500m',
-                  memory: '200Mi',
-                },
-                limits: {
-                  memory: '150Mi',
-                },
-              },
-            }],
+                containers: [{
+                  name: 'istio-proxy',
+                  resources: {
+                    limits: {
+                      memory: '1Gi',
+                    },
+                    requests: {
+                      cpu: '500m',
+                      memory: '200Mi',
+                    },
+                  },
+                }],
+                memory: 200Mi
           },
         },
       }),
