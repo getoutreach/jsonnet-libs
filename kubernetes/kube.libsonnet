@@ -964,7 +964,7 @@ local environment = std.extVar('environment');
                     },
                   },
                 }],
-                memory: 200Mi
+            },
           },
         },
       }),
