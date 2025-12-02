@@ -895,7 +895,7 @@ local environment = std.extVar('environment');
 
   // Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
   // Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
-  WaypointProxy(name='waypoint', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+  WaypointProxy(name, namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
         name: name,
@@ -921,7 +921,7 @@ local environment = std.extVar('environment');
       },
     },
 
-  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
+  WaypointProxyConfig(name, namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
         reporting_team: team,
@@ -997,7 +997,7 @@ local environment = std.extVar('environment');
     },
   },
 
-  GatewayConfig(name='gateway', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+  GatewayConfig(name, namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
         name: name,
@@ -1013,7 +1013,7 @@ local environment = std.extVar('environment');
       gatewayClassName: 'istio',
     },
   },
-  HttpRoute(name='httproute', namespace): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace) {
+  HttpRoute(name, namespace): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace) {
     metadata+: {
       labels+: {
         name: name,
