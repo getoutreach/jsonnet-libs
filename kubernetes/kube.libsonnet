@@ -215,7 +215,13 @@ local environment = std.extVar('environment');
       // },
 
       spec: {
-        selector: service.target_pod.metadata.labels,
+        selector: std.mergePatch(service.target_pod.metadata.labels, {
+          // version was recently added to all services via stencil-golang
+          // this is a tmp patch to remove it from the service selector
+          // TODO(fnd-cor): consider a better long-term fix here to avoid
+          // leaking any unwanted labels into service selectors
+          version: null,
+        }),
         ports: [
           {
             local target_port = service.target_pod.spec.containers[0].ports[0],
