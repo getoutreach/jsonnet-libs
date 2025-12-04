@@ -220,7 +220,7 @@ local environment = std.extVar('environment');
           // this is a tmp patch to remove it from the service selector
           // TODO(fnd-cor): consider a better long-term fix here to avoid
           // leaking any unwanted labels into service selectors
-          [ if environment == 'staging' then 'version']: null,
+          version: null,
         }),
         ports: [
           {
