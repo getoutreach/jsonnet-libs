@@ -15,7 +15,6 @@ local k = import 'kubernetes/kube.libsonnet';
   },
   Grant(privileges, pattern): {
     assert std.length(privileges) > 0 : 'privileges(array of string) is required',
-    assert pattern != '' : 'pattern is required',
     privileges: privileges,
     pattern: pattern,
   },
