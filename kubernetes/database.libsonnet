@@ -13,9 +13,14 @@ local k = import 'kubernetes/kube.libsonnet';
       auth: this.auth,
     },
   },
-  Grant(privileges, pattern): {
-    assert std.length(privileges) > 0 : 'privileges(array of string) is required',
+  Grant(privileges=null, roles=null, pattern=null): {
+    assert std.xor(
+      !std.isNull(privileges) && std.length(privileges) > 0,
+      !std.isNull(roles) && std.length(roles) > 0,
+    ) : 'exactly one of privileges(array of string) or roles(array of string) is required',
+    assert std.isNull(privileges) || std.length(privileges) == 0 || pattern != '' : 'pattern is required when privileges are used',
     privileges: privileges,
+    roles: roles,
     pattern: pattern,
   },
   // PostgresqlClusterServiceAssignment is used to provision the resources for a service to be able to connect to a database cluster.
