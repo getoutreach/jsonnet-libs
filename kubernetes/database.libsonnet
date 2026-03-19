@@ -6,12 +6,12 @@ local k = import 'kubernetes/kube.libsonnet';
     vault:: null,
     auth:: 'mysql',
     local this = self,
-    spec: {
+    spec: std.prune({
       username: this.username,
       grants: this.grants,
       vault: this.vault,
       auth: this.auth,
-    },
+    }),
   },
   Grant(privileges=null, roles=null, pattern=null): {
     assert std.xor(
