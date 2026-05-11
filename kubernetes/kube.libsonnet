@@ -1024,7 +1024,15 @@ local environment = std.extVar('environment');
       gatewayClassName: 'istio',
     },
   },
-  HttpRoute(name='httproute', namespace): $._Object('gateway.networking.k8s.io/v1', 'HttpRoute', name, namespace=namespace) {
+  HttpRoute(name='httproute', namespace): $._Object('gateway.networking.k8s.io/v1', 'HTTPRoute', name, namespace=namespace) {
+    metadata+: {
+      labels+: {
+        name: name,
+      },
+    },
+    spec+: {},
+  },
+  GrpcRoute(name='grpcroute', namespace): $._Object('gateway.networking.k8s.io/v1', 'GRPCRoute', name, namespace=namespace) {
     metadata+: {
       labels+: {
         name: name,
