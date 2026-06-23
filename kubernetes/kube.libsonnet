@@ -942,6 +942,11 @@ local environment = std.extVar('environment');
       deployment+: std.manifestYamlDoc({
         spec: {
           template: {
+            metadata: {
+              annotations: {
+                'scaleops.sh/default-rightsize-policy': 'high-availability',
+              },
+            },
             spec: {
               nodeSelector: {
                 'outreach.io/nodepool': 'ondemand',
