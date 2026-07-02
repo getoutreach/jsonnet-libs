@@ -12,7 +12,6 @@ for test in "$TEST_DIR"/*.jsonnet; do
     snapshot="$(dirname "$test")/$filename.snap"
     result=$(mktemp)
     kubecfg \
-    --jurl http://k8s-clusters.outreach.cloud/ \
     --jurl https://raw.githubusercontent.com/getoutreach/jsonnet-libs/master \
     --jpath "$DIR/../" \
     -V environment=development \
