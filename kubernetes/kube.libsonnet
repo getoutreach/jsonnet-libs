@@ -827,7 +827,29 @@ local environment = std.extVar('environment');
   // honorLabels off, a minimal podTargetLabels allowlist, an OTel Target
   // Allocator marker label, and a central metric-relabeling hook.
   //
-  // Pass the workload's pod template, e.g. target_pod:: $.deployment.spec.template.
+  // Minimal usage (pod has a 'metrics'/'http-prom' container port):
+  // ```
+  // podmonitor: ok.PodMonitor(app.name, app.namespace) {
+  //   target_pod:: $.deployment.spec.template,
+  // },
+  // ```
+  //
+  // Common overrides:
+  // ```
+  // podmonitor: ok.PodMonitor(app.name, app.namespace) {
+  //   target_pod:: $.deployment.spec.template,
+  //   // drop noisy series; central rules are always appended last
+  //   centralMetricRelabelings:: [
+  //     { sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' },
+  //   ],
+  //   spec+: {
+  //     // per-endpoint tuning, keyed by the container port name
+  //     podMetricsEndpoints_+:: { 'http-prom': { interval: '30s' } },
+  //     // copy an extra pod label onto every series (default: ['app'])
+  //     podTargetLabels_:: ['app', 'reporting_team'],
+  //   },
+  // },
+  // ```
   PodMonitor(name, namespace, app=name): $._Object(
     'monitoring.coreos.com/v1',
     'PodMonitor',
