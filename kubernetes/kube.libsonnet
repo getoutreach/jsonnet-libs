@@ -782,6 +782,34 @@ local environment = std.extVar('environment');
     },
   },
 
+  // ServiceMonitor selects a Service and scrapes its metrics port. Pass the
+  // target Service via target_service:: -- the metrics port (named or targeting
+  // 'metrics', else the sole port) and selector are derived from it.
+  //
+  // Minimal usage (no overrides needed for a stencil service with a 'metrics'
+  // port):
+  // ```
+  // servicemonitor: ok.ServiceMonitor(app.name, app.namespace) {
+  //   target_service:: $.service,
+  // },
+  // ```
+  //
+  // Common overrides:
+  // ```
+  // servicemonitor: ok.ServiceMonitor(app.name, app.namespace) {
+  //   target_service:: $.service,
+  //   // drop noisy series; central rules are always appended last
+  //   centralMetricRelabelings:: [
+  //     { sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' },
+  //   ],
+  //   spec+: {
+  //     // per-endpoint tuning, keyed by the Service port's targetPort
+  //     endpoints_+:: { 'http-prom': { interval: '30s' } },
+  //     // copy an extra Service label onto every series (default: ['app'])
+  //     targetLabels_:: ['app', 'reporting_team'],
+  //   },
+  // },
+  // ```
   ServiceMonitor(name, namespace, app=name): $._Object(
     'monitoring.coreos.com/v1',
     'ServiceMonitor',
