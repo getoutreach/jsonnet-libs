@@ -822,6 +822,82 @@ local environment = std.extVar('environment');
     },
   },
 
+  // PodMonitor scrapes pods directly, for apps that do not expose a Service
+  // with a metrics port. Mirrors ServiceMonitor's defaults: minimal selector,
+  // honorLabels off, a minimal podTargetLabels allowlist, an OTel Target
+  // Allocator marker label, and a central metric-relabeling hook.
+  //
+  // Pass the workload's pod template, e.g. target_pod:: $.deployment.spec.template.
+  PodMonitor(name, namespace, app=name): $._Object(
+    'monitoring.coreos.com/v1',
+    'PodMonitor',
+    name,
+    app=app,
+    namespace=namespace,
+  ) {
+    target_pod:: error 'target_pod required',
+
+    local this = self,
+
+    // Flatten every container port on the pod. Container ports have a name and
+    // containerPort (no targetPort -- that only exists on Services).
+    local pod_ports = std.flattenArrays([
+      if std.objectHas(c, 'ports') then c.ports else []
+      for c in this.target_pod.spec.containers
+    ]),
+    // Container port names that identify the metrics port. Note this is the
+    // CONTAINER port name: stencil names it 'http-prom' (the Service port named
+    // 'metrics' targets it), so match both.
+    local metrics_port_names = ['metrics', 'http-prom'],
+    local matched_ports = std.filter(function(p) std.member(metrics_port_names, p.name), pod_ports),
+    local default_port =
+      if std.length(matched_ports) > 0 then matched_ports[0]
+      // No metrics-named port: fall back to the sole port when unambiguous.
+      else if std.length(pod_ports) == 1 then pod_ports[0]
+      // Multiple ports and none is a metrics port -> refuse to guess.
+      else error 'PodMonitor(%s): target_pod has multiple ports and none is named one of [%s]; set spec.podMetricsEndpoints_ explicitly' % [name, std.join(', ', metrics_port_names)],
+
+    // Central metric_relabel_configs applied to every endpoint, appended AFTER
+    // caller-supplied rules so platform-wide guardrails can't be dropped by a
+    // team's podMetricsEndpoints_ entry.
+    centralMetricRelabelings:: [],
+
+    // Marker label the OTel Target Allocator's podMonitorSelector keys off.
+    // Keep in sync with the collector's
+    // targetAllocator.prometheusCR.podMonitorSelector.
+    scrapeLabels_:: { 'monitoring.outreach.io/otel-scrape': 'true' },
+
+    metadata+: { labels+: this.scrapeLabels_ },
+    spec: {
+      // Pod labels copied onto every scraped series. Keep minimal -- each entry
+      // multiplies cardinality (and storage). Extend via podTargetLabels_.
+      podTargetLabels_:: ['app'],
+
+      // map-based sugar around self.podMetricsEndpoints, keyed by port name
+      podMetricsEndpoints_:: { [default_port.name]: {} },
+      // override this to explicitly adhere to the operator's API
+      podMetricsEndpoints: [
+        // honorLabels defaults to false: app-exposed labels must not clobber
+        // topology labels (job/namespace/pod) or the jobLabel below.
+        local base = { honorLabels: false, interval: '1m', port: p } + this.spec.podMetricsEndpoints_[p];
+        local metricRelabelings =
+          (if std.objectHas(base, 'metricRelabelings') then base.metricRelabelings else [])
+          + this.centralMetricRelabelings;
+        base + (if std.length(metricRelabelings) > 0 then { metricRelabelings: metricRelabelings } else {})
+        for p in std.objectFields(this.spec.podMetricsEndpoints_)
+      ],
+      jobLabel: 'app',
+      // Minimal, stable selector against the pod's identity label. Override via
+      // selectorLabels_ if a different match is needed. (namespaceSelector is
+      // omitted so the operator defaults to the PodMonitor's own namespace.)
+      selectorLabels_:: { name: this.target_pod.metadata.labels.name },
+      selector: {
+        matchLabels: this.spec.selectorLabels_,
+      },
+      podTargetLabels: this.spec.podTargetLabels_,
+    },
+  },
+
   Mixins: {
     'cluster-service': {
       metadata+: {
