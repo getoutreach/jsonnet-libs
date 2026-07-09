@@ -793,32 +793,67 @@ local environment = std.extVar('environment');
 
     local this = self,
 
-    // discover metrics port if exists, else use first port
-    // whatever this resolves to is only used as the default
-    // if spec.endpoints|spec.endpoints_ aren't specified below
-    local default_port = (
-      local ports = this.target_service.spec.ports;
-      std.filter(function(p) std.setMember('metrics', [p.name, p.targetPort]), ports)
-      + this.target_service.spec.ports
-    )[0],
+    // Discover the port to scrape.
+    // Note: use std.member, not std.setMember -- the latter assumes a sorted
+    // set and misdetects when targetPort == 'metrics' but the port name sorts
+    // after 'metrics'.
+    local ports = this.target_service.spec.ports,
+    local matched_ports = std.filter(
+      function(p) std.member([p.name, p.targetPort], 'metrics'),
+      ports,
+    ),
+    local default_port =
+      if std.length(matched_ports) > 0 then matched_ports[0]
+      // No 'metrics' port: fall back to the sole port when unambiguous
+      // (common for apps serving /metrics on their only port).
+      else if std.length(ports) == 1 then ports[0]
+      // Multiple ports and none is 'metrics' -> refuse to guess (objectFields
+      // sorting could pick e.g. the gRPC port). Set spec.endpoints_ explicitly.
+      else error 'ServiceMonitor(%s): target_service has multiple ports and none is named or targets "metrics"; set spec.endpoints_ explicitly' % name,
 
-    metadata+: { labels+: { 'prometheus.io/scrape': 'true' } },
+    // Central metric_relabel_configs applied to every endpoint, appended AFTER
+    // any caller-supplied rules so platform-wide cardinality/cost guardrails
+    // cannot be dropped by a team's endpoints_ entry. Populate cluster-wide
+    // drop/keep rules here.
+    centralMetricRelabelings:: [],
+
+    // Marker label the OTel Target Allocator's serviceMonitorSelector keys off.
+    // Keep in sync with the collector's
+    // targetAllocator.prometheusCR.serviceMonitorSelector.
+    scrapeLabels_:: { 'monitoring.outreach.io/otel-scrape': 'true' },
+
+    metadata+: { labels+: this.scrapeLabels_ },
     spec: {
+      // Labels copied from the target Service onto every scraped series. Keep
+      // this minimal -- each entry multiplies label cardinality (and storage)
+      // across all metrics. Extend via targetLabels_ when a label is needed.
+      targetLabels_:: ['app'],
+
       // endpoint-level config here will override defaults
       // this is just map-based sugar around self.endpoints
       endpoints_:: { [default_port.targetPort]: {} },
       // override this to explicitly adhere to the operator's API
       // and ignore all of the above, which is simply sugar
       endpoints: [
-        { honorLabels: true, interval: '1m', targetPort: p }
-        + this.spec.endpoints_[p]
+        // honorLabels defaults to false: app-exposed labels must not clobber
+        // topology labels (job/namespace/instance) or the jobLabel below.
+        local base = { honorLabels: false, interval: '1m', targetPort: p } + this.spec.endpoints_[p];
+        local metricRelabelings =
+          (if std.objectHas(base, 'metricRelabelings') then base.metricRelabelings else [])
+          + this.centralMetricRelabelings;
+        base + (if std.length(metricRelabelings) > 0 then { metricRelabelings: metricRelabelings } else {})
         for p in std.objectFields(this.spec.endpoints_)
       ],
       jobLabel: 'app',
+      // Minimal, stable selector -- match only the target Service's identity.
+      // The old default matched the full label set, which would silently break
+      // the SM if any label (repo/bento/reporting_team/...) changed. Override
+      // via selectorLabels_ if a different match is needed.
+      selectorLabels_:: { name: this.target_service.metadata.name },
       selector: {
-        matchLabels: this.target_service.metadata.labels,
+        matchLabels: this.spec.selectorLabels_,
       },
-      targetLabels: std.objectFields(this.target_service.metadata.labels),
+      targetLabels: this.spec.targetLabels_,
     },
   },
 
