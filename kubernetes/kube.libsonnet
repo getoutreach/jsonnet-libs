@@ -800,13 +800,13 @@ local environment = std.extVar('environment');
   // ```
   // servicemonitor: ok.ServiceMonitor(app.name, app.namespace, interval='60s') {
   //   target_service:: $.service,
-  //   // drop noisy series; central rules are always appended last
-  //   centralMetricRelabelings:: [
-  //     { sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' },
-  //   ],
   //   spec+: {
   //     // per-endpoint tuning, keyed by the Service port's targetPort
-  //     endpoints_+:: { 'http-prom': { interval: '15s' } },
+  //     endpoints_+:: { 'http-prom': {
+  //       interval: '15s',
+  //       // drop noisy series
+  //       metricRelabelings: [{ sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' }],
+  //     } },
   //     // restrict which Service labels are copied (default: all of them)
   //     targetLabels_:: ['app', 'repo'],
   //   },
@@ -841,12 +841,6 @@ local environment = std.extVar('environment');
       // sorting could pick e.g. the gRPC port). Set spec.endpoints_ explicitly.
       else error 'ServiceMonitor(%s): target_service has multiple ports and none is named or targets "metrics"; set spec.endpoints_ explicitly' % name,
 
-    // Central metric_relabel_configs applied to every endpoint, appended AFTER
-    // any caller-supplied rules so platform-wide cardinality/cost guardrails
-    // cannot be dropped by a team's endpoints_ entry. Populate cluster-wide
-    // drop/keep rules here.
-    centralMetricRelabelings:: [],
-
     spec: {
       // All Service labels are copied onto every scraped series -- they carry
       // the low-cardinality dimensions (repo/bento/reporting_team/...) that
@@ -863,11 +857,7 @@ local environment = std.extVar('environment');
       endpoints: [
         // interval defaults to the constructor's `interval` arg (30s); override
         // per-endpoint via endpoints_.
-        local base = { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p];
-        local metricRelabelings =
-          (if std.objectHas(base, 'metricRelabelings') then base.metricRelabelings else [])
-          + this.centralMetricRelabelings;
-        base + (if std.length(metricRelabelings) > 0 then { metricRelabelings: metricRelabelings } else {})
+        { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p]
         for p in std.objectFields(this.spec.endpoints_)
       ],
       jobLabel: 'app',

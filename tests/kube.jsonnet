@@ -28,7 +28,7 @@ assert std.length(resources.deployment.spec.template.spec.containers_.test.envFr
 assert std.objectHas(resources.deployment.spec.template.spec.containers_.test.envFrom[1], 'secretRef');
 assert resources.deployment.spec.template.spec.containers_.test.envFrom[1].secretRef == { name: 'secret' };
 
-// ServiceMonitor: metrics-port discovery, defaults, and central metric relabelings.
+// ServiceMonitor: metrics-port discovery, defaults, and relabelings.
 local svc = {
   metadata: { name: 'test', namespace: 'test', labels: {
     name: 'test', app: 'test', repo: 'test', reporting_team: 'fnd-pc',
@@ -77,15 +77,13 @@ assert std.length(smSinglePort.spec.endpoints) == 1;
 assert smSinglePort.spec.endpoints[0].targetPort == 'http';
 assert smSinglePort.spec.endpoints[0].interval == '15s';
 
-// central rules run last; caller rules (via endpoints_) run first.
+// per-endpoint metricRelabelings pass through via endpoints_.
 local smRelabel = k.ServiceMonitor('test', 'test') {
   target_service:: svc,
-  centralMetricRelabelings:: [{ regex: 'central', action: 'drop' }],
   spec+: { endpoints_:: { metrics: { metricRelabelings: [{ regex: 'team', action: 'keep' }] } } },
 };
 assert smRelabel.spec.endpoints[0].metricRelabelings == [
   { regex: 'team', action: 'keep' },
-  { regex: 'central', action: 'drop' },
 ];
 
 resources
