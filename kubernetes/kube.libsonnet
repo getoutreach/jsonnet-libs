@@ -784,7 +784,9 @@ local environment = std.extVar('environment');
 
   // ServiceMonitor selects a Service and scrapes its metrics port. Pass the
   // target Service via target_service:: -- the metrics port (named or targeting
-  // 'metrics', else the sole port) and selector are derived from it.
+  // 'metrics', else the sole port) and selector are derived from it. All
+  // Service labels are copied onto the series; scrape interval defaults to 30s
+  // (override via the `interval` arg).
   //
   // Minimal usage (no overrides needed for a stencil service with a 'metrics'
   // port):
@@ -796,7 +798,7 @@ local environment = std.extVar('environment');
   //
   // Common overrides:
   // ```
-  // servicemonitor: ok.ServiceMonitor(app.name, app.namespace) {
+  // servicemonitor: ok.ServiceMonitor(app.name, app.namespace, interval='60s') {
   //   target_service:: $.service,
   //   // drop noisy series; central rules are always appended last
   //   centralMetricRelabelings:: [
@@ -804,13 +806,13 @@ local environment = std.extVar('environment');
   //   ],
   //   spec+: {
   //     // per-endpoint tuning, keyed by the Service port's targetPort
-  //     endpoints_+:: { 'http-prom': { interval: '30s' } },
-  //     // copy an extra Service label onto every series (default: ['app'])
-  //     targetLabels_:: ['app', 'reporting_team'],
+  //     endpoints_+:: { 'http-prom': { interval: '15s' } },
+  //     // restrict which Service labels are copied (default: all of them)
+  //     targetLabels_:: ['app', 'repo'],
   //   },
   // },
   // ```
-  ServiceMonitor(name, namespace, app=name): $._Object(
+  ServiceMonitor(name, namespace, app=name, interval='30s'): $._Object(
     'monitoring.coreos.com/v1',
     'ServiceMonitor',
     name,
@@ -845,17 +847,13 @@ local environment = std.extVar('environment');
     // drop/keep rules here.
     centralMetricRelabelings:: [],
 
-    // Marker label the OTel Target Allocator's serviceMonitorSelector keys off.
-    // Keep in sync with the collector's
-    // targetAllocator.prometheusCR.serviceMonitorSelector.
-    scrapeLabels_:: { 'monitoring.outreach.io/otel-scrape': 'true' },
-
-    metadata+: { labels+: this.scrapeLabels_ },
     spec: {
-      // Labels copied from the target Service onto every scraped series. Keep
-      // this minimal -- each entry multiplies label cardinality (and storage)
-      // across all metrics. Extend via targetLabels_ when a label is needed.
-      targetLabels_:: ['app'],
+      // All Service labels are copied onto every scraped series -- they carry
+      // the low-cardinality dimensions (repo/bento/reporting_team/...) that
+      // downstream consumers rely on, and this is the only place to surface
+      // them. Any renames (e.g. reporting_team -> team) are done centrally in
+      // the collector pipeline, not here. Override targetLabels_ to restrict.
+      targetLabels_:: std.objectFields(this.target_service.metadata.labels),
 
       // endpoint-level config here will override defaults
       // this is just map-based sugar around self.endpoints
@@ -863,9 +861,9 @@ local environment = std.extVar('environment');
       // override this to explicitly adhere to the operator's API
       // and ignore all of the above, which is simply sugar
       endpoints: [
-        // honorLabels defaults to false: app-exposed labels must not clobber
-        // topology labels (job/namespace/instance) or the jobLabel below.
-        local base = { honorLabels: false, interval: '1m', targetPort: p } + this.spec.endpoints_[p];
+        // interval defaults to the constructor's `interval` arg (30s); override
+        // per-endpoint via endpoints_.
+        local base = { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p];
         local metricRelabelings =
           (if std.objectHas(base, 'metricRelabelings') then base.metricRelabelings else [])
           + this.centralMetricRelabelings;
