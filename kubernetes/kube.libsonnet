@@ -873,6 +873,92 @@ local environment = std.extVar('environment');
     },
   },
 
+  // PodMonitor scrapes pods directly, for apps that do not expose a Service
+  // with a metrics port. Mirrors ServiceMonitor's defaults: minimal selector,
+  // honorLabels on, all pod labels copied onto the series, and a 30s scrape
+  // interval.
+  //
+  // Minimal usage (pod has a 'metrics'/'http-prom' container port):
+  // ```
+  // podmonitor: ok.PodMonitor(app.name, app.namespace) {
+  //   target_pod:: $.deployment.spec.template,
+  // },
+  // ```
+  //
+  // Common overrides:
+  // ```
+  // podmonitor: ok.PodMonitor(app.name, app.namespace, interval='60s') {
+  //   target_pod:: $.deployment.spec.template,
+  //   spec+: {
+  //     // per-endpoint tuning, keyed by the container port name
+  //     podMetricsEndpoints_+:: { 'http-prom': {
+  //       interval: '15s',
+  //       // drop noisy series before they leave the pod
+  //       metricRelabelings: [{ sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' }],
+  //     } },
+  //     // restrict which pod labels are copied (default: all of them)
+  //     podTargetLabels_:: ['app', 'repo'],
+  //   },
+  // },
+  // ```
+  PodMonitor(name, namespace, app=name, interval='30s'): $._Object(
+    'monitoring.coreos.com/v1',
+    'PodMonitor',
+    name,
+    app=app,
+    namespace=namespace,
+  ) {
+    target_pod:: error 'target_pod required',
+
+    local this = self,
+
+    // Flatten every container port on the pod. Container ports have a name and
+    // containerPort (no targetPort -- that only exists on Services).
+    local pod_ports = std.flattenArrays([
+      if std.objectHas(c, 'ports') then c.ports else []
+      for c in this.target_pod.spec.containers
+    ]),
+    // Container port names that identify the metrics port. Note this is the
+    // CONTAINER port name: stencil names it 'http-prom' (the Service port named
+    // 'metrics' targets it), so match both.
+    local metrics_port_names = ['metrics', 'http-prom'],
+    local matched_ports = std.filter(function(p) std.member(metrics_port_names, p.name), pod_ports),
+    local default_port =
+      if std.length(matched_ports) > 0 then matched_ports[0]
+      // No metrics-named port: fall back to the sole port when unambiguous.
+      else if std.length(pod_ports) == 1 then pod_ports[0]
+      // Multiple ports and none is a metrics port -> refuse to guess.
+      else error 'PodMonitor(%s): target_pod has multiple ports and none is named one of [%s]; set spec.podMetricsEndpoints_ explicitly' % [name, std.join(', ', metrics_port_names)],
+
+    spec: {
+      // All pod labels are copied onto every scraped series -- they carry the
+      // low-cardinality dimensions (repo/bento/reporting_team/...) that
+      // downstream consumers rely on. Any renames (e.g. reporting_team -> team)
+      // are done centrally in the collector pipeline, not here. Override
+      // podTargetLabels_ to restrict the set.
+      podTargetLabels_:: std.objectFields(this.target_pod.metadata.labels),
+
+      // map-based sugar around self.podMetricsEndpoints, keyed by port name
+      podMetricsEndpoints_:: { [default_port.name]: {} },
+      // override this to explicitly adhere to the operator's API
+      podMetricsEndpoints: [
+        // interval defaults to the constructor's `interval` arg (30s); override
+        // per-endpoint via podMetricsEndpoints_.
+        { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p]
+        for p in std.objectFields(this.spec.podMetricsEndpoints_)
+      ],
+      jobLabel: 'app',
+      // Minimal, stable selector against the pod's identity label. Override via
+      // selectorLabels_ if a different match is needed. (namespaceSelector is
+      // omitted so the operator defaults to the PodMonitor's own namespace.)
+      selectorLabels_:: { name: this.target_pod.metadata.labels.name },
+      selector: {
+        matchLabels: this.spec.selectorLabels_,
+      },
+      podTargetLabels: this.spec.podTargetLabels_,
+    },
+  },
+
   Mixins: {
     'cluster-service': {
       metadata+: {
