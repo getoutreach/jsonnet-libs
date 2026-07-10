@@ -782,7 +782,37 @@ local environment = std.extVar('environment');
     },
   },
 
-  ServiceMonitor(name, namespace, app=name): $._Object(
+  // ServiceMonitor selects a Service and scrapes its metrics port. Pass the
+  // target Service via target_service:: -- the metrics port (named or targeting
+  // 'metrics', else the sole port) and selector are derived from it. All
+  // Service labels are copied onto the series; scrape interval defaults to 30s
+  // (override via the `interval` arg).
+  //
+  // Minimal usage (no overrides needed for a stencil service with a 'metrics'
+  // port):
+  // ```
+  // servicemonitor: ok.ServiceMonitor(app.name, app.namespace) {
+  //   target_service:: $.service,
+  // },
+  // ```
+  //
+  // Common overrides:
+  // ```
+  // servicemonitor: ok.ServiceMonitor(app.name, app.namespace, interval='60s') {
+  //   target_service:: $.service,
+  //   spec+: {
+  //     // per-endpoint tuning, keyed by the Service port's targetPort
+  //     endpoints_+:: { 'http-prom': {
+  //       interval: '15s',
+  //       // drop noisy series
+  //       metricRelabelings: [{ sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' }],
+  //     } },
+  //     // restrict which Service labels are copied (default: all of them)
+  //     targetLabels_:: ['app', 'repo'],
+  //   },
+  // },
+  // ```
+  ServiceMonitor(name, namespace, app=name, interval='30s'): $._Object(
     'monitoring.coreos.com/v1',
     'ServiceMonitor',
     name,
@@ -793,32 +823,53 @@ local environment = std.extVar('environment');
 
     local this = self,
 
-    // discover metrics port if exists, else use first port
-    // whatever this resolves to is only used as the default
-    // if spec.endpoints|spec.endpoints_ aren't specified below
-    local default_port = (
-      local ports = this.target_service.spec.ports;
-      std.filter(function(p) std.setMember('metrics', [p.name, p.targetPort]), ports)
-      + this.target_service.spec.ports
-    )[0],
+    // Discover the port to scrape.
+    // Note: use std.member, not std.setMember -- the latter assumes a sorted
+    // set and misdetects when targetPort == 'metrics' but the port name sorts
+    // after 'metrics'.
+    local ports = this.target_service.spec.ports,
+    local matched_ports = std.filter(
+      function(p) std.member([p.name, p.targetPort], 'metrics'),
+      ports,
+    ),
+    local default_port =
+      if std.length(matched_ports) > 0 then matched_ports[0]
+      // No 'metrics' port: fall back to the sole port when unambiguous
+      // (common for apps serving /metrics on their only port).
+      else if std.length(ports) == 1 then ports[0]
+      // Multiple ports and none is 'metrics' -> refuse to guess (objectFields
+      // sorting could pick e.g. the gRPC port). Set spec.endpoints_ explicitly.
+      else error 'ServiceMonitor(%s): target_service has multiple ports and none is named or targets "metrics"; set spec.endpoints_ explicitly' % name,
 
-    metadata+: { labels+: { 'prometheus.io/scrape': 'true' } },
     spec: {
+      // All Service labels are copied onto every scraped series -- they carry
+      // the low-cardinality dimensions (repo/bento/reporting_team/...) that
+      // downstream consumers rely on, and this is the only place to surface
+      // them. Any renames (e.g. reporting_team -> team) are done centrally in
+      // the collector pipeline, not here. Override targetLabels_ to restrict.
+      targetLabels_:: std.objectFields(this.target_service.metadata.labels),
+
       // endpoint-level config here will override defaults
       // this is just map-based sugar around self.endpoints
       endpoints_:: { [default_port.targetPort]: {} },
       // override this to explicitly adhere to the operator's API
       // and ignore all of the above, which is simply sugar
       endpoints: [
-        { honorLabels: true, interval: '1m', targetPort: p }
-        + this.spec.endpoints_[p]
+        // interval defaults to the constructor's `interval` arg (30s); override
+        // per-endpoint via endpoints_.
+        { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p]
         for p in std.objectFields(this.spec.endpoints_)
       ],
       jobLabel: 'app',
+      // Minimal, stable selector -- match only the target Service's identity.
+      // The old default matched the full label set, which would silently break
+      // the SM if any label (repo/bento/reporting_team/...) changed. Override
+      // via selectorLabels_ if a different match is needed.
+      selectorLabels_:: { name: this.target_service.metadata.name },
       selector: {
-        matchLabels: this.target_service.metadata.labels,
+        matchLabels: this.spec.selectorLabels_,
       },
-      targetLabels: std.objectFields(this.target_service.metadata.labels),
+      targetLabels: this.spec.targetLabels_,
     },
   },
 
