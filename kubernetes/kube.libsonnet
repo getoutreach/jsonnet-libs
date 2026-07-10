@@ -824,8 +824,8 @@ local environment = std.extVar('environment');
 
   // PodMonitor scrapes pods directly, for apps that do not expose a Service
   // with a metrics port. Mirrors ServiceMonitor's defaults: minimal selector,
-  // honorLabels on, all pod labels copied onto the series, a 30s scrape
-  // interval, and a central metric-relabeling hook.
+  // honorLabels on, all pod labels copied onto the series, and a 30s scrape
+  // interval.
   //
   // Minimal usage (pod has a 'metrics'/'http-prom' container port):
   // ```
@@ -838,13 +838,13 @@ local environment = std.extVar('environment');
   // ```
   // podmonitor: ok.PodMonitor(app.name, app.namespace, interval='60s') {
   //   target_pod:: $.deployment.spec.template,
-  //   // drop noisy series; central rules are always appended last
-  //   centralMetricRelabelings:: [
-  //     { sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' },
-  //   ],
   //   spec+: {
   //     // per-endpoint tuning, keyed by the container port name
-  //     podMetricsEndpoints_+:: { 'http-prom': { interval: '15s' } },
+  //     podMetricsEndpoints_+:: { 'http-prom': {
+  //       interval: '15s',
+  //       // drop noisy series before they leave the pod
+  //       metricRelabelings: [{ sourceLabels: ['__name__'], regex: 'go_gc_.*', action: 'drop' }],
+  //     } },
   //     // restrict which pod labels are copied (default: all of them)
   //     podTargetLabels_:: ['app', 'repo'],
   //   },
@@ -879,11 +879,6 @@ local environment = std.extVar('environment');
       // Multiple ports and none is a metrics port -> refuse to guess.
       else error 'PodMonitor(%s): target_pod has multiple ports and none is named one of [%s]; set spec.podMetricsEndpoints_ explicitly' % [name, std.join(', ', metrics_port_names)],
 
-    // Central metric_relabel_configs applied to every endpoint, appended AFTER
-    // caller-supplied rules so platform-wide guardrails can't be dropped by a
-    // team's podMetricsEndpoints_ entry.
-    centralMetricRelabelings:: [],
-
     spec: {
       // All pod labels are copied onto every scraped series -- they carry the
       // low-cardinality dimensions (repo/bento/reporting_team/...) that
@@ -898,11 +893,7 @@ local environment = std.extVar('environment');
       podMetricsEndpoints: [
         // interval defaults to the constructor's `interval` arg (30s); override
         // per-endpoint via podMetricsEndpoints_.
-        local base = { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p];
-        local metricRelabelings =
-          (if std.objectHas(base, 'metricRelabelings') then base.metricRelabelings else [])
-          + this.centralMetricRelabelings;
-        base + (if std.length(metricRelabelings) > 0 then { metricRelabelings: metricRelabelings } else {})
+        { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p]
         for p in std.objectFields(this.spec.podMetricsEndpoints_)
       ],
       jobLabel: 'app',

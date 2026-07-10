@@ -64,15 +64,13 @@ local pmSingle = k.PodMonitor('test', 'test') {
 };
 assert pmSingle.spec.podMetricsEndpoints[0].port == 'web';
 
-// central rules run last; caller rules (via podMetricsEndpoints_) run first.
+// per-endpoint metricRelabelings pass through via podMetricsEndpoints_.
 local pmRelabel = k.PodMonitor('test', 'test') {
   target_pod:: podTmpl,
-  centralMetricRelabelings:: [{ regex: 'central', action: 'labeldrop' }],
   spec+: { podMetricsEndpoints_+:: { 'http-prom': { metricRelabelings: [{ regex: 'team', action: 'keep' }] } } },
 };
 assert pmRelabel.spec.podMetricsEndpoints[0].metricRelabelings == [
   { regex: 'team', action: 'keep' },
-  { regex: 'central', action: 'labeldrop' },
 ];
 
 resources
