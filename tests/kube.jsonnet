@@ -31,7 +31,7 @@ assert resources.deployment.spec.template.spec.containers_.test.envFrom[1].secre
 // PodMonitor: metrics-port discovery from container ports, defaults, hooks.
 // Stencil-shaped pod: metrics container port is named 'http-prom' (not 'metrics').
 local podTmpl = {
-  metadata: { labels: { name: 'test', app: 'test' } },
+  metadata: { labels: { name: 'test', app: 'test', repo: 'test', reporting_team: 'fnd-pc' } },
   spec: { containers: [{ name: 'default', ports: [
     { name: 'grpc', containerPort: 5000 },
     { name: 'http-prom', containerPort: 8000 },
@@ -42,11 +42,20 @@ local pm = k.PodMonitor('test', 'test') { target_pod:: podTmpl };
 assert std.length(pm.spec.podMetricsEndpoints) == 1;
 // 'http-prom' discovered even though no port is named 'metrics'
 assert pm.spec.podMetricsEndpoints[0].port == 'http-prom';
-assert pm.spec.podMetricsEndpoints[0].honorLabels == false;
+// honorLabels defaults to true
+assert pm.spec.podMetricsEndpoints[0].honorLabels == true;
+// interval defaults to 30s
+assert pm.spec.podMetricsEndpoints[0].interval == '30s';
 assert !std.objectHas(pm.spec.podMetricsEndpoints[0], 'metricRelabelings');
-assert pm.spec.podTargetLabels == ['app'];
+// all pod labels are copied onto the series (not filtered)
+assert pm.spec.podTargetLabels == ['app', 'name', 'repo', 'reporting_team'];
 assert pm.spec.selector.matchLabels == { name: 'test' };
-assert pm.metadata.labels['monitoring.outreach.io/otel-scrape'] == 'true';
+// no scrape marker label (TA selector is open)
+assert !std.objectHas(pm.metadata.labels, 'monitoring.outreach.io/otel-scrape');
+
+// interval is overridable via the constructor arg
+local pmInterval = k.PodMonitor('test', 'test', interval='60s') { target_pod:: podTmpl };
+assert pmInterval.spec.podMetricsEndpoints[0].interval == '60s';
 
 // single-port pod with no metrics-named port falls back to that sole port.
 local pmSingle = k.PodMonitor('test', 'test') {

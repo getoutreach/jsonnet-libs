@@ -824,8 +824,8 @@ local environment = std.extVar('environment');
 
   // PodMonitor scrapes pods directly, for apps that do not expose a Service
   // with a metrics port. Mirrors ServiceMonitor's defaults: minimal selector,
-  // honorLabels off, a minimal podTargetLabels allowlist, an OTel Target
-  // Allocator marker label, and a central metric-relabeling hook.
+  // honorLabels on, all pod labels copied onto the series, a 30s scrape
+  // interval, and a central metric-relabeling hook.
   //
   // Minimal usage (pod has a 'metrics'/'http-prom' container port):
   // ```
@@ -836,7 +836,7 @@ local environment = std.extVar('environment');
   //
   // Common overrides:
   // ```
-  // podmonitor: ok.PodMonitor(app.name, app.namespace) {
+  // podmonitor: ok.PodMonitor(app.name, app.namespace, interval='60s') {
   //   target_pod:: $.deployment.spec.template,
   //   // drop noisy series; central rules are always appended last
   //   centralMetricRelabelings:: [
@@ -844,13 +844,13 @@ local environment = std.extVar('environment');
   //   ],
   //   spec+: {
   //     // per-endpoint tuning, keyed by the container port name
-  //     podMetricsEndpoints_+:: { 'http-prom': { interval: '30s' } },
-  //     // copy an extra pod label onto every series (default: ['app'])
-  //     podTargetLabels_:: ['app', 'reporting_team'],
+  //     podMetricsEndpoints_+:: { 'http-prom': { interval: '15s' } },
+  //     // restrict which pod labels are copied (default: all of them)
+  //     podTargetLabels_:: ['app', 'repo'],
   //   },
   // },
   // ```
-  PodMonitor(name, namespace, app=name): $._Object(
+  PodMonitor(name, namespace, app=name, interval='30s'): $._Object(
     'monitoring.coreos.com/v1',
     'PodMonitor',
     name,
@@ -884,24 +884,21 @@ local environment = std.extVar('environment');
     // team's podMetricsEndpoints_ entry.
     centralMetricRelabelings:: [],
 
-    // Marker label the OTel Target Allocator's podMonitorSelector keys off.
-    // Keep in sync with the collector's
-    // targetAllocator.prometheusCR.podMonitorSelector.
-    scrapeLabels_:: { 'monitoring.outreach.io/otel-scrape': 'true' },
-
-    metadata+: { labels+: this.scrapeLabels_ },
     spec: {
-      // Pod labels copied onto every scraped series. Keep minimal -- each entry
-      // multiplies cardinality (and storage). Extend via podTargetLabels_.
-      podTargetLabels_:: ['app'],
+      // All pod labels are copied onto every scraped series -- they carry the
+      // low-cardinality dimensions (repo/bento/reporting_team/...) that
+      // downstream consumers rely on. Any renames (e.g. reporting_team -> team)
+      // are done centrally in the collector pipeline, not here. Override
+      // podTargetLabels_ to restrict the set.
+      podTargetLabels_:: std.objectFields(this.target_pod.metadata.labels),
 
       // map-based sugar around self.podMetricsEndpoints, keyed by port name
       podMetricsEndpoints_:: { [default_port.name]: {} },
       // override this to explicitly adhere to the operator's API
       podMetricsEndpoints: [
-        // honorLabels defaults to false: app-exposed labels must not clobber
-        // topology labels (job/namespace/pod) or the jobLabel below.
-        local base = { honorLabels: false, interval: '1m', port: p } + this.spec.podMetricsEndpoints_[p];
+        // interval defaults to the constructor's `interval` arg (30s); override
+        // per-endpoint via podMetricsEndpoints_.
+        local base = { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p];
         local metricRelabelings =
           (if std.objectHas(base, 'metricRelabelings') then base.metricRelabelings else [])
           + this.centralMetricRelabelings;
