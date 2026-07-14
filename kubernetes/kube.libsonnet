@@ -1150,6 +1150,40 @@ local environment = std.extVar('environment');
     },
   },
 
+  WaypointProxyTelemetry(name='waypoint-remove-source-tags', namespace, team): $._Object('telemetry.istio.io/v1', 'Telemetry', name, namespace=namespace) {
+    metadata+: {
+      labels+: {
+        name: name,
+        reporting_team: team,
+      },
+    },
+    spec+: {
+      metrics: [{
+        providers: [{
+          name: 'prometheus',
+        }],
+        overrides: [{
+          match: {
+            metric: 'ALL_METRICS',
+          },
+          tagOverrides: {
+            source_canonical_revision: {
+              operation: 'REMOVE',
+            },
+            source_version: {
+              operation: 'REMOVE',
+            },
+          },
+        }],
+        targetRefs: [{
+          group: 'gateway.networking.k8s.io',
+          kind: 'Gateway',
+          name: 'server-apiv2-waypoint',
+        }],
+      }],
+    },
+  },
+
   GatewayConfig(name='gateway', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
