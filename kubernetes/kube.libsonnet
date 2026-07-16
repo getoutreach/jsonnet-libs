@@ -1147,46 +1147,8 @@ local environment = std.extVar('environment');
           minAvailable: 1,
         },
       }),
-      telemetry+: std.manifestYamlDoc({
-        apiVersion: 'telemetry.istio.io/v1',
-        kind: 'Telemetry',
-        metadata: {
-          name: name + '-remove-source-tags',
-          namespace: namespace,
-          labels: {
-            name: name + '-remove-source-tags',
-            reporting_team: team,
-          },
-        },
-        spec: {
-          metrics: [{
-            providers: [{
-              name: 'prometheus',
-            }],
-            overrides: [{
-              match: {
-                metric: 'ALL_METRICS',
-              },
-              tagOverrides: {
-                source_canonical_revision: {
-                  operation: 'REMOVE',
-                },
-                source_version: {
-                  operation: 'REMOVE',
-                },
-              },
-            }],
-            targetRefs: [{
-              group: 'gateway.networking.k8s.io',
-              kind: 'Gateway',
-              name: name,
-            }],
-          }],
-        },
-      }),
     },
   },
-
 
   GatewayConfig(name='gateway', namespace): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
