@@ -854,6 +854,22 @@ local environment = std.extVar('environment');
       endpoints_:: { [default_port.targetPort]: {} },
       // override this to explicitly adhere to the operator's API
       // and ignore all of the above, which is simply sugar
+      // Map-based sugar around self.metricRelabelings. Key is an arbitrary
+      // rule name; use metricRelabelings_+:: to add/replace rules and let
+      // the array below do the conversion.
+      metricRelabelings_:: {
+        // Stamps the scrape interval (in seconds) onto every series. The OTel
+        // collector maps it to a datapoint attribute and then promotes it to a
+        // resource attribute. Prometheus label names cannot contain dots, so
+        // the attribute name is prefixed with underscores here and renamed in
+        // the collector pipeline.
+        'outreach.metric.collection_interval': { targetLabel: 'outreach_metric_collection_interval', replacement: std.toString(std.parseInt(std.substr(interval, 0, std.length(interval) - 1))) },
+      },
+      metricRelabelings: [
+        this.spec.metricRelabelings_[k]
+        for k in std.objectFields(this.spec.metricRelabelings_)
+      ],
+
       endpoints: [
         // interval defaults to the constructor's `interval` arg (30s); override
         // per-endpoint via endpoints_.
@@ -941,6 +957,22 @@ local environment = std.extVar('environment');
       // map-based sugar around self.podMetricsEndpoints, keyed by port name
       podMetricsEndpoints_:: { [default_port.name]: {} },
       // override this to explicitly adhere to the operator's API
+      // Map-based sugar around self.metricRelabelings. Key is an arbitrary
+      // rule name; use metricRelabelings_+:: to add/replace rules and let
+      // the array below do the conversion.
+      metricRelabelings_:: {
+        // Stamps the scrape interval (in seconds) onto every series. The OTel
+        // collector maps it to a datapoint attribute and then promotes it to a
+        // resource attribute. Prometheus label names cannot contain dots, so
+        // the attribute name is prefixed with underscores here and renamed in
+        // the collector pipeline.
+        'outreach.metric.collection_interval': { targetLabel: 'outreach_metric_collection_interval', replacement: std.toString(std.parseInt(std.substr(interval, 0, std.length(interval) - 1))) },
+      },
+      metricRelabelings: [
+        this.spec.metricRelabelings_[k]
+        for k in std.objectFields(this.spec.metricRelabelings_)
+      ],
+
       podMetricsEndpoints: [
         // interval defaults to the constructor's `interval` arg (30s); override
         // per-endpoint via podMetricsEndpoints_.
@@ -1060,14 +1092,14 @@ local environment = std.extVar('environment');
         protocol: 'HBONE',
       }],
       infrastructure+: {
-          parametersRef: {
-            group: '',
-            kind: 'ConfigMap',
-            name: name,
-          },
+        parametersRef: {
+          group: '',
+          kind: 'ConfigMap',
+          name: name,
         },
       },
     },
+  },
 
   WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
@@ -1105,18 +1137,18 @@ local environment = std.extVar('environment');
                 topologyKey: 'topology.kubernetes.io/zone',
                 whenUnsatisfiable: 'DoNotSchedule',
               }],
-                containers: [{
-                  name: 'istio-proxy',
-                  resources: {
-                    limits: {
-                      memory: '1Gi',
-                    },
-                    requests: {
-                      cpu: '500m',
-                      memory: '200Mi',
-                    },
+              containers: [{
+                name: 'istio-proxy',
+                resources: {
+                  limits: {
+                    memory: '1Gi',
                   },
-                }],
+                  requests: {
+                    cpu: '500m',
+                    memory: '200Mi',
+                  },
+                },
+              }],
             },
           },
         },
@@ -1162,7 +1194,7 @@ local environment = std.extVar('environment');
         'service.beta.kubernetes.io/aws-load-balancer-scheme': 'internet-facing',
       },
     },
-    spec+: {    
+    spec+: {
       gatewayClassName: 'istio',
     },
   },

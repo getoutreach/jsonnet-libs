@@ -31,7 +31,10 @@ assert resources.deployment.spec.template.spec.containers_.test.envFrom[1].secre
 // ServiceMonitor: metrics-port discovery, defaults, and relabelings.
 local svc = {
   metadata: { name: 'test', namespace: 'test', labels: {
-    name: 'test', app: 'test', repo: 'test', reporting_team: 'fnd-pc',
+    name: 'test',
+    app: 'test',
+    repo: 'test',
+    reporting_team: 'fnd-pc',
   } },
   spec: { ports: [
     { name: 'grpc', port: 5000, targetPort: 'grpc' },
@@ -49,8 +52,10 @@ assert sm.spec.endpoints[0].targetPort == 'metrics';
 assert sm.spec.endpoints[0].honorLabels == true;
 // interval defaults to 30s
 assert sm.spec.endpoints[0].interval == '30s';
-// no relabelings by default -> key omitted (clean output)
-assert !std.objectHas(sm.spec.endpoints[0], 'metricRelabelings');
+// default scrape-interval label is stamped on every series
+assert sm.spec.metricRelabelings == [
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
+];
 // all Service labels are copied onto the series (not filtered)
 assert sm.spec.targetLabels == ['app', 'name', 'repo', 'reporting_team'];
 // selector matches only the Service identity, not the full label set
@@ -77,14 +82,14 @@ assert std.length(smSinglePort.spec.endpoints) == 1;
 assert smSinglePort.spec.endpoints[0].targetPort == 'http';
 assert smSinglePort.spec.endpoints[0].interval == '15s';
 
-// per-endpoint metricRelabelings pass through via endpoints_.
+// metricRelabelings_+:: adds/replaces rules in the hidden map.
 local smRelabel = k.ServiceMonitor('test', 'test') {
   target_service:: svc,
-  spec+: { endpoints_:: { metrics: { metricRelabelings: [{ regex: 'team', action: 'keep' }] } } },
+  spec+: { metricRelabelings_+:: { drop_team: { regex: 'team', action: 'drop' } } },
 };
-assert smRelabel.spec.endpoints[0].metricRelabelings == [
-  { regex: 'team', action: 'keep' },
-];
+assert std.length(smRelabel.spec.metricRelabelings) == 2;
+assert std.member(smRelabel.spec.metricRelabelings, { targetLabel: 'outreach_metric_collection_interval', replacement: '30' });
+assert std.member(smRelabel.spec.metricRelabelings, { regex: 'team', action: 'drop' });
 
 // PodMonitor: metrics-port discovery from container ports, defaults, hooks.
 // Stencil-shaped pod: metrics container port is named 'http-prom' (not 'metrics').
@@ -104,7 +109,9 @@ assert pm.spec.podMetricsEndpoints[0].port == 'http-prom';
 assert pm.spec.podMetricsEndpoints[0].honorLabels == true;
 // interval defaults to 30s
 assert pm.spec.podMetricsEndpoints[0].interval == '30s';
-assert !std.objectHas(pm.spec.podMetricsEndpoints[0], 'metricRelabelings');
+assert pm.spec.metricRelabelings == [
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
+];
 // all pod labels are copied onto the series (not filtered)
 assert pm.spec.podTargetLabels == ['app', 'name', 'repo', 'reporting_team'];
 assert pm.spec.selector.matchLabels == { name: 'test' };
@@ -117,18 +124,20 @@ assert pmInterval.spec.podMetricsEndpoints[0].interval == '60s';
 
 // single-port pod with no metrics-named port falls back to that sole port.
 local pmSingle = k.PodMonitor('test', 'test') {
-  target_pod:: { metadata: { labels: { name: 'test', app: 'test' } },
-                 spec: { containers: [{ name: 'c', ports: [{ name: 'web', containerPort: 9000 }] }] } },
+  target_pod:: {
+    metadata: { labels: { name: 'test', app: 'test' } },
+    spec: { containers: [{ name: 'c', ports: [{ name: 'web', containerPort: 9000 }] }] },
+  },
 };
 assert pmSingle.spec.podMetricsEndpoints[0].port == 'web';
 
-// per-endpoint metricRelabelings pass through via podMetricsEndpoints_.
+// metricRelabelings_+:: adds/replaces rules in the hidden map.
 local pmRelabel = k.PodMonitor('test', 'test') {
   target_pod:: podTmpl,
-  spec+: { podMetricsEndpoints_+:: { 'http-prom': { metricRelabelings: [{ regex: 'team', action: 'keep' }] } } },
+  spec+: { metricRelabelings_+:: { drop_team: { regex: 'team', action: 'drop' } } },
 };
-assert pmRelabel.spec.podMetricsEndpoints[0].metricRelabelings == [
-  { regex: 'team', action: 'keep' },
-];
+assert std.length(pmRelabel.spec.metricRelabelings) == 2;
+assert std.member(pmRelabel.spec.metricRelabelings, { targetLabel: 'outreach_metric_collection_interval', replacement: '30' });
+assert std.member(pmRelabel.spec.metricRelabelings, { regex: 'team', action: 'drop' });
 
 resources
