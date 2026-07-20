@@ -782,6 +782,26 @@ local environment = std.extVar('environment');
     },
   },
 
+  // Convert a prometheus duration ('30s', '1m', '2h') to whole seconds.
+  // Single-unit durations only; compound forms like '1m30s' are rejected.
+  local durationSeconds(d) =
+    local n = std.parseInt(std.substr(d, 0, std.length(d) - 1));
+    local unit = std.substr(d, std.length(d) - 1, 1);
+    if unit == 's' then n
+    else if unit == 'm' then n * 60
+    else if unit == 'h' then n * 3600
+    else error 'unsupported interval %s: expected <n>s, <n>m, or <n>h' % d,
+
+  // Stamps the scrape interval (in seconds) onto every series scraped by an
+  // endpoint. The OTel collector maps it to a datapoint attribute and then
+  // promotes it to a resource attribute. Prometheus label names cannot contain
+  // dots, so the attribute name is underscore-flattened here and renamed in
+  // the collector pipeline.
+  local intervalRelabeling(interval) = {
+    targetLabel: 'outreach_metric_collection_interval',
+    replacement: std.toString(durationSeconds(interval)),
+  },
+
   // ServiceMonitor selects a Service and scrapes its metrics port. Pass the
   // target Service via target_service:: -- the metrics port (named or targeting
   // 'metrics', else the sole port) and selector are derived from it. All
@@ -854,26 +874,18 @@ local environment = std.extVar('environment');
       endpoints_:: { [default_port.targetPort]: {} },
       // override this to explicitly adhere to the operator's API
       // and ignore all of the above, which is simply sugar
-      // Map-based sugar around self.metricRelabelings. Key is an arbitrary
-      // rule name; use metricRelabelings_+:: to add/replace rules and let
-      // the array below do the conversion.
-      metricRelabelings_:: {
-        // Stamps the scrape interval (in seconds) onto every series. The OTel
-        // collector maps it to a datapoint attribute and then promotes it to a
-        // resource attribute. Prometheus label names cannot contain dots, so
-        // the attribute name is prefixed with underscores here and renamed in
-        // the collector pipeline.
-        'outreach.metric.collection_interval': { targetLabel: 'outreach_metric_collection_interval', replacement: std.toString(std.parseInt(std.substr(interval, 0, std.length(interval) - 1))) },
-      },
-      metricRelabelings: [
-        this.spec.metricRelabelings_[k]
-        for k in std.objectFields(this.spec.metricRelabelings_)
-      ],
-
       endpoints: [
         // interval defaults to the constructor's `interval` arg (30s); override
-        // per-endpoint via endpoints_.
-        { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p]
+        // per-endpoint via endpoints_. The interval stamp is derived from the
+        // endpoint's effective interval, so per-endpoint overrides are
+        // reflected in the label; user metricRelabelings are appended after
+        // the stamp. To suppress the stamp, override metricRelabelings on the
+        // rendered endpoint.
+        local ep = { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p];
+        ep {
+          metricRelabelings: [intervalRelabeling(ep.interval)]
+                             + (if std.objectHas(ep, 'metricRelabelings') then ep.metricRelabelings else []),
+        }
         for p in std.objectFields(this.spec.endpoints_)
       ],
       jobLabel: 'app',
@@ -957,26 +969,18 @@ local environment = std.extVar('environment');
       // map-based sugar around self.podMetricsEndpoints, keyed by port name
       podMetricsEndpoints_:: { [default_port.name]: {} },
       // override this to explicitly adhere to the operator's API
-      // Map-based sugar around self.metricRelabelings. Key is an arbitrary
-      // rule name; use metricRelabelings_+:: to add/replace rules and let
-      // the array below do the conversion.
-      metricRelabelings_:: {
-        // Stamps the scrape interval (in seconds) onto every series. The OTel
-        // collector maps it to a datapoint attribute and then promotes it to a
-        // resource attribute. Prometheus label names cannot contain dots, so
-        // the attribute name is prefixed with underscores here and renamed in
-        // the collector pipeline.
-        'outreach.metric.collection_interval': { targetLabel: 'outreach_metric_collection_interval', replacement: std.toString(std.parseInt(std.substr(interval, 0, std.length(interval) - 1))) },
-      },
-      metricRelabelings: [
-        this.spec.metricRelabelings_[k]
-        for k in std.objectFields(this.spec.metricRelabelings_)
-      ],
-
       podMetricsEndpoints: [
         // interval defaults to the constructor's `interval` arg (30s); override
-        // per-endpoint via podMetricsEndpoints_.
-        { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p]
+        // per-endpoint via podMetricsEndpoints_. The interval stamp is derived
+        // from the endpoint's effective interval, so per-endpoint overrides
+        // are reflected in the label; user metricRelabelings are appended
+        // after the stamp. To suppress the stamp, override metricRelabelings
+        // on the rendered endpoint.
+        local ep = { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p];
+        ep {
+          metricRelabelings: [intervalRelabeling(ep.interval)]
+                             + (if std.objectHas(ep, 'metricRelabelings') then ep.metricRelabelings else []),
+        }
         for p in std.objectFields(this.spec.podMetricsEndpoints_)
       ],
       jobLabel: 'app',
