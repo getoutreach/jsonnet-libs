@@ -1087,6 +1087,13 @@ local environment = std.extVar('environment');
         // override in case you want 'all', 'workload' or 'none' to disable
         'istio.io/waypoint-for': 'all',
       },
+      annotations+: {
+        // Sync before wave 0, where a Service's istio.io/use-waypoint label
+        // typically lands. Without this, the Gateway and that label apply in
+        // the same wave with no ordering guarantee -- an unprogrammed
+        // waypoint with the label already applied blackholes traffic.
+        'argocd.argoproj.io/sync-wave': '-1',
+      },
     },
     spec+: {
       gatewayClassName: 'istio-waypoint',
@@ -1105,84 +1112,124 @@ local environment = std.extVar('environment');
     },
   },
 
-  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
-    metadata+: {
-      labels+: {
-        reporting_team: team,
+  // Bundles the Waypoint proxy tuning ConfigMap with a PodMonitor for its
+  // built-in metrics (container port 15020, path /stats/prometheus). The
+  // Service Istio generates for a waypoint does NOT expose that port (only
+  // status-port/15021 and mesh/15008), so ServiceMonitor doesn't work here --
+  // only PodMonitor does, hence bundling it here rather than a plain
+  // ServiceMonitor sibling.
+  //
+  // Returns a wrapper object -- {configmap:, podmonitor:} -- rather than a
+  // bare ConfigMap, so kubecfg's manifest walker (which stops recursing as
+  // soon as it finds an apiVersion+kind match) discovers both objects
+  // without every caller having to add a new resource. This means the
+  // result is NOT itself a ConfigMap: overlay `.metadata+`/`.data+` on
+  // `.configmap` instead of on the top-level result.
+  WaypointProxyConfig(name='waypoint-config', namespace, team): {
+    configmap: $.ConfigMap(name, namespace, team) {
+      metadata+: {
+        labels+: {
+          reporting_team: team,
+        },
+      },
+      data+: {
+        deployment+: std.manifestYamlDoc({
+          spec: {
+            template: {
+              metadata: {
+                annotations: {
+                  'scaleops.sh/default-rightsize-policy': 'high-availability',
+                },
+              },
+              spec: {
+                nodeSelector: {
+                  'outreach.io/nodepool': 'ondemand',
+                },
+                priorityClassName: 'system-cluster-critical',
+                tolerations: [{
+                  effect: 'NoSchedule',
+                  key: 'dedicated',
+                  operator: 'Equal',
+                  value: 'ondemand',
+                }],
+                topologySpreadConstraints: [{
+                  labelSelector: {
+                    matchLabels: {
+                      'gateway.networking.k8s.io/gateway-name': name,
+                    },
+                  },
+                  maxSkew: 1,
+                  topologyKey: 'topology.kubernetes.io/zone',
+                  whenUnsatisfiable: 'DoNotSchedule',
+                }],
+                containers: [{
+                  name: 'istio-proxy',
+                  resources: {
+                    limits: {
+                      memory: '1Gi',
+                    },
+                    requests: {
+                      cpu: '500m',
+                      memory: '200Mi',
+                    },
+                  },
+                }],
+              },
+            },
+          },
+        }),
+        horizontalPodAutoscaler+: std.manifestYamlDoc({
+          spec: {
+            minReplicas: 2,
+            maxReplicas: 6,
+            scaleTargetRef: {
+              apiVersion: 'apps/v1',
+              kind: 'Deployment',
+              name: name,
+            },
+            metrics: [{
+              type: 'Resource',
+              resource: {
+                name: 'cpu',
+                target: {
+                  type: 'Utilization',
+                  averageUtilization: 80,
+                },
+              },
+            }],
+          },
+        }),
+        podDisruptionBudget+: std.manifestYamlDoc({
+          spec: {
+            minAvailable: 1,
+          },
+        }),
       },
     },
-    data+: {
-      deployment+: std.manifestYamlDoc({
-        spec: {
-          template: {
-            metadata: {
-              annotations: {
-                'scaleops.sh/default-rightsize-policy': 'high-availability',
-              },
-            },
-            spec: {
-              nodeSelector: {
-                'outreach.io/nodepool': 'ondemand',
-              },
-              priorityClassName: 'system-cluster-critical',
-              tolerations: [{
-                effect: 'NoSchedule',
-                key: 'dedicated',
-                operator: 'Equal',
-                value: 'ondemand',
-              }],
-              topologySpreadConstraints: [{
-                labelSelector: {
-                  matchLabels: {
-                    'gateway.networking.k8s.io/gateway-name': name,
-                  },
-                },
-                maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
-                whenUnsatisfiable: 'DoNotSchedule',
-              }],
-              containers: [{
-                name: 'istio-proxy',
-                resources: {
-                  limits: {
-                    memory: '1Gi',
-                  },
-                  requests: {
-                    cpu: '500m',
-                    memory: '200Mi',
-                  },
-                },
-              }],
-            },
-          },
+    podmonitor: $.WaypointProxyPodMonitor(name, namespace, team),
+  },
+
+  // PodMonitor for a Waypoint proxy's built-in metrics (container port 15020,
+  // path /stats/prometheus). The waypoint pod itself is generated by Istio
+  // from the Gateway resource, not defined in this library, so target_pod
+  // below is a synthetic stand-in with just enough shape (labels.name, a
+  // port named 'metrics') for PodMonitor's existing port/selector
+  // auto-detection to work unmodified. Exposed standalone (in addition to
+  // being bundled into WaypointProxyConfig) for callers that need just the
+  // PodMonitor.
+  WaypointProxyPodMonitor(name, namespace, team, interval='30s'): self.PodMonitor(name, namespace, interval=interval) {
+    target_pod:: {
+      metadata: {
+        labels: {
+          name: name,
+          reporting_team: team,
         },
-      }),
-      horizontalPodAutoscaler+: std.manifestYamlDoc({
-        spec: {
-          minReplicas: 2,
-          maxReplicas: 6,
-          scaleTargetRef: {
-            apiVersion: 'apps/v1',
-            kind: 'Deployment',
-            name: name,
-          },
-          metrics: [{
-            type: 'Resource',
-            resource: {
-              name: 'cpu',
-              target: {
-                type: 'Utilization',
-                averageUtilization: 80,
-              },
-            },
-          }],
-        },
-      }),
-      podDisruptionBudget+: std.manifestYamlDoc({
-        spec: {
-          minAvailable: 1,
-        },
-      }),
+      },
+      spec: {
+        containers: [{
+          ports: [{ name: 'metrics', containerPort: 15020 }],
+        }],
+      },
     },
   },
 
