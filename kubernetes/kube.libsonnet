@@ -1246,7 +1246,48 @@ local environment = std.extVar('environment');
     spec+: {
       // Required: 15090 serves no /metrics. See the port/path table above.
       podMetricsEndpoints_+:: {
-        'http-envoy-prom': { path: '/stats/prometheus' },
+        'http-envoy-prom': {
+          path: '/stats/prometheus',
+          metricRelabelings: [
+            // Istio puts 24 labels on every mesh series, and the three L7
+            // histograms carry ~20 buckets each, so a busy waypoint's page is
+            // overwhelmingly repeated label text rather than distinct data:
+            // gearbox--staging1a measured 36,758,855 bytes over 39,471 series,
+            // 86% of which are *_bucket lines.
+            //
+            // These eight carry no information the rest of the series doesn't
+            // already have, and account for 38% of those bytes (measured:
+            // 36,758,855 -> 23,142,907):
+            //   *_principal          SPIFFE URI; = ns + service account, both
+            //                        already present. 8% each.
+            //   *_canonical_service  identical to *_app (equal distinct counts).
+            //   *_canonical_revision identical to *_version.
+            //   *_cluster            constant "Kubernetes".
+            // source_canonical_revision already measures 0 bytes because the
+            // mesh-wide Telemetry tagOverrides strips it -- doing the same for
+            // the rest there is strictly better than dropping here, since
+            // Envoy then never serialises them and the collector never fetches
+            // or parses them. This relabeling is the portable fallback for
+            // bentos without that Telemetry config.
+            {
+              action: 'labeldrop',
+              regex: 'source_principal|destination_principal|source_canonical_service|destination_canonical_service|source_canonical_revision|destination_canonical_revision|source_cluster|destination_cluster',
+            },
+            // Control-plane and Envoy-internal series, matching the drop list
+            // the istio-prometheus addon already applies fleet-wide. Near-zero
+            // effect on this endpoint today (measured: 290 of 39,471 lines) --
+            // 15090 exposes no istio_agent_*/istiod_* at all -- but it keeps
+            // envoy_cluster_*/envoy_listener_* growth from leaking in, and
+            // keeps the two scrape paths consistent. NOTE: this also drops
+            // istio_agent_*, so switching to 15020 for
+            // istio_agent_cert_expiry_seconds means narrowing this regex too.
+            {
+              action: 'drop',
+              sourceLabels: ['__name__'],
+              regex: 'istio_agent_.*|istiod_.*|citadel_.*|galley_.*|envoy_cluster_[^u].*|envoy_cluster_update.*|envoy_listener_[^dh].*|envoy_server_[^mu].*|envoy_wasm_.*',
+            },
+          ],
+        },
       },
       // PodMonitor's default jobLabel is 'app', which Istio-generated waypoint
       // pods do not carry (their labels are gateway.networking.k8s.io/*,
