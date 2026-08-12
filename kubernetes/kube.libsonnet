@@ -1087,6 +1087,13 @@ local environment = std.extVar('environment');
         // override in case you want 'all', 'workload' or 'none' to disable
         'istio.io/waypoint-for': 'all',
       },
+      annotations+: {
+        // Sync before wave 0, where a Service's istio.io/use-waypoint label
+        // typically lands. Without this, the Gateway and that label apply in
+        // the same wave with no ordering guarantee -- an unprogrammed
+        // waypoint with the label already applied blackholes traffic.
+        'argocd.argoproj.io/sync-wave': '-1',
+      },
     },
     spec+: {
       gatewayClassName: 'istio-waypoint',
@@ -1105,84 +1112,192 @@ local environment = std.extVar('environment');
     },
   },
 
-  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
-    metadata+: {
-      labels+: {
-        reporting_team: team,
+  // Bundles the Waypoint proxy tuning ConfigMap with a PodMonitor for its
+  // built-in metrics (container port 15020, path /stats/prometheus). The
+  // Service Istio generates for a waypoint does NOT expose that port (only
+  // status-port/15021 and mesh/15008), so ServiceMonitor doesn't work here --
+  // only PodMonitor does, hence bundling it here rather than a plain
+  // ServiceMonitor sibling.
+  //
+  // Returns a wrapper object -- {configmap:, podmonitor:} -- rather than a
+  // bare ConfigMap, so kubecfg's manifest walker (which stops recursing as
+  // soon as it finds an apiVersion+kind match) discovers both objects
+  // without every caller having to add a new resource. This means the
+  // result is NOT itself a ConfigMap: overlay `.metadata+`/`.data+` on
+  // `.configmap` instead of on the top-level result.
+  WaypointProxyConfig(name='waypoint-config', namespace, team): {
+    configmap: $.ConfigMap(name, namespace, team) {
+      metadata+: {
+        labels+: {
+          reporting_team: team,
+        },
+      },
+      data+: {
+        deployment+: std.manifestYamlDoc({
+          spec: {
+            template: {
+              metadata: {
+                annotations: {
+                  'scaleops.sh/default-rightsize-policy': 'high-availability',
+                },
+              },
+              spec: {
+                nodeSelector: {
+                  'outreach.io/nodepool': 'ondemand',
+                },
+                priorityClassName: 'system-cluster-critical',
+                tolerations: [{
+                  effect: 'NoSchedule',
+                  key: 'dedicated',
+                  operator: 'Equal',
+                  value: 'ondemand',
+                }],
+                topologySpreadConstraints: [{
+                  labelSelector: {
+                    matchLabels: {
+                      'gateway.networking.k8s.io/gateway-name': name,
+                    },
+                  },
+                  maxSkew: 1,
+                  topologyKey: 'topology.kubernetes.io/zone',
+                  whenUnsatisfiable: 'DoNotSchedule',
+                }],
+                containers: [{
+                  name: 'istio-proxy',
+                  resources: {
+                    limits: {
+                      memory: '1Gi',
+                    },
+                    requests: {
+                      cpu: '500m',
+                      memory: '200Mi',
+                    },
+                  },
+                }],
+              },
+            },
+          },
+        }),
+        horizontalPodAutoscaler+: std.manifestYamlDoc({
+          spec: {
+            minReplicas: 2,
+            maxReplicas: 6,
+            scaleTargetRef: {
+              apiVersion: 'apps/v1',
+              kind: 'Deployment',
+              name: name,
+            },
+            metrics: [{
+              type: 'Resource',
+              resource: {
+                name: 'cpu',
+                target: {
+                  type: 'Utilization',
+                  averageUtilization: 80,
+                },
+              },
+            }],
+          },
+        }),
+        podDisruptionBudget+: std.manifestYamlDoc({
+          spec: {
+            minAvailable: 1,
+          },
+        }),
       },
     },
-    data+: {
-      deployment+: std.manifestYamlDoc({
-        spec: {
-          template: {
-            metadata: {
-              annotations: {
-                'scaleops.sh/default-rightsize-policy': 'high-availability',
-              },
-            },
-            spec: {
-              nodeSelector: {
-                'outreach.io/nodepool': 'ondemand',
-              },
-              priorityClassName: 'system-cluster-critical',
-              tolerations: [{
-                effect: 'NoSchedule',
-                key: 'dedicated',
-                operator: 'Equal',
-                value: 'ondemand',
-              }],
-              topologySpreadConstraints: [{
-                labelSelector: {
-                  matchLabels: {
-                    'gateway.networking.k8s.io/gateway-name': name,
-                  },
-                },
-                maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
-                whenUnsatisfiable: 'DoNotSchedule',
-              }],
-              containers: [{
-                name: 'istio-proxy',
-                resources: {
-                  limits: {
-                    memory: '1Gi',
-                  },
-                  requests: {
-                    cpu: '500m',
-                    memory: '200Mi',
-                  },
-                },
-              }],
-            },
-          },
+    podmonitor: $.WaypointProxyPodMonitor(name, namespace, team),
+  },
+
+  // PodMonitor for a Waypoint proxy's Envoy metrics, scraped from the
+  // http-envoy-prom container port (15090). The waypoint pod itself is
+  // generated by Istio from the Gateway resource, not defined in this library,
+  // so target_pod below is a synthetic stand-in with just enough shape
+  // (labels.name, a single port) for PodMonitor's existing port/selector
+  // auto-detection to work unmodified -- 'http-envoy-prom' is not one of the
+  // recognised metrics port names, so detection falls through to the
+  // sole-port case. Exposed standalone (in addition to being bundled into
+  // WaypointProxyConfig) for callers that need just the PodMonitor.
+  //
+  // Port/path choice, measured against a live waypoint pod:
+  //   15020/metrics           200  <- pilot-agent, Envoy stats + istio_agent_*
+  //   15020/stats/prometheus  200
+  //   15090/metrics           404  <- Envoy exposes ONLY /stats/prometheus here
+  //   15090/stats/prometheus  200  <- Envoy stats, no istio_agent_*
+  // 15090 therefore REQUIRES an explicit path; the operator's default
+  // (/metrics) 404s against it and the scrape silently yields nothing.
+  // 15020 is a strict superset (it adds ~67 istio_agent_* series, including
+  // istio_agent_cert_expiry_seconds); switch the port and drop the path
+  // override to pick that up instead.
+  WaypointProxyPodMonitor(name, namespace, team, interval='30s'): self.PodMonitor(name, namespace, interval=interval) {
+    target_pod:: {
+      metadata: {
+        labels: {
+          name: name,
+          reporting_team: team,
         },
-      }),
-      horizontalPodAutoscaler+: std.manifestYamlDoc({
-        spec: {
-          minReplicas: 2,
-          maxReplicas: 6,
-          scaleTargetRef: {
-            apiVersion: 'apps/v1',
-            kind: 'Deployment',
-            name: name,
-          },
-          metrics: [{
-            type: 'Resource',
-            resource: {
-              name: 'cpu',
-              target: {
-                type: 'Utilization',
-                averageUtilization: 80,
-              },
+      },
+      spec: {
+        containers: [{
+          ports: [{ name: 'http-envoy-prom', containerPort: 15090 }],
+        }],
+      },
+    },
+    spec+: {
+      // Required: 15090 serves no /metrics. See the port/path table above.
+      podMetricsEndpoints_+:: {
+        'http-envoy-prom': {
+          path: '/stats/prometheus',
+          metricRelabelings: [
+            // Istio puts 24 labels on every mesh series, and the three L7
+            // histograms carry ~20 buckets each, so a busy waypoint's page is
+            // overwhelmingly repeated label text rather than distinct data:
+            // gearbox--staging1a measured 36,758,855 bytes over 39,471 series,
+            // 86% of which are *_bucket lines.
+            //
+            // These eight carry no information the rest of the series doesn't
+            // already have, and account for 38% of those bytes (measured:
+            // 36,758,855 -> 23,142,907):
+            //   *_principal          SPIFFE URI; = ns + service account, both
+            //                        already present. 8% each.
+            //   *_canonical_service  identical to *_app (equal distinct counts).
+            //   *_canonical_revision identical to *_version.
+            //   *_cluster            constant "Kubernetes".
+            // source_canonical_revision already measures 0 bytes because the
+            // mesh-wide Telemetry tagOverrides strips it -- doing the same for
+            // the rest there is strictly better than dropping here, since
+            // Envoy then never serialises them and the collector never fetches
+            // or parses them. This relabeling is the portable fallback for
+            // bentos without that Telemetry config.
+            {
+              action: 'labeldrop',
+              regex: 'source_principal|destination_principal|source_canonical_service|destination_canonical_service|source_canonical_revision|destination_canonical_revision|source_cluster|destination_cluster',
             },
-          }],
+            // Control-plane and Envoy-internal series, matching the drop list
+            // the istio-prometheus addon already applies fleet-wide. Near-zero
+            // effect on this endpoint today (measured: 290 of 39,471 lines) --
+            // 15090 exposes no istio_agent_*/istiod_* at all -- but it keeps
+            // envoy_cluster_*/envoy_listener_* growth from leaking in, and
+            // keeps the two scrape paths consistent. NOTE: this also drops
+            // istio_agent_*, so switching to 15020 for
+            // istio_agent_cert_expiry_seconds means narrowing this regex too.
+            {
+              action: 'drop',
+              sourceLabels: ['__name__'],
+              regex: 'istio_agent_.*|istiod_.*|citadel_.*|galley_.*|envoy_cluster_[^u].*|envoy_cluster_update.*|envoy_listener_[^dh].*|envoy_server_[^mu].*|envoy_wasm_.*',
+            },
+          ],
         },
-      }),
-      podDisruptionBudget+: std.manifestYamlDoc({
-        spec: {
-          minAvailable: 1,
-        },
-      }),
+      },
+      // PodMonitor's default jobLabel is 'app', which Istio-generated waypoint
+      // pods do not carry (their labels are gateway.networking.k8s.io/*,
+      // istio.io/*, name, reporting_team, service.istio.io/*). The operator
+      // still emits the jobLabel relabeling, but its regex never matches, so
+      // `job` falls back to "<namespace>/<name>" -- and the OTel Prometheus
+      // receiver turns that into service.name. Keying off `name` (always
+      // present, equal to the Gateway name) yields service.name ==
+      // "<app>-waypoint", consistent with k8s.deployment.name.
+      jobLabel: 'name',
     },
   },
 
