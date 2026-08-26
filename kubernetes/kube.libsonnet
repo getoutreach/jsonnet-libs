@@ -1071,6 +1071,12 @@ local environment = std.extVar('environment');
   DatadogMetric(name, namespace, app=name): $._Object('datadoghq.com/v1alpha1', 'DatadogMetric', name, namespace=namespace, app=app) {
     local metric = self,
 
+    metadata+: {
+      annotations+: {
+        'external-metrics.datadoghq.com/always-active': 'true',
+      },
+    },
+
     query_:: error 'query is required',
     spec: {
       query: metric.query_,
