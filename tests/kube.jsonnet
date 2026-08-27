@@ -131,4 +131,106 @@ assert pmRelabel.spec.podMetricsEndpoints[0].metricRelabelings == [
   { regex: 'team', action: 'keep' },
 ];
 
+// KEDA: an HPA converts in place into the ScaledObject that owns it, with
+// triggers derived from the HPA's own metrics.
+local kedaTarget = {
+  apiVersion: 'apps/v1',
+  kind: 'Deployment',
+  metadata: { name: 'worker', namespace: 'ns' },
+  spec: { replicas: 2 },
+};
+local kedaHPA = k.HorizontalPodAutoscalerV2('worker', 'ns') {
+  target:: kedaTarget,
+  spec+: {
+    maxReplicas: 110,
+    behavior: { scaleDown: { stabilizationWindowSeconds: 60 } },
+    metrics: [
+      { type: 'External', external: {
+        metric: { name: 'datadogmetric@ns:queue-lag' },
+        target: { type: 'Value', value: 60 },
+      } },
+      { type: 'Resource', resource: {
+        name: 'cpu',
+        target: { type: 'Utilization', averageUtilization: 40 },
+      } },
+    ],
+  },
+};
+
+// disabled is the HPA that was there before, untouched -- this is what every
+// non-migrated bento renders
+assert kedaHPA + k.KedaScaledObject(false) == kedaHPA;
+
+local kedaSO = kedaHPA + k.KedaScaledObject(true);
+assert kedaSO.apiVersion == 'keda.sh/v1alpha1';
+assert kedaSO.kind == 'ScaledObject';
+// adopts the HPA that already exists under this name instead of failing
+assert kedaSO.metadata.annotations['scaledobject.keda.sh/transfer-hpa-ownership'] == 'true';
+assert kedaSO.metadata.name == 'worker';
+assert kedaSO.metadata.namespace == 'ns';
+// bounds, behavior, and the HPA's own name carry over
+assert kedaSO.spec.minReplicaCount == 2;
+assert kedaSO.spec.maxReplicaCount == 110;
+assert kedaSO.spec.advanced.horizontalPodAutoscalerConfig.name == 'worker';
+assert kedaSO.spec.advanced.horizontalPodAutoscalerConfig.behavior == kedaHPA.spec.behavior;
+// a failing scaler falls back to the ceiling, not to a guess
+assert kedaSO.spec.fallback == { failureThreshold: 3, replicas: 110 };
+// apps/v1 Deployment is KEDA's default, so only the name is emitted
+assert kedaSO.spec.scaleTargetRef == { name: 'worker' };
+// External DatadogMetric -> datadog trigger in Cluster Agent proxy mode, same
+// threshold; metricUnavailableValue's symbolic default resolves per trigger
+assert kedaSO.spec.triggers[0] == {
+  type: 'datadog',
+  metricType: 'Value',
+  metadata: {
+    useClusterAgentProxy: 'true',
+    datadogMetricNamespace: 'ns',
+    datadogMetricName: 'queue-lag',
+    targetValue: '60',
+    age: '90',
+    metricUnavailableValue: '60',
+  },
+  authenticationRef: { kind: 'ClusterTriggerAuthentication', name: 'datadog-cluster-agent-creds' },
+};
+// cpu Resource -> cpu trigger, Utilization semantics unchanged
+assert kedaSO.spec.triggers[1] == { type: 'cpu', metricType: 'Utilization', metadata: { value: '40' } };
+// the HPA spec is gone: autoscaling is declared once, in one shape
+assert !std.objectHas(kedaSO.spec, 'metrics');
+
+// opts override the migration defaults; metricUnavailableValue=null omits it
+local kedaSOOpts = kedaHPA + k.KedaScaledObject(true, {
+  datadogMetricAge: 300,
+  metricUnavailableValue: null,
+  clusterTriggerAuthentication: 'other-creds',
+});
+assert kedaSOOpts.spec.triggers[0].metadata.age == '300';
+assert !std.objectHas(kedaSOOpts.spec.triggers[0].metadata, 'metricUnavailableValue');
+assert kedaSOOpts.spec.triggers[0].authenticationRef.name == 'other-creds';
+
+// a cross-namespace DatadogMetric keeps its own namespace, an AverageValue
+// target keeps its metricType, and a non-Deployment target carries its kind
+local kedaSORollout = k.HorizontalPodAutoscalerV2('r', 'ns') {
+  target:: {
+    apiVersion: 'argoproj.io/v1alpha1',
+    kind: 'Rollout',
+    metadata: { name: 'r' },
+    spec: { replicas: 1 },
+  },
+  spec+: {
+    maxReplicas: 4,
+    metrics: [{ type: 'External', external: {
+      metric: { name: 'datadogmetric@other-ns:lag' },
+      target: { type: 'AverageValue', averageValue: 5 },
+    } }],
+  },
+} + k.KedaScaledObject(true);
+assert kedaSORollout.spec.scaleTargetRef == {
+  name: 'r',
+  apiVersion: 'argoproj.io/v1alpha1',
+  kind: 'Rollout',
+};
+assert kedaSORollout.spec.triggers[0].metadata.datadogMetricNamespace == 'other-ns';
+assert kedaSORollout.spec.triggers[0].metricType == 'AverageValue';
+assert kedaSORollout.spec.triggers[0].metadata.targetValue == '5';
+
 resources
