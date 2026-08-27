@@ -1093,13 +1093,6 @@ local environment = std.extVar('environment');
         // override in case you want 'all', 'workload' or 'none' to disable
         'istio.io/waypoint-for': 'all',
       },
-      annotations+: {
-        // Sync before wave 0, where a Service's istio.io/use-waypoint label
-        // typically lands. Without this, the Gateway and that label apply in
-        // the same wave with no ordering guarantee -- an unprogrammed
-        // waypoint with the label already applied blackholes traffic.
-        'argocd.argoproj.io/sync-wave': '-1',
-      },
     },
     spec+: {
       gatewayClassName: 'istio-waypoint',
@@ -1118,167 +1111,84 @@ local environment = std.extVar('environment');
     },
   },
 
-  // Bundles the Waypoint proxy tuning ConfigMap with a PodMonitor for its
-  // built-in metrics (container port 15020, path /stats/prometheus). The
-  // Service Istio generates for a waypoint does NOT expose that port (only
-  // status-port/15021 and mesh/15008), so ServiceMonitor doesn't work here --
-  // only PodMonitor does, hence bundling it here rather than a plain
-  // ServiceMonitor sibling.
-  //
-  // Returns a v1.List, so the result is NOT itself a ConfigMap: overlay via
-  // `items_+:: { configmap+: ... }`, not on the top-level result.
-  //
-  // Must stay a List, not a plain {configmap:, podmonitor:} wrapper. Callers
-  // put this inside FilteredList().items_, and kubecfg emits those items
-  // verbatim -- a kindless wrapper reaches argocd-vault-plugin as a document
-  // with no `kind` and breaks every affected app. ArgoCD flattens the List
-  // back into both objects. See tests/waypoint_proxy_config.jsonnet.
-  WaypointProxyConfig(name='waypoint-config', namespace, team): $.FilteredList() {
-    items_:: {
-      configmap: $.ConfigMap(name, namespace, team) {
-        metadata+: {
-          labels+: {
-            reporting_team: team,
-          },
-        },
-        data+: {
-          deployment+: std.manifestYamlDoc({
-            spec: {
-              template: {
-                metadata: {
-                  annotations: {
-                    'scaleops.sh/default-rightsize-policy': 'high-availability',
-                  },
-                },
-                spec: {
-                  nodeSelector: {
-                    'outreach.io/nodepool': 'ondemand',
-                  },
-                  priorityClassName: 'system-cluster-critical',
-                  tolerations: [{
-                    effect: 'NoSchedule',
-                    key: 'dedicated',
-                    operator: 'Equal',
-                    value: 'ondemand',
-                  }],
-                  topologySpreadConstraints: [{
-                    labelSelector: {
-                      matchLabels: {
-                        'gateway.networking.k8s.io/gateway-name': name,
-                      },
-                    },
-                    maxSkew: 1,
-                    topologyKey: 'topology.kubernetes.io/zone',
-                    whenUnsatisfiable: 'DoNotSchedule',
-                  }],
-                  containers: [{
-                    name: 'istio-proxy',
-                    resources: {
-                      limits: {
-                        memory: '1Gi',
-                      },
-                      requests: {
-                        cpu: '500m',
-                        memory: '200Mi',
-                      },
-                    },
-                  }],
-                },
+  WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
+    metadata+: {
+      labels+: {
+        reporting_team: team,
+      },
+    },
+    data+: {
+      deployment+: std.manifestYamlDoc({
+        spec: {
+          template: {
+            metadata: {
+              annotations: {
+                'scaleops.sh/default-rightsize-policy': 'high-availability',
               },
             },
-          }),
-          horizontalPodAutoscaler+: std.manifestYamlDoc({
             spec: {
-              minReplicas: 2,
-              maxReplicas: 6,
-              scaleTargetRef: {
-                apiVersion: 'apps/v1',
-                kind: 'Deployment',
-                name: name,
+              nodeSelector: {
+                'outreach.io/nodepool': 'ondemand',
               },
-              metrics: [{
-                type: 'Resource',
-                resource: {
-                  name: 'cpu',
-                  target: {
-                    type: 'Utilization',
-                    averageUtilization: 80,
+              priorityClassName: 'system-cluster-critical',
+              tolerations: [{
+                effect: 'NoSchedule',
+                key: 'dedicated',
+                operator: 'Equal',
+                value: 'ondemand',
+              }],
+              topologySpreadConstraints: [{
+                labelSelector: {
+                  matchLabels: {
+                    'gateway.networking.k8s.io/gateway-name': name,
+                  },
+                },
+                maxSkew: 1,
+                topologyKey: 'topology.kubernetes.io/zone',
+                whenUnsatisfiable: 'DoNotSchedule',
+              }],
+              containers: [{
+                name: 'istio-proxy',
+                resources: {
+                  limits: {
+                    memory: '1Gi',
+                  },
+                  requests: {
+                    cpu: '500m',
+                    memory: '200Mi',
                   },
                 },
               }],
             },
-          }),
-          podDisruptionBudget+: std.manifestYamlDoc({
-            spec: {
-              minAvailable: 1,
-            },
-          }),
+          },
         },
-      },
-      podmonitor: $.WaypointProxyPodMonitor(name, namespace, team),
-    },
-  },
-
-  // PodMonitor for a Waypoint proxy's Envoy metrics (http-envoy-prom, 15090).
-  // Istio generates the waypoint pod from the Gateway, so target_pod below is a
-  // synthetic stand-in carrying just enough shape for PodMonitor's port/selector
-  // auto-detection: 'http-envoy-prom' isn't a recognised metrics port name, so
-  // detection falls through to the sole-port case. Also exposed standalone for
-  // callers wanting only the PodMonitor.
-  //
-  // The explicit path is required -- 15090 serves only /stats/prometheus and
-  // 404s on the operator's default /metrics, yielding nothing, silently.
-  // 15020 is a superset (adds ~67 istio_agent_* series); to use it, switch the
-  // port, drop the path override, and narrow the istio_agent_* drop below.
-  WaypointProxyPodMonitor(name, namespace, team, interval='30s'): self.PodMonitor(name, namespace, interval=interval) {
-    target_pod:: {
-      metadata: {
-        labels: {
-          name: name,
-          reporting_team: team,
-        },
-      },
-      spec: {
-        containers: [{
-          ports: [{ name: 'http-envoy-prom', containerPort: 15090 }],
-        }],
-      },
-    },
-    spec+: {
-      // Required: 15090 serves no /metrics. See the port/path table above.
-      podMetricsEndpoints_+:: {
-        'http-envoy-prom': {
-          path: '/stats/prometheus',
-          metricRelabelings: [
-            // A busy waypoint's page is mostly repeated label text: these eight
-            // labels are ~38% of the bytes and add nothing the rest of the
-            // series doesn't already carry (*_principal is ns + service
-            // account; *_canonical_service tracks *_app, *_canonical_revision
-            // tracks *_version; *_cluster is constant "Kubernetes").
-            // Extending the mesh-wide Telemetry tagOverrides is strictly
-            // better, since Envoy then never serialises them at all; this is
-            // the portable fallback for bentos without that config.
-            {
-              action: 'labeldrop',
-              regex: 'source_principal|destination_principal|source_canonical_service|destination_canonical_service|source_canonical_revision|destination_canonical_revision|source_cluster|destination_cluster',
+      }),
+      horizontalPodAutoscaler+: std.manifestYamlDoc({
+        spec: {
+          minReplicas: 2,
+          maxReplicas: 6,
+          scaleTargetRef: {
+            apiVersion: 'apps/v1',
+            kind: 'Deployment',
+            name: name,
+          },
+          metrics: [{
+            type: 'Resource',
+            resource: {
+              name: 'cpu',
+              target: {
+                type: 'Utilization',
+                averageUtilization: 80,
+              },
             },
-            // Control-plane and Envoy-internal series, matching the drop list
-            // the istio-prometheus addon applies fleet-wide. Near-zero effect
-            // here (15090 exposes no istio_agent_*/istiod_*), but it keeps
-            // envoy_cluster_*/envoy_listener_* growth from leaking in.
-            {
-              action: 'drop',
-              sourceLabels: ['__name__'],
-              regex: 'istio_agent_.*|istiod_.*|citadel_.*|galley_.*|envoy_cluster_[^u].*|envoy_cluster_update.*|envoy_listener_[^dh].*|envoy_server_[^mu].*|envoy_wasm_.*',
-            },
-          ],
+          }],
         },
-      },
-      // Waypoint pods carry no 'app' label (PodMonitor's default), so `job`
-      // would fall back to "<namespace>/<name>" and the OTel Prometheus
-      // receiver would derive that as service.name. `name` is always present
-      // and equals the Gateway name, giving service.name == "<app>-waypoint".
-      jobLabel: 'name',
+      }),
+      podDisruptionBudget+: std.manifestYamlDoc({
+        spec: {
+          minAvailable: 1,
+        },
+      }),
     },
   },
 
