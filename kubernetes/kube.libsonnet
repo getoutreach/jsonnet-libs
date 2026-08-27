@@ -585,6 +585,176 @@ local environment = std.extVar('environment');
     },
   },
 
+  // ---------------------------------------------------------------------------
+  // KEDA
+  //
+  // KEDA (keda.sh) autoscales from a ScaledObject, which owns a
+  // HorizontalPodAutoscaler of its own: KEDA creates that HPA and thereafter
+  // overwrites its metrics, annotations, and labels on every reconcile. Two
+  // controllers writing one HPA is a fight -- and if the HPA is also declared
+  // in GitOps, ArgoCD is the second controller -- so a workload is autoscaled
+  // by *either* a HorizontalPodAutoscaler this library renders or a
+  // ScaledObject, never both. KedaScaledObject() converts the former into the
+  // latter in place, which keeps one declaration as the source of truth.
+  // ---------------------------------------------------------------------------
+
+  // Defaults for KEDA's Datadog scaler in Cluster Agent proxy mode -- the
+  // shape the Datadog-HPA -> KEDA migration standardised on. Override any of
+  // them per call site through KedaScaledObject()'s `opts`.
+  kedaDefaults:: {
+    // Cluster-wide credentials for the Datadog scaler, installed with KEDA
+    // itself (eks-cluster-addons), not per namespace.
+    clusterTriggerAuthentication: 'datadog-cluster-agent-creds',
+    // How far back the scaler reads the DatadogMetric, in seconds.
+    datadogMetricAge: 90,
+    pollingInterval: 30,
+    fallbackFailureThreshold: 3,
+    // Value the scaler reports when Datadog returns no data, so a no-data
+    // query holds replicas instead of surfacing as FailedGetExternalMetric on
+    // the HPA. The symbolic 'targetValue' resolves to each trigger's own
+    // target -- the only per-workload-correct default, since "at or above
+    // target holds replicas" is relative to a number that differs per
+    // workload. null omits it.
+    metricUnavailableValue: 'targetValue',
+    // Adopt an HPA that already exists under this name rather than failing.
+    transferHPAOwnership: true,
+  },
+
+  // kedaDatadogMetricRef splits a Datadog Cluster Agent external metric name
+  // ("datadogmetric@<namespace>:<name>") into its parts.
+  kedaDatadogMetricRef(metricName):: (
+    local prefix = 'datadogmetric@';
+    assert std.startsWith(metricName, prefix) :
+           'KEDA: external metric %s is not a DatadogMetric reference ("datadogmetric@<namespace>:<name>")' % metricName;
+    local rest = std.substr(metricName, std.length(prefix), std.length(metricName) - std.length(prefix));
+    local parts = std.splitLimit(rest, ':', 1);
+    assert std.length(parts) == 2 :
+           'KEDA: external metric %s is missing the ":<name>" half of a DatadogMetric reference' % metricName;
+    { namespace: parts[0], name: parts[1] }
+  ),
+
+  // kedaPlainNumber renders an HPA metric target as the plain number string
+  // KEDA's Datadog scaler expects. A quantity suffix ("10k") is valid on an
+  // HPA but the scaler parses this field with ParseFloat, so a suffix carried
+  // over verbatim produces a trigger that can never resolve -- fail loudly at
+  // render time instead.
+  kedaPlainNumber(value, what):: (
+    local s = std.toString(value);
+    assert std.length(std.stripChars(s, '0123456789.+-')) == 0 :
+           'KEDA: %s target %s must be a plain number, not a Kubernetes quantity -- the Datadog scaler parses it with ParseFloat' % [what, s];
+    s
+  ),
+
+  // kedaTrigger translates one HPA v2 metric into a KEDA trigger.
+  //  * An External metric referencing a DatadogMetric becomes a `datadog`
+  //    trigger in Cluster Agent proxy mode: same DatadogMetric CR, same
+  //    value, same threshold -- only the path the value travels changes.
+  //  * A cpu/memory Resource metric becomes KEDA's built-in cpu/memory
+  //    trigger, which reads metrics.k8s.io exactly as the HPA did.
+  kedaTrigger(metric, opts=$.kedaDefaults):: (
+    if metric.type == 'External' then
+      local ref = $.kedaDatadogMetricRef(metric.external.metric.name);
+      local target = metric.external.target;
+      local targetValue = $.kedaPlainNumber(
+        if std.objectHas(target, 'value') then target.value else target.averageValue,
+        'external metric ' + metric.external.metric.name,
+      );
+      {
+        type: 'datadog',
+        metricType: target.type,
+        metadata: {
+          useClusterAgentProxy: 'true',
+          datadogMetricNamespace: ref.namespace,
+          datadogMetricName: ref.name,
+          targetValue: targetValue,
+          age: std.toString(opts.datadogMetricAge),
+          [if opts.metricUnavailableValue != null then 'metricUnavailableValue']:
+            if opts.metricUnavailableValue == 'targetValue' then targetValue
+            else std.toString(opts.metricUnavailableValue),
+        },
+        authenticationRef: {
+          kind: 'ClusterTriggerAuthentication',
+          name: opts.clusterTriggerAuthentication,
+        },
+      }
+    else if metric.type == 'Resource' && (metric.resource.name == 'cpu' || metric.resource.name == 'memory') then
+      local target = metric.resource.target;
+      {
+        type: metric.resource.name,
+        metricType: target.type,
+        metadata: {
+          value: std.toString(
+            if std.objectHas(target, 'averageUtilization') then target.averageUtilization
+            else if std.objectHas(target, 'averageValue') then target.averageValue
+            else target.value
+          ),
+        },
+      }
+    else
+      error 'KEDA: no trigger for %s metric %s -- KEDA has no equivalent of Pods/Object metrics or of non-cpu/memory Resource metrics, so this HPA cannot be converted' % [
+        metric.type,
+        if metric.type == 'Resource' then metric.resource.name else std.toString(metric),
+      ]
+  ),
+
+  // KedaScaledObject converts the HorizontalPodAutoscalerV2 it is mixed into
+  // -- `hpa + $.KedaScaledObject(enabled)` -- into the KEDA ScaledObject that
+  // owns that HPA, deriving triggers from the HPA's own metrics so thresholds
+  // are declared once and cannot drift between the two shapes. Mix it in
+  // last: it reads the HPA spec after every other override has merged.
+  //
+  // `enabled` is required and has no default on purpose. KEDA is enabled
+  // cluster by cluster, so callers drive this from their own per-bento data
+  // and one call site renders a ScaledObject on the migrated clusters and a
+  // plain HPA on every other. enabled=false is exactly the HPA that was there
+  // before, byte for byte.
+  KedaScaledObject(enabled, opts={}):: if !enabled then {} else (
+    local o = $.kedaDefaults + opts;
+    {
+      local hpaSpec = super.spec,
+      local hpaName = super.metadata.name,
+      local scaleTarget = hpaSpec.scaleTargetRef,
+
+      apiVersion: 'keda.sh/v1alpha1',
+      kind: 'ScaledObject',
+
+      metadata+: {
+        annotations+: {
+          [if o.transferHPAOwnership then 'scaledobject.keda.sh/transfer-hpa-ownership']: 'true',
+        },
+      },
+
+      spec: {
+        scaleTargetRef: {
+          name: scaleTarget.name,
+          // KEDA defaults to apps/v1 Deployment.
+          [if scaleTarget.kind != 'Deployment' then 'apiVersion']: scaleTarget.apiVersion,
+          [if scaleTarget.kind != 'Deployment' then 'kind']: scaleTarget.kind,
+        },
+        minReplicaCount: hpaSpec.minReplicas,
+        maxReplicaCount: hpaSpec.maxReplicas,
+        pollingInterval: o.pollingInterval,
+        // A scaler that is failing must not strand the workload
+        // under-provisioned, so fall back to the workload's own ceiling
+        // rather than a guess at its steady state.
+        fallback: {
+          failureThreshold: o.fallbackFailureThreshold,
+          replicas: hpaSpec.maxReplicas,
+        },
+        advanced: {
+          horizontalPodAutoscalerConfig: {
+            // Keep the HPA's existing name. Without this KEDA creates
+            // keda-hpa-<scaledobject>, which orphans every dashboard, alert,
+            // and runbook that names the HPA.
+            name: hpaName,
+            [if std.objectHas(hpaSpec, 'behavior') then 'behavior']: hpaSpec.behavior,
+          },
+        },
+        triggers: [$.kedaTrigger(metric, o) for metric in hpaSpec.metrics],
+      },
+    }
+  ),
+
   VerticalPodAutoscaler(name, namespace, app=name): $._Object('autoscaling.k8s.io/v1beta2', 'VerticalPodAutoscaler', name, app=app, namespace=namespace) {
     local vpa = self,
     target:: error 'target required',
