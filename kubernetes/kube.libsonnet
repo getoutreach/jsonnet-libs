@@ -609,6 +609,10 @@ local environment = std.extVar('environment');
     datadogMetricAge: 90,
     pollingInterval: 30,
     fallbackFailureThreshold: 3,
+    // Serve the HPA from KEDA's last poll instead of a second live read of the
+    // Cluster Agent. Without it the HPA's 15s fetch and KEDA's poll both count
+    // toward failureThreshold, so a sub-minute Datadog blip trips fallback.
+    useCachedMetrics: true,
     // Value the scaler reports when Datadog returns no data, so a no-data
     // query holds replicas instead of surfacing as FailedGetExternalMetric on
     // the HPA. The symbolic 'targetValue' resolves to each trigger's own
@@ -662,6 +666,7 @@ local environment = std.extVar('environment');
       {
         type: 'datadog',
         metricType: target.type,
+        useCachedMetrics: opts.useCachedMetrics,
         metadata: {
           useClusterAgentProxy: 'true',
           datadogMetricNamespace: ref.namespace,

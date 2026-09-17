@@ -208,6 +208,7 @@ assert kedaSO.spec.scaleTargetRef == { name: 'worker' };
 assert kedaSO.spec.triggers[0] == {
   type: 'datadog',
   metricType: 'Value',
+  useCachedMetrics: true,
   metadata: {
     useClusterAgentProxy: 'true',
     datadogMetricNamespace: 'ns',
@@ -228,8 +229,10 @@ local kedaSOOpts = kedaHPA + k.KedaScaledObject(true, {
   datadogMetricAge: 300,
   metricUnavailableValue: null,
   clusterTriggerAuthentication: 'other-creds',
+  useCachedMetrics: false,
 });
 assert kedaSOOpts.spec.triggers[0].metadata.age == '300';
+assert kedaSOOpts.spec.triggers[0].useCachedMetrics == false;
 assert !std.objectHas(kedaSOOpts.spec.triggers[0].metadata, 'metricUnavailableValue');
 assert kedaSOOpts.spec.triggers[0].authenticationRef.name == 'other-creds';
 
