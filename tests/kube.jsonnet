@@ -199,8 +199,8 @@ assert kedaSO.spec.minReplicaCount == 2;
 assert kedaSO.spec.maxReplicaCount == 110;
 assert kedaSO.spec.advanced.horizontalPodAutoscalerConfig.name == 'worker';
 assert kedaSO.spec.advanced.horizontalPodAutoscalerConfig.behavior == kedaHPA.spec.behavior;
-// a failing scaler falls back to the ceiling, not to a guess
-assert kedaSO.spec.fallback == { failureThreshold: 3, replicas: 110 };
+// a failing scaler holds current replicas instead of jumping to the ceiling
+assert kedaSO.spec.fallback == { failureThreshold: 3, replicas: 110, behavior: 'currentReplicas' };
 // apps/v1 Deployment is KEDA's default, so only the name is emitted
 assert kedaSO.spec.scaleTargetRef == { name: 'worker' };
 // External DatadogMetric -> datadog trigger in Cluster Agent proxy mode, same
@@ -230,7 +230,9 @@ local kedaSOOpts = kedaHPA + k.KedaScaledObject(true, {
   metricUnavailableValue: null,
   clusterTriggerAuthentication: 'other-creds',
   useCachedMetrics: false,
+  fallbackBehavior: 'static',
 });
+assert kedaSOOpts.spec.fallback.behavior == 'static';
 assert kedaSOOpts.spec.triggers[0].metadata.age == '300';
 assert kedaSOOpts.spec.triggers[0].useCachedMetrics == false;
 assert !std.objectHas(kedaSOOpts.spec.triggers[0].metadata, 'metricUnavailableValue');

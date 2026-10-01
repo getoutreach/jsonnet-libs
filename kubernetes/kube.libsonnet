@@ -609,6 +609,8 @@ local environment = std.extVar('environment');
     datadogMetricAge: 90,
     pollingInterval: 30,
     fallbackFailureThreshold: 3,
+    // Hold replicas on scaler failure; 'static' jumps to maxReplicas on every Datadog API blip.
+    fallbackBehavior: 'currentReplicas',
     // Serve the HPA from KEDA's last poll instead of a second live read of the
     // Cluster Agent. Without it the HPA's 15s fetch and KEDA's poll both count
     // toward failureThreshold, so a sub-minute Datadog blip trips fallback.
@@ -739,12 +741,11 @@ local environment = std.extVar('environment');
         minReplicaCount: hpaSpec.minReplicas,
         maxReplicaCount: hpaSpec.maxReplicas,
         pollingInterval: o.pollingInterval,
-        // A scaler that is failing must not strand the workload
-        // under-provisioned, so fall back to the workload's own ceiling
-        // rather than a guess at its steady state.
+        // replicas is CRD-required; only 'static' and 'currentReplicasIf*' read it.
         fallback: {
           failureThreshold: o.fallbackFailureThreshold,
           replicas: hpaSpec.maxReplicas,
+          behavior: o.fallbackBehavior,
         },
         advanced: {
           horizontalPodAutoscalerConfig: {
