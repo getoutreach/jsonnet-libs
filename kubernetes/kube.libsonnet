@@ -981,7 +981,7 @@ local environment = std.extVar('environment');
   // ServiceMonitor selects a Service and scrapes its metrics port. Pass the
   // target Service via target_service:: -- the metrics port (named or targeting
   // 'metrics', else the sole port) and selector are derived from it. All
-  // Service labels are copied onto the series; scrape interval defaults to 30s
+  // Service labels are copied onto the series; scrape interval defaults to 60s
   // (override via the `interval` arg).
   //
   // Minimal usage (no overrides needed for a stencil service with a 'metrics'
@@ -1008,7 +1008,7 @@ local environment = std.extVar('environment');
   //   },
   // },
   // ```
-  ServiceMonitor(name, namespace, app=name, interval='30s'): $._Object(
+  ServiceMonitor(name, namespace, app=name, interval='60s'): $._Object(
     'monitoring.coreos.com/v1',
     'ServiceMonitor',
     name,
@@ -1105,7 +1105,7 @@ local environment = std.extVar('environment');
   //   },
   // },
   // ```
-  PodMonitor(name, namespace, app=name, interval='30s'): $._Object(
+  PodMonitor(name, namespace, app=name, interval='60s'): $._Object(
     'monitoring.coreos.com/v1',
     'PodMonitor',
     name,

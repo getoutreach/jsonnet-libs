@@ -50,12 +50,12 @@ assert std.length(sm.spec.endpoints) == 1;
 assert sm.spec.endpoints[0].targetPort == 'metrics';
 // honorLabels defaults to true
 assert sm.spec.endpoints[0].honorLabels == true;
-// interval defaults to 30s
-assert sm.spec.endpoints[0].interval == '30s';
+// interval defaults to 60s
+assert sm.spec.endpoints[0].interval == '60s';
 // default scrape-interval label is stamped on the endpoint (spec-level
 // metricRelabelings does not exist in the ServiceMonitor CRD)
 assert sm.spec.endpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
 ];
 assert !std.objectHas(sm.spec, 'metricRelabelings');
 // all Service labels are copied onto the series (not filtered)
@@ -98,7 +98,7 @@ local smRelabel = k.ServiceMonitor('test', 'test') {
   spec+: { endpoints_+:: { metrics+: { metricRelabelings: [{ regex: 'team', action: 'drop' }] } } },
 };
 assert smRelabel.spec.endpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
   { regex: 'team', action: 'drop' },
 ];
 
@@ -118,12 +118,12 @@ assert std.length(pm.spec.podMetricsEndpoints) == 1;
 assert pm.spec.podMetricsEndpoints[0].port == 'http-prom';
 // honorLabels defaults to true
 assert pm.spec.podMetricsEndpoints[0].honorLabels == true;
-// interval defaults to 30s
-assert pm.spec.podMetricsEndpoints[0].interval == '30s';
+// interval defaults to 60s
+assert pm.spec.podMetricsEndpoints[0].interval == '60s';
 // default scrape-interval label is stamped on the endpoint (spec-level
 // metricRelabelings does not exist in the PodMonitor CRD)
 assert pm.spec.podMetricsEndpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
 ];
 assert !std.objectHas(pm.spec, 'metricRelabelings');
 // all pod labels are copied onto the series (not filtered)
@@ -153,7 +153,7 @@ local pmRelabel = k.PodMonitor('test', 'test') {
   spec+: { podMetricsEndpoints_+:: { 'http-prom': { metricRelabelings: [{ regex: 'team', action: 'drop' }] } } },
 };
 assert pmRelabel.spec.podMetricsEndpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
   { regex: 'team', action: 'drop' },
 ];
 
