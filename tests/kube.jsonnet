@@ -44,18 +44,23 @@ local svc = {
   ] },
 };
 
+// default monitor interval is 60s in staging only, 30s everywhere else
+assert k.defaultMonitorInterval('staging') == '60s';
+assert k.defaultMonitorInterval('production') == '30s';
+assert k.defaultMonitorInterval('development') == '30s';
+
 local sm = k.ServiceMonitor('test', 'test') { target_service:: svc };
 assert std.length(sm.spec.endpoints) == 1;
 // port discovered by targetPort == 'metrics' regardless of name ordering
 assert sm.spec.endpoints[0].targetPort == 'metrics';
 // honorLabels defaults to true
 assert sm.spec.endpoints[0].honorLabels == true;
-// interval defaults to 60s
-assert sm.spec.endpoints[0].interval == '60s';
+// interval defaults to 30s outside staging (tests run with environment=development)
+assert sm.spec.endpoints[0].interval == '30s';
 // default scrape-interval label is stamped on the endpoint (spec-level
 // metricRelabelings does not exist in the ServiceMonitor CRD)
 assert sm.spec.endpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
 ];
 assert !std.objectHas(sm.spec, 'metricRelabelings');
 // all Service labels are copied onto the series (not filtered)
@@ -98,7 +103,7 @@ local smRelabel = k.ServiceMonitor('test', 'test') {
   spec+: { endpoints_+:: { metrics+: { metricRelabelings: [{ regex: 'team', action: 'drop' }] } } },
 };
 assert smRelabel.spec.endpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
   { regex: 'team', action: 'drop' },
 ];
 
@@ -118,12 +123,12 @@ assert std.length(pm.spec.podMetricsEndpoints) == 1;
 assert pm.spec.podMetricsEndpoints[0].port == 'http-prom';
 // honorLabels defaults to true
 assert pm.spec.podMetricsEndpoints[0].honorLabels == true;
-// interval defaults to 60s
-assert pm.spec.podMetricsEndpoints[0].interval == '60s';
+// interval defaults to 30s outside staging (tests run with environment=development)
+assert pm.spec.podMetricsEndpoints[0].interval == '30s';
 // default scrape-interval label is stamped on the endpoint (spec-level
 // metricRelabelings does not exist in the PodMonitor CRD)
 assert pm.spec.podMetricsEndpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
 ];
 assert !std.objectHas(pm.spec, 'metricRelabelings');
 // all pod labels are copied onto the series (not filtered)
@@ -153,7 +158,7 @@ local pmRelabel = k.PodMonitor('test', 'test') {
   spec+: { podMetricsEndpoints_+:: { 'http-prom': { metricRelabelings: [{ regex: 'team', action: 'drop' }] } } },
 };
 assert pmRelabel.spec.podMetricsEndpoints[0].metricRelabelings == [
-  { targetLabel: 'outreach_metric_collection_interval', replacement: '60' },
+  { targetLabel: 'outreach_metric_collection_interval', replacement: '30' },
   { regex: 'team', action: 'drop' },
 ];
 
