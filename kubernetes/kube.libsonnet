@@ -1346,7 +1346,7 @@ local environment = std.extVar('environment');
       }),
       horizontalPodAutoscaler+: std.manifestYamlDoc({
         spec: {
-          minReplicas: 2,
+          minReplicas: 3,
           maxReplicas: 6,
           scaleTargetRef: {
             apiVersion: 'apps/v1',
