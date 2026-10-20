@@ -1309,14 +1309,14 @@ local environment = std.extVar('environment');
             },
             spec: {
               nodeSelector: {
-                'outreach.io/nodepool': 'ondemand',
+                'outreach.io/nodepool': 'ondemand-no-dd',
               },
               priorityClassName: 'system-cluster-critical',
               tolerations: [{
                 effect: 'NoSchedule',
                 key: 'dedicated',
                 operator: 'Equal',
-                value: 'ondemand',
+                value: 'ondemand-no-dd',
               }],
               topologySpreadConstraints: [{
                 labelSelector: {
@@ -1346,7 +1346,7 @@ local environment = std.extVar('environment');
       }),
       horizontalPodAutoscaler+: std.manifestYamlDoc({
         spec: {
-          minReplicas: 2,
+          minReplicas: 3,
           maxReplicas: 6,
           scaleTargetRef: {
             apiVersion: 'apps/v1',
