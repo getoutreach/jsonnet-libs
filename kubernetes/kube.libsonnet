@@ -978,15 +978,11 @@ local environment = std.extVar('environment');
     replacement: std.toString(durationSeconds(interval)),
   },
 
-  // Default scrape interval for ServiceMonitor/PodMonitor: 60s in staging,
-  // 30s everywhere else.
-  defaultMonitorInterval(env=environment):: if env == 'staging' then '60s' else '30s',
-
   // ServiceMonitor selects a Service and scrapes its metrics port. Pass the
   // target Service via target_service:: -- the metrics port (named or targeting
   // 'metrics', else the sole port) and selector are derived from it. All
   // Service labels are copied onto the series; scrape interval defaults to 60s
-  // in staging and 30s elsewhere (override via the `interval` arg).
+  // (override via the `interval` arg).
   //
   // Minimal usage (no overrides needed for a stencil service with a 'metrics'
   // port):
@@ -1012,7 +1008,7 @@ local environment = std.extVar('environment');
   //   },
   // },
   // ```
-  ServiceMonitor(name, namespace, app=name, interval=$.defaultMonitorInterval()): $._Object(
+  ServiceMonitor(name, namespace, app=name, interval='60s'): $._Object(
     'monitoring.coreos.com/v1',
     'ServiceMonitor',
     name,
@@ -1055,12 +1051,12 @@ local environment = std.extVar('environment');
       // override this to explicitly adhere to the operator's API
       // and ignore all of the above, which is simply sugar
       endpoints: [
-        // interval defaults to the constructor's `interval` arg (see
-        // defaultMonitorInterval); override per-endpoint via endpoints_. The
-        // interval stamp is derived from the endpoint's effective interval, so
-        // per-endpoint overrides are reflected in the label; user
-        // metricRelabelings are appended after the stamp. To suppress the
-        // stamp, override metricRelabelings on the rendered endpoint.
+        // interval defaults to the constructor's `interval` arg (60s); override
+        // per-endpoint via endpoints_. The interval stamp is derived from the
+        // endpoint's effective interval, so per-endpoint overrides are
+        // reflected in the label; user metricRelabelings are appended after
+        // the stamp. To suppress the stamp, override metricRelabelings on the
+        // rendered endpoint.
         local ep = { honorLabels: true, interval: interval, targetPort: p } + this.spec.endpoints_[p];
         ep {
           metricRelabelings: [intervalRelabeling(ep.interval)]
@@ -1083,8 +1079,8 @@ local environment = std.extVar('environment');
 
   // PodMonitor scrapes pods directly, for apps that do not expose a Service
   // with a metrics port. Mirrors ServiceMonitor's defaults: minimal selector,
-  // honorLabels on, all pod labels copied onto the series, and the same
-  // environment-dependent scrape interval (see defaultMonitorInterval).
+  // honorLabels on, all pod labels copied onto the series, and a 60s scrape
+  // interval.
   //
   // Minimal usage (pod has a 'metrics'/'http-prom' container port):
   // ```
@@ -1109,7 +1105,7 @@ local environment = std.extVar('environment');
   //   },
   // },
   // ```
-  PodMonitor(name, namespace, app=name, interval=$.defaultMonitorInterval()): $._Object(
+  PodMonitor(name, namespace, app=name, interval='60s'): $._Object(
     'monitoring.coreos.com/v1',
     'PodMonitor',
     name,
@@ -1150,13 +1146,12 @@ local environment = std.extVar('environment');
       podMetricsEndpoints_:: { [default_port.name]: {} },
       // override this to explicitly adhere to the operator's API
       podMetricsEndpoints: [
-        // interval defaults to the constructor's `interval` arg (see
-        // defaultMonitorInterval); override per-endpoint via
-        // podMetricsEndpoints_. The interval stamp is derived from the
-        // endpoint's effective interval, so per-endpoint overrides are
-        // reflected in the label; user metricRelabelings are appended after
-        // the stamp. To suppress the stamp, override metricRelabelings on the
-        // rendered endpoint.
+        // interval defaults to the constructor's `interval` arg (60s); override
+        // per-endpoint via podMetricsEndpoints_. The interval stamp is derived
+        // from the endpoint's effective interval, so per-endpoint overrides
+        // are reflected in the label; user metricRelabelings are appended
+        // after the stamp. To suppress the stamp, override metricRelabelings
+        // on the rendered endpoint.
         local ep = { honorLabels: true, interval: interval, port: p } + this.spec.podMetricsEndpoints_[p];
         ep {
           metricRelabelings: [intervalRelabeling(ep.interval)]
