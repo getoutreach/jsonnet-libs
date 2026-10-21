@@ -520,9 +520,6 @@ local environment = std.extVar('environment');
           },
           metadata: {
             labels: deployment.metadata.labels,
-            annotations: {
-              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-            },
           },
         },
         strategy: {
@@ -806,9 +803,6 @@ local environment = std.extVar('environment');
           },
           metadata: {
             labels: sset.metadata.labels,
-            annotations: {
-              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-            },
           },
         },
 
@@ -834,9 +828,6 @@ local environment = std.extVar('environment');
         },
         metadata: {
           labels: job.metadata.labels,
-          annotations: {
-            'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-          },
         },
       },
 
@@ -869,9 +860,6 @@ local environment = std.extVar('environment');
         template: {
           metadata: {
             labels: ds.metadata.labels,
-            annotations: {
-              'cluster-autoscaler.kubernetes.io/safe-to-evict': 'true',
-            },
           },
           spec: $.PodSpec,
         },

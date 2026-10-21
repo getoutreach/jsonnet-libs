@@ -16,8 +16,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         app: test
         name: test
