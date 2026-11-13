@@ -1287,8 +1287,9 @@ local environment = std.extVar('environment');
     },
   },
 
-  // Nodepool, replicas, resources, HPA and PDB come from the istio-waypoint GatewayClass defaults in
-  // eks-cluster-addons (addons/istio). Only per-Gateway settings belong here; anything set here overrides the class.
+  // Waypoint defaults (nodepool, replicas, resources, zone spread, HPA, PDB) come from the istio-waypoint
+  // GatewayClass in eks-cluster-addons (addons/istio). Anything set here overrides the class for this Gateway.
+  // The CM must exist (the Gateway's parametersRef points at it), and `deployment` stays so overrides can extend it.
   WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
@@ -1296,24 +1297,7 @@ local environment = std.extVar('environment');
       },
     },
     data+: {
-      deployment+: std.manifestYamlDoc({
-        spec: {
-          template: {
-            spec: {
-              topologySpreadConstraints: [{
-                labelSelector: {
-                  matchLabels: {
-                    'gateway.networking.k8s.io/gateway-name': name,
-                  },
-                },
-                maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
-                whenUnsatisfiable: 'DoNotSchedule',
-              }],
-            },
-          },
-        },
-      }),
+      deployment+: std.manifestYamlDoc({}),
     },
   },
 
