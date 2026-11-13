@@ -1287,6 +1287,9 @@ local environment = std.extVar('environment');
     },
   },
 
+  // Waypoint defaults (nodepool, replicas, resources, zone spread, HPA, PDB) come from the istio-waypoint
+  // GatewayClass in eks-cluster-addons (addons/istio). Anything set here overrides the class for this Gateway.
+  // The CM must exist (the Gateway's parametersRef points at it), and `deployment` stays so overrides can extend it.
   WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
@@ -1294,77 +1297,7 @@ local environment = std.extVar('environment');
       },
     },
     data+: {
-      deployment+: std.manifestYamlDoc({
-        spec: {
-          template: {
-            metadata: {
-              annotations: {
-                'scaleops.sh/default-rightsize-policy': 'high-availability',
-              },
-            },
-            spec: {
-              nodeSelector: {
-                'outreach.io/nodepool': 'ondemand-no-dd',
-              },
-              priorityClassName: 'system-cluster-critical',
-              tolerations: [{
-                effect: 'NoSchedule',
-                key: 'dedicated',
-                operator: 'Equal',
-                value: 'ondemand-no-dd',
-              }],
-              topologySpreadConstraints: [{
-                labelSelector: {
-                  matchLabels: {
-                    'gateway.networking.k8s.io/gateway-name': name,
-                  },
-                },
-                maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
-                whenUnsatisfiable: 'DoNotSchedule',
-              }],
-              containers: [{
-                name: 'istio-proxy',
-                resources: {
-                  limits: {
-                    memory: '1Gi',
-                  },
-                  requests: {
-                    cpu: '500m',
-                    memory: '200Mi',
-                  },
-                },
-              }],
-            },
-          },
-        },
-      }),
-      horizontalPodAutoscaler+: std.manifestYamlDoc({
-        spec: {
-          minReplicas: 3,
-          maxReplicas: 6,
-          scaleTargetRef: {
-            apiVersion: 'apps/v1',
-            kind: 'Deployment',
-            name: name,
-          },
-          metrics: [{
-            type: 'Resource',
-            resource: {
-              name: 'cpu',
-              target: {
-                type: 'Utilization',
-                averageUtilization: 80,
-              },
-            },
-          }],
-        },
-      }),
-      podDisruptionBudget+: std.manifestYamlDoc({
-        spec: {
-          minAvailable: 1,
-        },
-      }),
+      deployment+: std.manifestYamlDoc({}),
     },
   },
 
