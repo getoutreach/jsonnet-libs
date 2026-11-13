@@ -1287,6 +1287,8 @@ local environment = std.extVar('environment');
     },
   },
 
+  // Nodepool, replicas, resources, HPA and PDB come from the istio-waypoint GatewayClass defaults in
+  // eks-cluster-addons (addons/istio). Only per-Gateway settings belong here; anything set here overrides the class.
   WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
@@ -1297,22 +1299,7 @@ local environment = std.extVar('environment');
       deployment+: std.manifestYamlDoc({
         spec: {
           template: {
-            metadata: {
-              annotations: {
-                'scaleops.sh/default-rightsize-policy': 'high-availability',
-              },
-            },
             spec: {
-              nodeSelector: {
-                'outreach.io/nodepool': 'ondemand-no-dd',
-              },
-              priorityClassName: 'system-cluster-critical',
-              tolerations: [{
-                effect: 'NoSchedule',
-                key: 'dedicated',
-                operator: 'Equal',
-                value: 'ondemand-no-dd',
-              }],
               topologySpreadConstraints: [{
                 labelSelector: {
                   matchLabels: {
@@ -1323,46 +1310,8 @@ local environment = std.extVar('environment');
                 topologyKey: 'topology.kubernetes.io/zone',
                 whenUnsatisfiable: 'DoNotSchedule',
               }],
-              containers: [{
-                name: 'istio-proxy',
-                resources: {
-                  limits: {
-                    memory: '1Gi',
-                  },
-                  requests: {
-                    cpu: '500m',
-                    memory: '200Mi',
-                  },
-                },
-              }],
             },
           },
-        },
-      }),
-      horizontalPodAutoscaler+: std.manifestYamlDoc({
-        spec: {
-          minReplicas: 3,
-          maxReplicas: 6,
-          scaleTargetRef: {
-            apiVersion: 'apps/v1',
-            kind: 'Deployment',
-            name: name,
-          },
-          metrics: [{
-            type: 'Resource',
-            resource: {
-              name: 'cpu',
-              target: {
-                type: 'Utilization',
-                averageUtilization: 80,
-              },
-            },
-          }],
-        },
-      }),
-      podDisruptionBudget+: std.manifestYamlDoc({
-        spec: {
-          minAvailable: 1,
         },
       }),
     },
