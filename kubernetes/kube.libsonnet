@@ -1261,7 +1261,8 @@ local environment = std.extVar('environment');
 
   // Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
   // Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
-  WaypointProxy(name='waypoint', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+  // Defaults come from the istio-waypoint GatewayClass. Set withConfig=true only to override them via WaypointProxyConfig(name).
+  WaypointProxy(name='waypoint', namespace, team, withConfig=false): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
         name: name,
@@ -1277,7 +1278,7 @@ local environment = std.extVar('environment');
         port: 15008,
         protocol: 'HBONE',
       }],
-      infrastructure+: {
+      [if withConfig then 'infrastructure']+: {
         parametersRef: {
           group: '',
           kind: 'ConfigMap',
@@ -1287,9 +1288,8 @@ local environment = std.extVar('environment');
     },
   },
 
-  // Waypoint defaults (nodepool, replicas, resources, zone spread, HPA, PDB) come from the istio-waypoint
-  // GatewayClass in eks-cluster-addons (addons/istio). Anything set here overrides the class for this Gateway.
-  // The CM must exist (the Gateway's parametersRef points at it), and `deployment` stays so overrides can extend it.
+  // Per-Gateway overrides of the istio-waypoint GatewayClass defaults (eks-cluster-addons addons/istio).
+  // Only applied when WaypointProxy has withConfig=true; otherwise this CM is unreferenced. Don't add it just in case.
   WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
