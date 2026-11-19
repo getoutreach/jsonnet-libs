@@ -1261,7 +1261,8 @@ local environment = std.extVar('environment');
 
   // Deploys only Gateway object which is proccessed by Istio and Waypoint proxy is added
   // Namespace, service or pods need to be labeled with 'istio.io/use-waypoint=waypoint' to use this waypoint
-  WaypointProxy(name='waypoint', namespace, team): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
+  // Defaults come from the istio-waypoint GatewayClass. Set withConfig=true only to override them via WaypointProxyConfig(name).
+  WaypointProxy(name='waypoint', namespace, team, withConfig=false): $._Object('gateway.networking.k8s.io/v1', 'Gateway', name, namespace=namespace) {
     metadata+: {
       labels+: {
         name: name,
@@ -1277,7 +1278,7 @@ local environment = std.extVar('environment');
         port: 15008,
         protocol: 'HBONE',
       }],
-      infrastructure+: {
+      [if withConfig then 'infrastructure']+: {
         parametersRef: {
           group: '',
           kind: 'ConfigMap',
@@ -1287,6 +1288,8 @@ local environment = std.extVar('environment');
     },
   },
 
+  // Per-Gateway overrides of the istio-waypoint GatewayClass defaults (eks-cluster-addons addons/istio).
+  // Only applied when WaypointProxy has withConfig=true; otherwise this CM is unreferenced. Don't add it just in case.
   WaypointProxyConfig(name='waypoint-config', namespace, team): self.ConfigMap(name, namespace, team) {
     metadata+: {
       labels+: {
@@ -1294,77 +1297,7 @@ local environment = std.extVar('environment');
       },
     },
     data+: {
-      deployment+: std.manifestYamlDoc({
-        spec: {
-          template: {
-            metadata: {
-              annotations: {
-                'scaleops.sh/default-rightsize-policy': 'high-availability',
-              },
-            },
-            spec: {
-              nodeSelector: {
-                'outreach.io/nodepool': 'ondemand-no-dd',
-              },
-              priorityClassName: 'system-cluster-critical',
-              tolerations: [{
-                effect: 'NoSchedule',
-                key: 'dedicated',
-                operator: 'Equal',
-                value: 'ondemand-no-dd',
-              }],
-              topologySpreadConstraints: [{
-                labelSelector: {
-                  matchLabels: {
-                    'gateway.networking.k8s.io/gateway-name': name,
-                  },
-                },
-                maxSkew: 1,
-                topologyKey: 'topology.kubernetes.io/zone',
-                whenUnsatisfiable: 'DoNotSchedule',
-              }],
-              containers: [{
-                name: 'istio-proxy',
-                resources: {
-                  limits: {
-                    memory: '1Gi',
-                  },
-                  requests: {
-                    cpu: '500m',
-                    memory: '200Mi',
-                  },
-                },
-              }],
-            },
-          },
-        },
-      }),
-      horizontalPodAutoscaler+: std.manifestYamlDoc({
-        spec: {
-          minReplicas: 3,
-          maxReplicas: 6,
-          scaleTargetRef: {
-            apiVersion: 'apps/v1',
-            kind: 'Deployment',
-            name: name,
-          },
-          metrics: [{
-            type: 'Resource',
-            resource: {
-              name: 'cpu',
-              target: {
-                type: 'Utilization',
-                averageUtilization: 80,
-              },
-            },
-          }],
-        },
-      }),
-      podDisruptionBudget+: std.manifestYamlDoc({
-        spec: {
-          minAvailable: 1,
-        },
-      }),
+      deployment+: std.manifestYamlDoc({}),
     },
   },
 
